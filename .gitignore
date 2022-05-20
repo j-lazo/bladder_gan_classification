@@ -1,0 +1,13 @@
+.idea/
+.DS_Store
+analyze_data.py
+run_experiment.py
+*/__pycache__
+logs/
+scripts/models/weights_gans
+scripts/models/weights_pretrained_backbones
+weights_pretrained_backbones.zip
+weights_gans.zip
+*.sh
+*.h5
+*.pyc

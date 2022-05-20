@@ -1,7 +1,11 @@
 import tensorflow as tf
 import os
 from tensorflow.keras import applications
-import datetime
+import time
+import tqdm
+from utils.data_management import datasets as dam
+import numpy as np
+import pandas as pd
 
 class Checkpoint:
     """Enhanced "tf.train.Checkpoint"."""
@@ -96,3 +100,89 @@ def load_pretrained_backbones(name_model, weights='imagenet', include_top=False,
     return new_base_model
 
 
+def evalute_test_directory(model, test_data, results_directory, new_results_id, analyze_data=True):
+
+    # determine if there are sub_folders or if it's the absolute path of the dataset
+    sub_dirs = [f for f in os.listdir(test_data) if os.path.isdir(test_data + f)]
+    if sub_dirs:
+        print(f'sub-directoires {sub_dirs} found in test foler')
+        for sub_dir in sub_dirs:
+            test_data_dir = ''.join([test_data, '/', sub_dir])
+            name_file = evaluate_and_predict(model, test_data_dir, results_directory,
+                                             results_id=new_results_id, output_name='test',
+                                             analyze_data=analyze_data)
+            print(f'Evaluation results saved at {name_file}')
+
+    else:
+        name_file = evaluate_and_predict(model, test_data, results_directory,
+                                         results_id=new_results_id, output_name='test',
+                                         analyze_data=analyze_data)
+
+        print(f'Evaluation results saved at {name_file}')
+
+
+def evaluate_and_predict(model, directory_to_evaluate, results_directory,
+                         output_name='', results_id='', batch_size=1,
+                         analyze_data=False, output_dir=''):
+    print(f'Evaluation of: {directory_to_evaluate}')
+
+    # load the data to evaluate and predict
+
+    batch_size = 8
+    test_x, test_y, dataset_dictionary = dam.load_data_from_directory(directory_to_evaluate)
+    test_dataset = dam.make_tf_dataset(directory_to_evaluate, batch_size)
+    test_steps = (len(test_x) // batch_size)
+
+    if len(test_x) % batch_size != 0:
+        test_steps += 1
+
+    evaluation = model.evaluate(test_dataset, steps=test_steps)
+    inference_times = []
+    prediction_names = []
+    prediction_outputs = []
+    real_values = []
+    print('Evaluation results:')
+    print(evaluation)
+    for i, (x, y) in tqdm.tqdm(enumerate(zip(test_x, test_y)), total=len(test_x)):
+        real_values.append(dataset_dictionary[x])
+        prediction_names.append(os.path.split(x)[-1])
+        init_time = time.time()
+        x = read_stacked_images_npy_predict(x)
+        x = np.expand_dims(x, axis=0)
+        y_pred = model.predict(x)
+        prediction_outputs.append(y_pred[0])
+        inference_times.append(time.time() - init_time)
+        # determine the top-1 prediction class
+        prediction_id = np.argmax(y_pred[0])
+
+    print('Prediction times analysis')
+    print(np.min(prediction_outputs), np.mean(prediction_outputs), np.max(prediction_outputs))
+
+    unique_values = np.unique(real_values)
+    label_index = [unique_values[np.argmax(pred)] for pred in prediction_outputs]
+
+    x_pred = [[] for _ in range(len(unique_values))]
+    for x in prediction_outputs:
+        for i in range(len(x)):
+            x_pred[i].append(x[i])
+
+    header_column = ['class_' + str(i+1) for i in range(5)]
+    header_column.insert(0, 'fname')
+    header_column.append('over all')
+    header_column.append('real values')
+    df = pd.DataFrame(columns=header_column)
+    df['fname'] = [os.path.basename(x_name) for x_name in test_x]
+    df['real values'] = real_values
+    for i in range(len(unique_values)):
+        class_name = 'class_' + str(i+1)
+        df[class_name] = x_pred[i]
+
+    df['over all'] = label_index
+    # save the predictions  of each case
+    results_csv_file = ''.join([results_directory, 'predictions_', output_name, '_', results_id, '_.csv'])
+    df.to_csv(results_csv_file, index=False)
+
+    if analyze_data is True:
+        pass
+
+    return results_csv_file
