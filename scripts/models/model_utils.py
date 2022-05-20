@@ -129,7 +129,7 @@ def evaluate_and_predict(model, directory_to_evaluate, results_directory,
     # load the data to evaluate and predict
 
     batch_size = 8
-    test_x, test_y, dataset_dictionary = dam.load_data_from_directory(directory_to_evaluate)
+    test_x, dataset_dictionary = dam.load_data_from_directory(directory_to_evaluate)
     test_dataset = dam.make_tf_dataset(directory_to_evaluate, batch_size)
     test_steps = (len(test_x) // batch_size)
 
@@ -143,11 +143,11 @@ def evaluate_and_predict(model, directory_to_evaluate, results_directory,
     real_values = []
     print('Evaluation results:')
     print(evaluation)
-    for i, (x, y) in tqdm.tqdm(enumerate(zip(test_x, test_y)), total=len(test_x)):
+    for i, x, in tqdm.tqdm(enumerate(test_x), total=len(test_x)):
         real_values.append(dataset_dictionary[x])
         prediction_names.append(os.path.split(x)[-1])
         init_time = time.time()
-        x = read_stacked_images_npy_predict(x)
+        x = dam.read_stacked_images_prediction(x, crop_size=256)
         x = np.expand_dims(x, axis=0)
         y_pred = model.predict(x)
         prediction_outputs.append(y_pred[0])
