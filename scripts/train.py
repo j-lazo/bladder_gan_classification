@@ -76,14 +76,6 @@ def call_models(name_model, path_dataset, mode='fit', backbones=['resnet101'], g
             with strategy.scope():
                 model = build_gan_model_features(backbones=backbones, gan_weights=gan_pretrained_weights)
                 model.summary()
-        else:
-            model = build_gan_model_features(backbones=backbones, gan_weights=gan_pretrained_weights)
-            model.summary()
-
-    if mode == 'fit':
-        start_time = datetime.datetime.now()
-        if strategy:
-            with strategy.scope():
                 callbacks = [
                     ModelCheckpoint(temp_name_model,
                                     monitor="val_loss", save_best_only=True),
@@ -97,17 +89,9 @@ def call_models(name_model, path_dataset, mode='fit', backbones=['resnet101'], g
                 metrics = ["accuracy", tf.keras.metrics.Precision(), tf.keras.metrics.Recall()]
                 print('Multi-GPU training')
                 model.compile(optimizer=optimizer, loss=loss, metrics=metrics)
-                # train the model
-                trained_model = model.fit(train_dataset,
-                                          epochs=epochs,
-                                          shuffle=True,
-                                          batch_size=batch_size,
-                                          validation_data=val_dataset,
-                                          steps_per_epoch=train_steps,
-                                          validation_steps=val_steps,
-                                          verbose=True,
-                                          callbacks=callbacks)
         else:
+            model = build_gan_model_features(backbones=backbones, gan_weights=gan_pretrained_weights)
+            model.summary()
             callbacks = [
                 ModelCheckpoint(temp_name_model,
                                 monitor="val_loss", save_best_only=True),
@@ -119,17 +103,20 @@ def call_models(name_model, path_dataset, mode='fit', backbones=['resnet101'], g
             optimizer = Adam(learning_rate=learning_rate)
             loss = 'categorical_crossentropy'
             metrics = ["accuracy", tf.keras.metrics.Precision(), tf.keras.metrics.Recall()]
+            print('Multi-GPU training')
             model.compile(optimizer=optimizer, loss=loss, metrics=metrics)
-            # train the model
-            trained_model = model.fit(train_dataset,
-                                      epochs=epochs,
-                                      shuffle=True,
-                                      batch_size=batch_size,
-                                      validation_data=val_dataset,
-                                      steps_per_epoch=train_steps,
-                                      validation_steps=val_steps,
-                                      verbose=True,
-                                      callbacks=callbacks)
+
+    if mode == 'fit':
+        start_time = datetime.datetime.now()
+        trained_model = model.fit(train_dataset,
+                                  epochs=epochs,
+                                  shuffle=True,
+                                  batch_size=batch_size,
+                                  validation_data=val_dataset,
+                                  steps_per_epoch=train_steps,
+                                  validation_steps=val_steps,
+                                  verbose=True,
+                                  callbacks=callbacks)
 
         model.save(''.join([results_directory, 'model_', new_results_id]))
 
@@ -151,8 +138,8 @@ def call_models(name_model, path_dataset, mode='fit', backbones=['resnet101'], g
             path_test_dataset = os.path.join(path_dataset, 'test')
             print(f'Test directory found at: {path_test_dataset}')
             evalute_test_directory(model, path_test_dataset, results_directory, new_results_id)
-            if analyze_data is True:
-                evaluate_results(path_test_dataset, )
+            #if analyze_data is True:
+            #    evaluate_results(path_test_dataset, )
 
         else:
             path_test_dataset = test_data
