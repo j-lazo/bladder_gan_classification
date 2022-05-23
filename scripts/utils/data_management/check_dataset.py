@@ -6,6 +6,8 @@ import tensorflow as tf
 import os
 import datasets as ds
 import numpy as np
+import tqdm
+
 
 def main(_argv):
     print(tf.__version__)
@@ -13,6 +15,7 @@ def main(_argv):
     batch_size = FLAGS.batch_size
     img_width = FLAGS.img_width
     img_height = FLAGS.img_height
+    training = FLAGS.training
 
     classes = [f for f in os.listdir(path_dataset) if not f.endswith('.csv')]
     domains = ['NBI', 'WLI']
@@ -24,11 +27,10 @@ def main(_argv):
         csv_file_dir = path_dataset + csv_file
         df = pd.read_csv(csv_file_dir)
 
-    dataset = ds.make_tf_dataset(path_dataset, batch_size)
+    dataset = ds.make_tf_dataset(path_dataset, batch_size, training=training)
 
     plt.figure()
     ncols = int(batch_size / 2)
-
     for inputs, label in dataset.take(5):
         image = inputs[0]
         domain = inputs[1]
@@ -48,6 +50,7 @@ if __name__ == '__main__':
     flags.DEFINE_integer('batch_size', 32, 'batch size')
     flags.DEFINE_integer('img_width', 256, 'batch size')
     flags.DEFINE_integer('img_height', 256, 'batch size')
+    flags.DEFINE_bool('training', False, 'Take training parameters or not to create the Data')
     try:
         app.run(main)
     except SystemExit:

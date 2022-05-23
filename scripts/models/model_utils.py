@@ -4,6 +4,7 @@ from tensorflow.keras import applications
 import time
 import tqdm
 from utils.data_management import datasets as dam
+import utils.data_analysis as daa
 import numpy as np
 import pandas as pd
 
@@ -128,9 +129,8 @@ def evaluate_and_predict(model, directory_to_evaluate, results_directory,
 
     # load the data to evaluate and predict
 
-    batch_size = 8
     test_x, dataset_dictionary = dam.load_data_from_directory(directory_to_evaluate)
-    test_dataset = dam.make_tf_dataset(directory_to_evaluate, batch_size)
+    test_dataset = dam.make_tf_dataset(directory_to_evaluate, batch_size=1)
     test_steps = (len(test_x) // batch_size)
 
     if len(test_x) % batch_size != 0:
@@ -144,19 +144,23 @@ def evaluate_and_predict(model, directory_to_evaluate, results_directory,
     image_domains = list()
     print('Evaluation results:')
     print(evaluation)
-    for i, x, in tqdm.tqdm(enumerate(test_x), total=len(test_x)):
-        if x in dataset_dictionary:
-            real_values.append(dataset_dictionary[x]['img_class'])
-            image_domains.append((dataset_dictionary[x]['img_domain']))
-            prediction_names.append(os.path.split(x)[-1])
-            init_time = time.time()
-            x_img, x_dm = dam.read_image_and_domain(dataset_dictionary[x], crop_size=256)
-            x_img = np.expand_dims(x_img, axis=0)
-            y_pred = model.predict([x_img, x_dm])
-            prediction_outputs.append(y_pred[0])
-            inference_times.append(time.time() - init_time)
-            # determine the top-1 prediction class
-            prediction_id = np.argmax(y_pred[0])
+    print(f'Tf dataset of {len(test_dataset)} elements found')
+    for i, x in enumerate(tqdm.tqdm(test_dataset, desc='Reading Images')):
+        name_file = test_x[i]
+        inputs_model = x[0]
+        label = x[1].numpy()
+
+        #if x in dataset_dictionary:
+        #prediction_names.append(os.path.split(x)[-1])
+        init_time = time.time()
+        y_pred = model.predict(inputs_model)
+        prediction_outputs.append(y_pred[0])
+        inference_times.append(time.time() - init_time)
+        real_values.append(dataset_dictionary[name_file]['img_class'])
+        image_domains.append((dataset_dictionary[name_file]['img_domain']))
+
+        # determine the top-1 prediction class
+        prediction_id = np.argmax(y_pred[0])
 
     print('Prediction time analysis')
     print(f' min t: {np.min(prediction_outputs)}, mean t: {np.mean(prediction_outputs)}, '
@@ -192,3 +196,9 @@ def evaluate_and_predict(model, directory_to_evaluate, results_directory,
         pass
 
     return results_csv_file
+
+def evaluate_results(directory_to_test, results_directory):
+    predictions_data_dir = 0
+    gt_data_file = 0
+    daa.analyze_multiclass_experiment(gt_data_file, results_directory, plot_figure=True,
+                                      analyze_training_history=True)
