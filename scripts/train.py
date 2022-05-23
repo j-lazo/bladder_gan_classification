@@ -52,8 +52,8 @@ def call_models(name_model, path_dataset, mode='fit', backbones=['resnet101'], g
     val_x, dictionary_val = dam.load_data_from_directory(path_val_dataset,
                                                              csv_annotations=path_csv_file_val)
 
-    train_dataset = dam.make_tf_dataset(path_train_dataset, batch_size)
-    val_dataset = dam.make_tf_dataset(path_val_dataset, batch_size)
+    train_dataset = dam.make_tf_dataset(path_train_dataset, batch_size, training=True)
+    val_dataset = dam.make_tf_dataset(path_val_dataset, batch_size, training=True)
 
     train_steps = len(train_x) // batch_size
     val_steps = len(val_x) // batch_size
@@ -81,7 +81,7 @@ def call_models(name_model, path_dataset, mode='fit', backbones=['resnet101'], g
         strategy = None
 
     # load the model
-    if name_model == 'build_gan_model_features':
+    if name_model == 'gan_model_multi_joint_features':
 
         model = build_gan_model_features(backbones=backbones, gan_weights=gan_pretrained_weights)
         model.summary()
