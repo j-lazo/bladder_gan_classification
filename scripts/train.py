@@ -73,7 +73,8 @@ def call_models(name_model, path_dataset, mode='fit', backbones=['resnet101'], g
     # load the model
     if name_model == 'gan_model_multi_joint_features':
         if strategy:
-            with strategy.scope():
+            pass
+            """with strategy.scope():
                 model = build_gan_model_features(backbones=backbones, gan_weights=gan_pretrained_weights)
                 model.summary()
                 callbacks = [
@@ -88,7 +89,7 @@ def call_models(name_model, path_dataset, mode='fit', backbones=['resnet101'], g
                 loss = 'categorical_crossentropy'
                 metrics = ["accuracy", tf.keras.metrics.Precision(), tf.keras.metrics.Recall()]
                 print('Multi-GPU training')
-                model.compile(optimizer=optimizer, loss=loss, metrics=metrics)
+                model.compile(optimizer=optimizer, loss=loss, metrics=metrics)"""
         else:
             model = build_gan_model_features(backbones=backbones, gan_weights=gan_pretrained_weights)
             model.summary()
