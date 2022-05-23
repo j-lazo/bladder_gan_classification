@@ -8,11 +8,12 @@ from tensorflow.keras.optimizers import SGD, Adam, RMSprop, Nadam
 import datetime
 from models.model_utils import evaluate_and_predict
 from models.model_utils import evalute_test_directory
+import utils.data_analysis as daa
 
 
 def call_models(name_model, path_dataset, mode='fit', backbones=['resnet101'], gan_model='checkpoint_charlie', epochs=2,
                 batch_size=1, learning_rate=0.001, val_data=None, test_data=None, eval_val_set=False, eval_train_set=False,
-                results_dir=os.path.join(os.getcwd(), 'results'), gpus_available=None):
+                results_dir=os.path.join(os.getcwd(), 'results'), gpus_available=None, analyze_data=False):
 
     gan_pretrained_weights = os.path.join(os.getcwd(), 'scripts', 'models', 'weights_gans', gan_model)
     # prepare the data
@@ -136,6 +137,8 @@ def call_models(name_model, path_dataset, mode='fit', backbones=['resnet101'], g
             path_test_dataset = os.path.join(path_dataset, 'test')
             print(f'Test directory found at: {path_test_dataset}')
             evalute_test_directory(model, path_test_dataset, results_directory, new_results_id)
+            if analyze_data is True:
+                daa.analyze_multiclass_experiment()
 
         else:
             path_test_dataset = test_data
