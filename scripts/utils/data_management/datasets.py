@@ -90,10 +90,13 @@ def load_data_from_directory(path_data, csv_annotations=None):
     list_files = [f for f in list_files if f.endswith('.png')]
     list_path_files = [f for f in list_path_files if f.endswith('.png')]
 
-    for j, file in enumerate(list_imgs):
-        if file in list_files:
+    for j, file in enumerate(list_files):
+        if file in list_imgs:
+            index_file = list_imgs.index(file)
+            # here you have to find the index first
             new_dictionary_labels = {file: {'image_name': file, 'path_file': list_path_files[j],
-                                            'img_class': list_classes[j], 'img_domain': list_domain[j]}}
+                                            'img_class': list_classes[index_file],
+                                            'img_domain': list_domain[index_file]}}
             dictionary_labels = {**dictionary_labels, **new_dictionary_labels}
         else:
             list_files.remove(file)
@@ -155,7 +158,9 @@ def make_tf_dataset(path, batch_size, training=False):
     images_domains = list()
     csv_annotations_file = [os.path.join(path, f) for f in os.listdir(path) if f.endswith('.csv')].pop()
     list_files, dictionary_labels = load_data_from_directory(path, csv_annotations=csv_annotations_file)
-    random.shuffle(list_files)
+    if training:
+        random.shuffle(list_files)
+
     for img_name in list_files:
       path_imgs.append(dictionary_labels[img_name]['path_file'])
       images_class.append(dictionary_labels[img_name]['img_class'])
@@ -180,7 +185,10 @@ def make_tf_dataset(path, batch_size, training=False):
     labels_ds = tf.data.Dataset.from_tensor_slices(network_labels)
     domain_ds = tf.data.Dataset.from_tensor_slices(images_domains)
     ds = tf.data.Dataset.zip(((images_ds, domain_ds), labels_ds))
-    ds = configure_for_performance(ds)
+    if training:
+        ds = configure_for_performance(ds)
+    else:
+        ds = ds.batch(batch_size)
 
     return ds
 
