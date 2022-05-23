@@ -72,6 +72,7 @@ def call_models(name_model, path_dataset, mode='fit', backbones=['resnet101'], g
 
     # load the model
     if name_model == 'gan_model_multi_joint_features':
+        model = None
         if strategy:
             pass
             """with strategy.scope():
