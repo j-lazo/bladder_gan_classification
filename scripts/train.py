@@ -83,14 +83,17 @@ def call_models(name_model, path_dataset, mode='fit', backbones=['resnet101'], g
 
     # load the model
     if name_model == 'gan_model_multi_joint_features':
-
-        model = build_gan_model_features(backbones=backbones, gan_weights=gan_pretrained_weights)
-        model.summary()
+        if strategy:
+            with strategy.scope():
+                model = build_gan_model_features(backbones=backbones, gan_weights=gan_pretrained_weights)
+                model.summary()
+        else:
+            model = build_gan_model_features(backbones=backbones, gan_weights=gan_pretrained_weights)
+            model.summary()
 
     if mode == 'fit':
         start_time = datetime.datetime.now()
         if strategy:
-            strategy = tf.distribute.MirroredStrategy()
             with strategy.scope():
                 print('Multi-GPU training')
                 model.compile(optimizer=optimizer, loss=loss, metrics=metrics)
@@ -138,7 +141,7 @@ def call_models(name_model, path_dataset, mode='fit', backbones=['resnet101'], g
             print(f'Test directory found at: {path_test_dataset}')
             evalute_test_directory(model, path_test_dataset, results_directory, new_results_id)
             if analyze_data is True:
-                daa.analyze_multiclass_experiment()
+                evaluate_results(path_test_dataset, )
 
         else:
             path_test_dataset = test_data
@@ -152,8 +155,9 @@ def main(_argv):
     batch_size = FLAGS.batch_size
     epochs = FLAGS.epochs
     results_dir = FLAGS.results_dir
+    learning_rate = FLAGS.learning_rate
     call_models(name_model, path_dataset, batch_size=batch_size, gpus_available=physical_devices,
-                epochs=epochs, results_dir=results_dir)
+                epochs=epochs, results_dir=results_dir, learning_rate=learning_rate)
 
 
 if __name__ == '__main__':
@@ -164,6 +168,7 @@ if __name__ == '__main__':
     flags.DEFINE_integer('batch_size', 8, 'batch size')
     flags.DEFINE_integer('epochs', 1, 'epochs')
     flags.DEFINE_string('results_dir', os.path.join(os.getcwd(), 'results'), 'directory to save the results')
+    flags.DEFINE_float('learning_rate', 0.001, 'learning rate')
 
     try:
         app.run(main)
