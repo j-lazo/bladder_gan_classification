@@ -91,6 +91,7 @@ def call_models(name_model, path_dataset, mode='fit', backbones=['resnet101'], g
         if strategy:
             strategy = tf.distribute.MirroredStrategy()
             with strategy.scope():
+                print('Multi-GPU training')
                 model.compile(optimizer=optimizer, loss=loss, metrics=metrics)
                 # train the model
                 trained_model = model.fit(train_dataset,
@@ -147,8 +148,9 @@ def main(_argv):
     name_model = FLAGS.name_model
     batch_size = FLAGS.batch_size
     epochs = FLAGS.epochs
+    results_dir = FLAGS.results_dir
     call_models(name_model, path_dataset, batch_size=batch_size, gpus_available=physical_devices,
-                epochs=epochs)
+                epochs=epochs, results_dir=results_dir)
 
 
 if __name__ == '__main__':
@@ -158,6 +160,7 @@ if __name__ == '__main__':
     flags.DEFINE_string('test_dataset', '', 'name of the model')
     flags.DEFINE_integer('batch_size', 8, 'batch size')
     flags.DEFINE_integer('epochs', 1, 'epochs')
+    flags.DEFINE_string('results_dir', os.path.join(os.getcwd(), 'results'), 'directory to save the results')
 
     try:
         app.run(main)
