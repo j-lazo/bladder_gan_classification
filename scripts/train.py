@@ -66,7 +66,8 @@ def call_models(name_model, path_dataset, mode='fit', backbones=['resnet101'], g
 
 
     if len(gpus_available) > 1:
-        strategy = tf.distribute.MirroredStrategy()
+        strategy = None
+        #strategy = tf.distribute.MirroredStrategy()
     else:
         strategy = None
 
