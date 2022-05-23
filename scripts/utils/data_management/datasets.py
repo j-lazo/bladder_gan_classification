@@ -5,6 +5,7 @@ import os
 import random
 import numpy as np
 import datetime
+import tensorflow_addons as tfa
 
 
 def generate_experiment_ID(name_model='', learning_rate='na', batch_size='na', backbone_model='',
@@ -57,11 +58,10 @@ def load_data_from_directory(path_data, csv_annotations=None):
     list_classes = list()
     list_domain = list()
     list_imgs = list()
+    list_files = list()
+    list_path_files = list()
 
-    list_files = os.listdir(path_data)
-    csv_list = [f for f in list_files if f.endswith('.csv')]
-    if csv_list:
-      csv_indir = csv_list.pop()
+    csv_list = [f for f in os.listdir(path_data) if f.endswith('.csv')]
 
     if csv_annotations:
       data_frame = pd.read_csv(csv_annotations)
@@ -69,23 +69,34 @@ def load_data_from_directory(path_data, csv_annotations=None):
       list_classes = data_frame['tissue type'].tolist()
       list_domain = data_frame['imaging type'].tolist()
 
+    else:
+        if csv_list:
+            csv_in_dir = csv_list.pop()
+            print(f'csv file {csv_in_dir} found in {path_data}, using it as ground truth data')
+            csv_annotations = os.path.join(path_data, csv_in_dir)
+            data_frame = pd.read_csv(csv_annotations)
+            list_imgs = data_frame['image_name'].tolist()
+            list_classes = data_frame['tissue type'].tolist()
+            list_domain = data_frame['imaging type'].tolist()
+
     list_unique_classes = np.unique(list_classes)
     list_unique_domains = np.unique(list_domain)
-    list_files = list()
-    list_path_files = list()
 
     for (dirpath, dirnames, filenames) in os.walk(path_data):
-      list_files += [file for file in filenames]
-      list_path_files += [os.path.join(dirpath, file) for file in filenames]
+        list_files += [file for file in filenames]
+        list_path_files += [os.path.join(dirpath, file) for file in filenames]
 
+    # remove all the files which are not images
     list_files = [f for f in list_files if f.endswith('.png')]
+    list_path_files = [f for f in list_path_files if f.endswith('.png')]
+
     for j, file in enumerate(list_imgs):
-      if file in list_files:
-        new_dictionary_labels = {file: {'image_name': file, 'path_file': list_path_files[j],
-                                        'img_class': list_classes[j], 'img_domain': list_domain[j]}}
-        dictionary_labels = {**dictionary_labels, **new_dictionary_labels}
-      else:
-        list_files.remove(file)
+        if file in list_files:
+            new_dictionary_labels = {file: {'image_name': file, 'path_file': list_path_files[j],
+                                            'img_class': list_classes[j], 'img_domain': list_domain[j]}}
+            dictionary_labels = {**dictionary_labels, **new_dictionary_labels}
+        else:
+            list_files.remove(file)
 
     print(f'Found {len(list_path_files)} images corresponding to {len(list_unique_classes)} classes and '
           f'{len(list_unique_domains)} domains at: {path_data}')
@@ -93,15 +104,34 @@ def load_data_from_directory(path_data, csv_annotations=None):
     return list_files, dictionary_labels
 
 
-def make_tf_dataset(path, batch_size):
+def make_tf_dataset(path, batch_size, training=False):
 
     global num_classes
+    global training_mode
+    training_mode = training
+
+    def rand_degree(lower, upper):
+        return random.uniform(lower, upper)
+
+    def rotate_img(img, lower=0, upper=180):
+
+        upper = upper * (np.pi / 180.0)  # degrees -> radian
+        lower = lower * (np.pi / 180.0)
+        img = tfa.image.rotate(img, rand_degree(lower, upper))
+        return img
 
     def parse_image(filename):
-      image = tf.io.read_file(filename)
-      image = tf.image.decode_png(image, channels=3)
-      image = tf.image.resize(image, [256, 256])
-      return image
+
+        image = tf.io.read_file(filename)
+        image = tf.image.decode_png(image, channels=3)
+        image = tf.image.resize(image, [256, 256])
+
+        if training_mode:
+            image = tf.image.random_flip_left_right(image)
+            image = tf.image.random_flip_up_down(image)
+            image = rotate_img(image)
+
+        return image
 
     def parse_label_output(y):
 
@@ -112,12 +142,6 @@ def make_tf_dataset(path, batch_size):
             return out_y
         y_out = tf.numpy_function(_parse, [y], [tf.float64])[0]
         return y_out
-
-    def parse_binary_label(y):
-        out_y = np.zeros(1)
-        out_y[y] = np.float32(y)
-        out_y[y] = out_y[y].astype(np.float64)
-        return out_y
 
     def configure_for_performance(dataset):
       dataset = dataset.shuffle(buffer_size=1000)
@@ -151,11 +175,9 @@ def make_tf_dataset(path, batch_size):
         l[label] = 1.0
         network_labels.append(l)
 
-
     filenames_ds = tf.data.Dataset.from_tensor_slices(list_path_files)
     images_ds = filenames_ds.map(parse_image, num_parallel_calls=tf.data.experimental.AUTOTUNE)
     labels_ds = tf.data.Dataset.from_tensor_slices(network_labels)
-    # = labels_ds.map(parse_label_output, num_parallel_calls=tf.data.experimental.AUTOTUNE)
     domain_ds = tf.data.Dataset.from_tensor_slices(images_domains)
     ds = tf.data.Dataset.zip(((images_ds, domain_ds), labels_ds))
     ds = configure_for_performance(ds)
@@ -163,12 +185,12 @@ def make_tf_dataset(path, batch_size):
     return ds
 
 
-def read_stacked_images_prediction(path_image, crop_size=256):
+def read_image_and_domain(dictionary_info, crop_size=256):
+    domain_types = ['NBI', 'WLI']
 
     def imread(path):
         img = tf.io.read_file(path)
         img = tf.image.decode_png(img, 3)
-
         return img
 
     def _map_fn(img, crop_size=32):  # preprocessing
@@ -177,10 +199,12 @@ def read_stacked_images_prediction(path_image, crop_size=256):
         img = tf.clip_by_value(img, 0, 255) / 255.0
         # or img = tl.minmax_norm(img)
         img = img * 2 - 1
-
         return img
 
+    path_image = dictionary_info['path_file']
     image = imread(path_image)
     image = _map_fn(image, crop_size=crop_size)
+    image_domain = domain_types.index(dictionary_info['img_domain'])
+    domain = tf.constant([image_domain])
 
-    return image
+    return image, domain

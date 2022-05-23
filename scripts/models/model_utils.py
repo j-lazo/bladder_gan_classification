@@ -100,21 +100,21 @@ def load_pretrained_backbones(name_model, weights='imagenet', include_top=False,
     return new_base_model
 
 
-def evalute_test_directory(model, test_data, results_directory, new_results_id, analyze_data=True):
+def evalute_test_directory(model, path_test_data, results_directory, new_results_id, analyze_data=True):
 
     # determine if there are sub_folders or if it's the absolute path of the dataset
-    sub_dirs = [f for f in os.listdir(test_data) if os.path.isdir(test_data + f)]
+    sub_dirs = [f for f in os.listdir(path_test_data) if os.path.isdir(os.path.join(path_test_data, f))]
     if sub_dirs:
-        print(f'sub-directoires {sub_dirs} found in test foler')
+        print(f'sub-directoires {sub_dirs} found in test folder')
         for sub_dir in sub_dirs:
-            test_data_dir = ''.join([test_data, '/', sub_dir])
+            test_data_dir = ''.join([path_test_data, '/', sub_dir])
             name_file = evaluate_and_predict(model, test_data_dir, results_directory,
                                              results_id=new_results_id, output_name='test',
                                              analyze_data=analyze_data)
             print(f'Evaluation results saved at {name_file}')
 
     else:
-        name_file = evaluate_and_predict(model, test_data, results_directory,
+        name_file = evaluate_and_predict(model, path_test_data, results_directory,
                                          results_id=new_results_id, output_name='test',
                                          analyze_data=analyze_data)
 
@@ -137,26 +137,30 @@ def evaluate_and_predict(model, directory_to_evaluate, results_directory,
         test_steps += 1
 
     evaluation = model.evaluate(test_dataset, steps=test_steps)
-    inference_times = []
-    prediction_names = []
-    prediction_outputs = []
-    real_values = []
+    inference_times = list()
+    prediction_names = list()
+    prediction_outputs = list()
+    real_values = list()
+    image_domains = list()
     print('Evaluation results:')
     print(evaluation)
     for i, x, in tqdm.tqdm(enumerate(test_x), total=len(test_x)):
-        real_values.append(dataset_dictionary[x])
-        prediction_names.append(os.path.split(x)[-1])
-        init_time = time.time()
-        x = dam.read_stacked_images_prediction(x, crop_size=256)
-        x = np.expand_dims(x, axis=0)
-        y_pred = model.predict(x)
-        prediction_outputs.append(y_pred[0])
-        inference_times.append(time.time() - init_time)
-        # determine the top-1 prediction class
-        prediction_id = np.argmax(y_pred[0])
+        if x in dataset_dictionary:
+            real_values.append(dataset_dictionary[x]['img_class'])
+            image_domains.append((dataset_dictionary[x]['img_domain']))
+            prediction_names.append(os.path.split(x)[-1])
+            init_time = time.time()
+            x_img, x_dm = dam.read_image_and_domain(dataset_dictionary[x], crop_size=256)
+            x_img = np.expand_dims(x_img, axis=0)
+            y_pred = model.predict([x_img, x_dm])
+            prediction_outputs.append(y_pred[0])
+            inference_times.append(time.time() - init_time)
+            # determine the top-1 prediction class
+            prediction_id = np.argmax(y_pred[0])
 
-    print('Prediction times analysis')
-    print(np.min(prediction_outputs), np.mean(prediction_outputs), np.max(prediction_outputs))
+    print('Prediction time analysis')
+    print(f' min t: {np.min(prediction_outputs)}, mean t: {np.mean(prediction_outputs)}, '
+          f'max t: {np.max(prediction_outputs)}')
 
     unique_values = np.unique(real_values)
     label_index = [unique_values[np.argmax(pred)] for pred in prediction_outputs]
@@ -168,11 +172,13 @@ def evaluate_and_predict(model, directory_to_evaluate, results_directory,
 
     header_column = ['class_' + str(i+1) for i in range(5)]
     header_column.insert(0, 'fname')
+    header_column.append('img_domain')
     header_column.append('over all')
     header_column.append('real values')
     df = pd.DataFrame(columns=header_column)
     df['fname'] = [os.path.basename(x_name) for x_name in test_x]
     df['real values'] = real_values
+    df['img_domain'] = image_domains
     for i in range(len(unique_values)):
         class_name = 'class_' + str(i+1)
         df[class_name] = x_pred[i]
