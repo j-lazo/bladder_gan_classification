@@ -64,17 +64,6 @@ def call_models(name_model, path_dataset, mode='fit', backbones=['resnet101'], g
     if len(val_x) % batch_size != 0:
         val_steps += 1
 
-    callbacks = [
-        ModelCheckpoint(temp_name_model,
-                        monitor="val_loss", save_best_only=True),
-        ReduceLROnPlateau(monitor='val_loss', patience=25),
-        CSVLogger(results_directory + 'train_history_' + new_results_id + "_.csv"),
-        EarlyStopping(monitor='val_loss', patience=20, restore_best_weights=True)]
-
-    # compile_model
-    optimizer = Adam(learning_rate=learning_rate)
-    loss = 'categorical_crossentropy'
-    metrics = ["accuracy", tf.keras.metrics.Precision(), tf.keras.metrics.Recall()]
 
     if len(gpus_available) > 1:
         strategy = tf.distribute.MirroredStrategy()
@@ -95,6 +84,17 @@ def call_models(name_model, path_dataset, mode='fit', backbones=['resnet101'], g
         start_time = datetime.datetime.now()
         if strategy:
             with strategy.scope():
+                callbacks = [
+                    ModelCheckpoint(temp_name_model,
+                                    monitor="val_loss", save_best_only=True),
+                    ReduceLROnPlateau(monitor='val_loss', patience=25),
+                    CSVLogger(results_directory + 'train_history_' + new_results_id + "_.csv"),
+                    EarlyStopping(monitor='val_loss', patience=20, restore_best_weights=True)]
+
+                # compile_model
+                optimizer = Adam(learning_rate=learning_rate)
+                loss = 'categorical_crossentropy'
+                metrics = ["accuracy", tf.keras.metrics.Precision(), tf.keras.metrics.Recall()]
                 print('Multi-GPU training')
                 model.compile(optimizer=optimizer, loss=loss, metrics=metrics)
                 # train the model
@@ -108,6 +108,17 @@ def call_models(name_model, path_dataset, mode='fit', backbones=['resnet101'], g
                                           verbose=True,
                                           callbacks=callbacks)
         else:
+            callbacks = [
+                ModelCheckpoint(temp_name_model,
+                                monitor="val_loss", save_best_only=True),
+                ReduceLROnPlateau(monitor='val_loss', patience=25),
+                CSVLogger(results_directory + 'train_history_' + new_results_id + "_.csv"),
+                EarlyStopping(monitor='val_loss', patience=20, restore_best_weights=True)]
+
+            # compile_model
+            optimizer = Adam(learning_rate=learning_rate)
+            loss = 'categorical_crossentropy'
+            metrics = ["accuracy", tf.keras.metrics.Precision(), tf.keras.metrics.Recall()]
             model.compile(optimizer=optimizer, loss=loss, metrics=metrics)
             # train the model
             trained_model = model.fit(train_dataset,
