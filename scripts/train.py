@@ -1,14 +1,42 @@
 import os
-
 import numpy as np
 from absl import app, flags
 from absl.flags import FLAGS
-from models.gan_classification import *
 from utils.data_management import datasets as dam
 from tensorflow.keras.callbacks import EarlyStopping, ModelCheckpoint, ReduceLROnPlateau, CSVLogger, TensorBoard
 from tensorflow.keras.optimizers import SGD, Adam, RMSprop, Nadam
 import datetime
 from models.model_utils import *
+from models.gan_classification import *
+
+
+def compile_model(name_model, strategy, optimizer, loss, metrics,
+                  backbones=None, gan_weights=None):
+
+    if strategy:
+        with strategy.scope():
+            if name_model == 'gan_model_multi_joint_features':
+                model = build_gan_model_joint_features(backbones=backbones, gan_weights=gan_weights)
+
+            elif name_model == 'gan_model_separate_features':
+                model = build_gan_model_separate_features(backbones=backbones, gan_weights=gan_weights)
+
+            model.summary()
+            print('Multi-GPU training')
+            model.compile(optimizer=optimizer, loss=loss, metrics=metrics)
+
+    else:
+        if name_model == 'gan_model_multi_joint_features':
+            model = build_gan_model_joint_features(backbones=backbones, gan_weights=gan_weights)
+        elif name_model == 'gan_model_multi_separate_features':
+            model = build_gan_model_separate_features(backbones=backbones, gan_weights=gan_weights)
+
+        model.summary()
+        # compile model
+        print('Single-GPU training')
+        model.compile(optimizer=optimizer, loss=loss, metrics=metrics)
+
+    return model
 
 
 def call_models(name_model, path_dataset, mode='fit', backbones=['resnet101'], gan_model='checkpoint_charlie', epochs=2,
@@ -69,45 +97,23 @@ def call_models(name_model, path_dataset, mode='fit', backbones=['resnet101'], g
     else:
         strategy = None
 
-    # load the model
-    if name_model == 'gan_model_multi_joint_features':
-        model = None
-        if strategy:
-            with strategy.scope():
-                model = build_gan_model_features(backbones=backbones, gan_weights=gan_pretrained_weights)
-                model.summary()
-                callbacks = [
-                    ModelCheckpoint(temp_name_model,
-                                    monitor="val_loss", save_best_only=True),
-                    ReduceLROnPlateau(monitor='val_loss', patience=25),
-                    CSVLogger(results_directory + 'train_history_' + new_results_id + "_.csv"),
-                    EarlyStopping(monitor='val_loss', patience=20, restore_best_weights=True)]
 
-                # compile_model
-                optimizer = Adam(learning_rate=learning_rate)
-                loss = 'categorical_crossentropy'
-                metrics = ["accuracy", tf.keras.metrics.Precision(), tf.keras.metrics.Recall()]
-                print('Multi-GPU training')
-                model.compile(optimizer=optimizer, loss=loss, metrics=metrics)
-        else:
-            model = build_gan_model_features(backbones=backbones, gan_weights=gan_pretrained_weights)
-            model.summary()
-            callbacks = [
-                ModelCheckpoint(temp_name_model,
-                                monitor="val_loss", save_best_only=True),
-                ReduceLROnPlateau(monitor='val_loss', patience=25),
-                CSVLogger(results_directory + 'train_history_' + new_results_id + "_.csv"),
-                EarlyStopping(monitor='val_loss', patience=20, restore_best_weights=True)]
-
-            # compile_model
-            optimizer = Adam(learning_rate=learning_rate)
-            loss = 'categorical_crossentropy'
-            metrics = ["accuracy", tf.keras.metrics.Precision(), tf.keras.metrics.Recall()]
-            print('Single-GPU training')
-            model.compile(optimizer=optimizer, loss=loss, metrics=metrics)
+    optimizer = Adam(learning_rate=learning_rate)
+    loss = 'categorical_crossentropy'
+    metrics = ["accuracy", tf.keras.metrics.Precision(), tf.keras.metrics.Recall()]
+    # load and compile the  model
+    model = compile_model(name_model, strategy, optimizer, loss, metrics, backbones=backbones,
+                          gan_weights=gan_pretrained_weights)
 
     if mode == 'fit':
+        callbacks = [
+            ModelCheckpoint(temp_name_model,
+                            monitor="val_loss", save_best_only=True),
+            ReduceLROnPlateau(monitor='val_loss', patience=25),
+            CSVLogger(results_directory + 'train_history_' + new_results_id + "_.csv"),
+            EarlyStopping(monitor='val_loss', patience=20, restore_best_weights=True)]
         start_time = datetime.datetime.now()
+
         trained_model = model.fit(train_dataset,
                                   epochs=epochs,
                                   shuffle=True,
@@ -127,13 +133,11 @@ def call_models(name_model, path_dataset, mode='fit', backbones=['resnet101'], g
         # in case evaluate val dataset is True
         if eval_val_set is True:
             evaluate_and_predict(model, val_dataset, results_directory,
-                                 results_id=new_results_id, output_name='val',
-                                 )
+                                 results_id=new_results_id, output_name='val')
 
         if eval_train_set is True:
             evaluate_and_predict(model, train_dataset, results_directory,
-                                 results_id=new_results_id, output_name='train',
-                                 )
+                                 results_id=new_results_id, output_name='train')
 
         if 'test' in list_subdirs_dataset:
             loaded_model, _ = load_model(dir_save_model)
@@ -142,9 +146,12 @@ def call_models(name_model, path_dataset, mode='fit', backbones=['resnet101'], g
             evalute_test_directory(loaded_model, path_test_dataset, results_directory, new_results_id,
                                    analyze_data=analyze_data)
 
-
         else:
             path_test_dataset = test_data
+            loaded_model, _ = load_model(dir_save_model)
+            print(f'Test directory found at: {path_test_dataset}')
+            evalute_test_directory(loaded_model, path_test_dataset, results_directory, new_results_id,
+                                   analyze_data=analyze_data)
 
 
 def main(_argv):
