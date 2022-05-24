@@ -130,7 +130,7 @@ def evaluate_and_predict(model, directory_to_evaluate, results_directory,
     # load the data to evaluate and predict
 
     test_x, dataset_dictionary = dam.load_data_from_directory(directory_to_evaluate)
-    test_dataset = dam.make_tf_dataset(directory_to_evaluate, batch_size=1)
+    test_dataset = dam.make_tf_dataset(directory_to_evaluate, batch_size=8)
     test_steps = (len(test_x) // batch_size)
 
     if len(test_x) % batch_size != 0:
@@ -144,13 +144,13 @@ def evaluate_and_predict(model, directory_to_evaluate, results_directory,
     image_domains = list()
     print('Evaluation results:')
     print(evaluation)
-    print(f'Tf dataset of {len(test_dataset)} elements found')
-    for i, x in enumerate(tqdm.tqdm(test_dataset, desc='Reading Images')):
+    print(f'Tensorflow Dataset of {len(test_dataset)} elements found')
+    for i, x in enumerate(tqdm.tqdm(test_dataset, desc='Maing predictions')):
         name_file = test_x[i]
         inputs_model = x[0]
         label = x[1].numpy()
 
-        #if x in dataset_dictionary:
+        index_label_tf_ds = np.argmax(label)
         #prediction_names.append(os.path.split(x)[-1])
         init_time = time.time()
         y_pred = model.predict(inputs_model)
@@ -198,7 +198,7 @@ def evaluate_and_predict(model, directory_to_evaluate, results_directory,
     return results_csv_file
 
 def evaluate_results(directory_to_test, results_directory):
-    predictions_data_dir = 0
-    gt_data_file = 0
+    predictions_data_dir = None
+    gt_data_file = None
     daa.analyze_multiclass_experiment(gt_data_file, results_directory, plot_figure=True,
                                       analyze_training_history=True)
