@@ -23,6 +23,7 @@ def compile_model(name_model, strategy, optimizer, loss, metrics,
 
             model.summary()
             print('Multi-GPU training')
+            loss = 'categorical_crossentropy'
             model.compile(optimizer=optimizer, loss=loss, metrics=metrics)
 
     else:
@@ -99,7 +100,6 @@ def call_models(name_model, path_dataset, mode='fit', backbones=['resnet101'], g
 
 
     optimizer = Adam(learning_rate=learning_rate)
-    loss = 'categorical_crossentropy'
     metrics = ["accuracy", tf.keras.metrics.Precision(), tf.keras.metrics.Recall()]
     # load and compile the  model
     model = compile_model(name_model, strategy, optimizer, loss, metrics, backbones=backbones,
