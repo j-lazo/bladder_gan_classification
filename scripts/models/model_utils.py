@@ -38,6 +38,22 @@ class Checkpoint:
             self.__getattribute__(attr)  # this will raise an exception
 
 
+def get_preprocess_input_backbone(name_backbone, x):
+
+    if name_backbone == 'resnet101':
+        preprocess_input = tf.keras.applications.resnet.preprocess_input(x)
+    elif name_backbone == 'resnet50':
+        preprocess_input = tf.keras.applications.resnet50.preprocess_input(x)
+    elif name_backbone == 'densenet121':
+        preprocess_input = tf.keras.applications.densenet.preprocess_input(x)
+    elif name_backbone == 'vgg19':
+        preprocess_input = tf.keras.applications.vgg19.preprocess_input(x)
+    elif name_backbone == 'inception_v3':
+        preprocess_input = tf.keras.applications.inception_v3.preprocess_input(x)
+
+    return preprocess_input
+
+
 def load_pretrained_backbones(name_model, weights='imagenet', include_top=False, trainable=False, new_name=None):
 
     """
