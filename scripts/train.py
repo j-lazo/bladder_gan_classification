@@ -157,20 +157,23 @@ def main(_argv):
     results_dir = FLAGS.results_dir
     learning_rate = FLAGS.learning_rate
     analyze_data = FLAGS.analyze_data
+    backbones = FLAGS.backbones
     call_models(name_model, path_dataset, batch_size=batch_size, gpus_available=physical_devices,
-                epochs=epochs, results_dir=results_dir, learning_rate=learning_rate, analyze_data=analyze_data)
+                epochs=epochs, results_dir=results_dir, learning_rate=learning_rate, analyze_data=analyze_data,
+                backbones=backbones)
 
 
 if __name__ == '__main__':
     flags.DEFINE_string('name_model', '', 'name of the model')
-    flags.DEFINE_string('path_dataset', '', 'name of the model')
-    flags.DEFINE_string('val_dataset', '', 'name of the model')
-    flags.DEFINE_string('test_dataset', '', 'name of the model')
+    flags.DEFINE_string('path_dataset', '', 'directory dataset')
+    flags.DEFINE_string('val_dataset', '', 'directory val dataset')
+    flags.DEFINE_string('test_dataset', '', 'directory test dataset')
     flags.DEFINE_integer('batch_size', 8, 'batch size')
     flags.DEFINE_integer('epochs', 1, 'epochs')
     flags.DEFINE_string('results_dir', os.path.join(os.getcwd(), 'results'), 'directory to save the results')
     flags.DEFINE_float('learning_rate', 0.001, 'learning rate')
     flags.DEFINE_boolean('analyze_data', True, 'analyze the data after the experiment')
+    flags.DEFINE_list('backbones', ['resnet101'], 'A list of the nets used as backbones: resnet101, resnet50, densenet121, vgg19')
 
     try:
         app.run(main)
