@@ -1,4 +1,6 @@
 import os
+
+import numpy as np
 from absl import app, flags
 from absl.flags import FLAGS
 from models.gan_classification import *
@@ -6,9 +8,7 @@ from utils.data_management import datasets as dam
 from tensorflow.keras.callbacks import EarlyStopping, ModelCheckpoint, ReduceLROnPlateau, CSVLogger, TensorBoard
 from tensorflow.keras.optimizers import SGD, Adam, RMSprop, Nadam
 import datetime
-from models.model_utils import evaluate_and_predict
-from models.model_utils import evalute_test_directory
-import utils.data_analysis as daa
+from models.model_utils import *
 
 
 def call_models(name_model, path_dataset, mode='fit', backbones=['resnet101'], gan_model='checkpoint_charlie', epochs=2,
@@ -118,7 +118,8 @@ def call_models(name_model, path_dataset, mode='fit', backbones=['resnet101'], g
                                   verbose=True,
                                   callbacks=callbacks)
 
-        model.save(''.join([results_directory, 'model_', new_results_id]))
+        dir_save_model = ''.join([results_directory, 'model_', new_results_id])
+        model.save(dir_save_model)
 
         print('Total Training TIME:', (datetime.datetime.now() - start_time))
         print('History Model Keys:')
@@ -135,11 +136,12 @@ def call_models(name_model, path_dataset, mode='fit', backbones=['resnet101'], g
                                  )
 
         if 'test' in list_subdirs_dataset:
+            loaded_model = load_model(dir_save_model)
             path_test_dataset = os.path.join(path_dataset, 'test')
             print(f'Test directory found at: {path_test_dataset}')
-            evalute_test_directory(model, path_test_dataset, results_directory, new_results_id)
+            evalute_test_directory(loaded_model, path_test_dataset, results_directory, new_results_id)
             #if analyze_data is True:
-            #    evaluate_results(path_test_dataset, )
+            #    evaluate_model(path_test_dataset, )
 
         else:
             path_test_dataset = test_data
