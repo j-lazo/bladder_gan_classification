@@ -136,7 +136,7 @@ def call_models(name_model, path_dataset, mode='fit', backbones=['resnet101'], g
                                  )
 
         if 'test' in list_subdirs_dataset:
-            loaded_model = load_model(dir_save_model)
+            loaded_model, _ = load_model(dir_save_model)
             path_test_dataset = os.path.join(path_dataset, 'test')
             print(f'Test directory found at: {path_test_dataset}')
             evalute_test_directory(loaded_model, path_test_dataset, results_directory, new_results_id)
