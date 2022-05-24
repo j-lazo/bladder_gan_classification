@@ -28,7 +28,7 @@ def compile_model(name_model, strategy, optimizer, loss, metrics,
     else:
         if name_model == 'gan_model_multi_joint_features':
             model = build_gan_model_joint_features(backbones=backbones, gan_weights=gan_weights)
-        elif name_model == 'gan_model_multi_separate_features':
+        elif name_model == 'gan_model_separate_features':
             model = build_gan_model_separate_features(backbones=backbones, gan_weights=gan_weights)
 
         model.summary()
