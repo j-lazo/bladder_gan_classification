@@ -100,22 +100,23 @@ def call_models(name_model, path_dataset, mode='fit', backbones=['resnet101'], g
         strategy = None
 
 
-    optimizer = Adam(learning_rate=learning_rate)
-    metrics = ["accuracy", tf.keras.metrics.Precision(), tf.keras.metrics.Recall()]
     # load and compile the  model
     #model = compile_model(name_model, strategy, optimizer, loss, metrics, backbones=backbones,
     #                      gan_weights=gan_pretrained_weights)
 
     if strategy:
         with strategy.scope():
+            optimizer = Adam(learning_rate=learning_rate)
+            metrics = ["accuracy", tf.keras.metrics.Precision(), tf.keras.metrics.Recall()]
+            loss = tf.keras.metrics.catergorical_crossentropy
             if name_model == 'gan_model_multi_joint_features':
-                model = build_gan_model_joint_features(backbones=backbones, gan_weights=gan_weights)
+                model = build_gan_model_joint_features(backbones=backbones, gan_weights=gan_pretrained_weights)
                 model.summary()
                 print('Multi-GPU training')
                 model.compile(optimizer=optimizer, loss=loss, metrics=metrics)
 
             elif name_model == 'gan_model_separate_features':
-                model = build_gan_model_separate_features(backbones=backbones, gan_weights=gan_weights)
+                model = build_gan_model_separate_features(backbones=backbones, gan_weights=gan_pretrained_weights)
                 model.summary()
                 print('Multi-GPU training')
                 model.compile(optimizer=optimizer, loss=loss, metrics=metrics)
