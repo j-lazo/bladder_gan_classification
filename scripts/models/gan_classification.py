@@ -1,3 +1,4 @@
+import numpy as np
 import tensorflow as tf
 from tensorflow import keras
 from models.building_blocks import *
@@ -47,8 +48,17 @@ def build_gan_model_features(backbones=['resnet101', 'resnet101', 'resnet101'], 
     c = tf.keras.backend.switch(t_input, c1, c2)
     r = tf.keras.backend.switch(t_input, r1, r2)
 
-    input_backbone_2 = c
-    input_backbone_3 = r
+    # then we need to resize and re-scale the data
+    input_backbone_2 = tf.math.scalar_mul(255., tf.math.divide(tf.math.subtract(c, tf.reduce_min(c)),
+                                                 tf.math.subtract(tf.reduce_max(c), tf.math.reduce_min(c))))
+    input_backbone_3 = tf.math.scalar_mul(255., tf.math.divide(tf.math.subtract(r, tf.reduce_min(r)),
+                                                 tf.math.subtract(tf.reduce_max(r), tf.math.reduce_min(r))))
+
+    input_backbone_2 = tf.cast(input_backbone_2, tf.float32)
+    input_backbone_3 = tf.cast(input_backbone_3, tf.float32)
+
+    #input_backbone_2 = c
+    #input_backbone_3 = r
 
     # load the backbones
     backbone_model_1 = load_pretrained_backbones(backbones[0])
