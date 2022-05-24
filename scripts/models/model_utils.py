@@ -144,8 +144,9 @@ def evaluate_and_predict(model, directory_to_evaluate, results_directory,
     image_domains = list()
     print('Evaluation results:')
     print(evaluation)
-    print(f'Tensorflow Dataset of {len(test_dataset)} elements found')
-    for i, x in enumerate(tqdm.tqdm(test_dataset, desc='Maing predictions')):
+    predict_dataset = dam.make_tf_dataset(directory_to_evaluate, batch_size=1)
+    print(f'Tensorflow Dataset of {len(predict_dataset)} elements found')
+    for i, x in enumerate(tqdm.tqdm(predict_dataset, desc='Making predictions')):
         name_file = test_x[i]
         inputs_model = x[0]
         label = x[1].numpy()
