@@ -8,6 +8,7 @@ import utils.data_analysis as daa
 import numpy as np
 import pandas as pd
 
+
 class Checkpoint:
     """Enhanced "tf.train.Checkpoint"."""
 
