@@ -64,10 +64,8 @@ def call_models(name_model, path_dataset, mode='fit', backbones=['resnet101'], g
     if len(val_x) % batch_size != 0:
         val_steps += 1
 
-
     if len(gpus_available) > 1:
-        strategy = None
-        #strategy = tf.distribute.MirroredStrategy()
+        strategy = tf.distribute.MirroredStrategy()
     else:
         strategy = None
 
@@ -75,8 +73,7 @@ def call_models(name_model, path_dataset, mode='fit', backbones=['resnet101'], g
     if name_model == 'gan_model_multi_joint_features':
         model = None
         if strategy:
-            pass
-            """with strategy.scope():
+            with strategy.scope():
                 model = build_gan_model_features(backbones=backbones, gan_weights=gan_pretrained_weights)
                 model.summary()
                 callbacks = [
@@ -91,7 +88,7 @@ def call_models(name_model, path_dataset, mode='fit', backbones=['resnet101'], g
                 loss = 'categorical_crossentropy'
                 metrics = ["accuracy", tf.keras.metrics.Precision(), tf.keras.metrics.Recall()]
                 print('Multi-GPU training')
-                model.compile(optimizer=optimizer, loss=loss, metrics=metrics)"""
+                model.compile(optimizer=optimizer, loss=loss, metrics=metrics)
         else:
             model = build_gan_model_features(backbones=backbones, gan_weights=gan_pretrained_weights)
             model.summary()
