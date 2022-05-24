@@ -198,7 +198,34 @@ def evaluate_and_predict(model, directory_to_evaluate, results_directory,
 
     return results_csv_file
 
-def evaluate_results(directory_to_test, results_directory):
+
+def load_model(directory_model):
+    model_path = None
+    if directory_model.endswith('.h5'):
+        model_path = directory_model
+    else:
+        files_dir = [f for f in os.listdir(directory_model) if f.endswith('.h5')]
+        if files_dir:
+            model_path = files_dir.pop()
+        else:
+            files_dir = [f for f in os.listdir(directory_model) if f.endswith('.pb')]
+            if files_dir:
+                model_path = ''
+                print(f'Tensorflow model found at {directory_model}')
+            else:
+                print(f'No model found in {directory_model}')
+
+    print('MODEL USED:')
+    print(model_path)
+    print(f'Model path: {directory_model + model_path}')
+    model = tf.keras.models.load_model(directory_model + model_path)
+    model.summary()
+    input_size = (len(model.layers[0].output_shape[:]))
+
+    return model, input_size
+
+
+def evaluate_model(directory_to_test, results_directory):
     predictions_data_dir = None
     gt_data_file = None
     daa.analyze_multiclass_experiment(gt_data_file, results_directory, plot_figure=True,
