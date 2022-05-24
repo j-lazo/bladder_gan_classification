@@ -139,9 +139,9 @@ def call_models(name_model, path_dataset, mode='fit', backbones=['resnet101'], g
             loaded_model, _ = load_model(dir_save_model)
             path_test_dataset = os.path.join(path_dataset, 'test')
             print(f'Test directory found at: {path_test_dataset}')
-            evalute_test_directory(loaded_model, path_test_dataset, results_directory, new_results_id)
-            #if analyze_data is True:
-            #    evaluate_model(path_test_dataset, )
+            evalute_test_directory(loaded_model, path_test_dataset, results_directory, new_results_id,
+                                   analyze_data=analyze_data)
+
 
         else:
             path_test_dataset = test_data
@@ -156,8 +156,9 @@ def main(_argv):
     epochs = FLAGS.epochs
     results_dir = FLAGS.results_dir
     learning_rate = FLAGS.learning_rate
+    analyze_data = FLAGS.analyze_data
     call_models(name_model, path_dataset, batch_size=batch_size, gpus_available=physical_devices,
-                epochs=epochs, results_dir=results_dir, learning_rate=learning_rate)
+                epochs=epochs, results_dir=results_dir, learning_rate=learning_rate, analyze_data=analyze_data)
 
 
 if __name__ == '__main__':
@@ -169,6 +170,7 @@ if __name__ == '__main__':
     flags.DEFINE_integer('epochs', 1, 'epochs')
     flags.DEFINE_string('results_dir', os.path.join(os.getcwd(), 'results'), 'directory to save the results')
     flags.DEFINE_float('learning_rate', 0.001, 'learning rate')
+    flags.DEFINE_boolean('analyze_data', True, 'analyze the data after the experiment')
 
     try:
         app.run(main)

@@ -190,13 +190,16 @@ def evaluate_and_predict(model, directory_to_evaluate, results_directory,
 
     df['over all'] = label_index
     # save the predictions  of each case
-    results_csv_file = ''.join([results_directory, 'predictions_', output_name, '_', results_id, '_.csv'])
-    df.to_csv(results_csv_file, index=False)
+    path_results_csv_file = ''.join([results_directory, 'predictions_', output_name, '_', results_id, '_.csv'])
+    df.to_csv(path_results_csv_file, index=False)
 
     if analyze_data is True:
-        pass
+        gt_data_file = [f for f in os.listdir(directory_to_evaluate) if f.endswith('.csv')].pop()
+        path_gt_data_file = os.path.join(directory_to_evaluate, gt_data_file)
+        daa.analyze_multiclass_experiment(path_gt_data_file, results_directory, plot_figure=True,
+                                          analyze_training_history=True)
 
-    return results_csv_file
+    return path_results_csv_file
 
 
 def load_model(directory_model):
@@ -223,10 +226,3 @@ def load_model(directory_model):
     input_size = (len(model.layers[0].output_shape[:]))
 
     return model, input_size
-
-
-def evaluate_model(directory_to_test, results_directory):
-    predictions_data_dir = None
-    gt_data_file = None
-    daa.analyze_multiclass_experiment(gt_data_file, results_directory, plot_figure=True,
-                                      analyze_training_history=True)
