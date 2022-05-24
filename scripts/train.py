@@ -108,7 +108,7 @@ def call_models(name_model, path_dataset, mode='fit', backbones=['resnet101'], g
         with strategy.scope():
             optimizer = Adam(learning_rate=learning_rate)
             metrics = ["accuracy", tf.keras.metrics.Precision(), tf.keras.metrics.Recall()]
-            loss = 'categorical_corssentropy'
+            loss = 'categorical_crossentropy'
             if name_model == 'gan_model_multi_joint_features':
                 model = build_gan_model_joint_features(backbones=backbones, gan_weights=gan_pretrained_weights)
                 model.summary()
