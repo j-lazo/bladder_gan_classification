@@ -6,7 +6,7 @@ import random
 import numpy as np
 import datetime
 import tensorflow_addons as tfa
-
+from utils import image as img_fun
 
 def generate_experiment_ID(name_model='', learning_rate='na', batch_size='na', backbone_model='',
                            prediction_model='', mode=''):
@@ -125,8 +125,7 @@ def make_tf_dataset(path, batch_size, training=False):
 
     def parse_image(filename):
 
-        image = tf.io.read_file(filename)
-        image = tf.image.decode_png(image, channels=3)
+        image = img_fun.decode_image(filename)
         image = tf.image.resize(image, [256, 256])
 
         if training_mode:
