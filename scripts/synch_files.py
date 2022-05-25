@@ -31,7 +31,7 @@ if __name__ == '__main__':
     flags.DEFINE_string('local', None, 'dir to local')
     flags.DEFINE_string('local_path_results', os.path.join(os.getcwd(), 'results'), 'dir to local results')
     flags.DEFINE_string('name_file_local', 'list_experiments.txt', 'dir to local results')
-    flags.DEFINE_string('name_file_remote', 'list_remote_experiments.txt', 'results'), 'dir to local results')
+    flags.DEFINE_string('name_file_remote', 'list_remote_experiments.txt', 'dir to local results')
 
     try:
         app.run(main)
