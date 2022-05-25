@@ -1,7 +1,7 @@
 import os
 from absl import app, flags
 from absl.flags import FLAGS
-
+import subprocess
 
 def read_file(dir_file):
     with open(dir_file, 'r') as f:
@@ -22,7 +22,15 @@ def main(_argv):
         list_files_local = read_file(os.path.join(local_path_results, name_file_local))
         list_files_remote = read_file(os.path.join(local_path_results, name_file_remote))
         list_missing = [f for f in list_files_remote if f not in list_files_local]
-        print(list_missing)
+        print(f'{len(list_missing)} need to be synch')
+
+    for file in list_missing:
+        pass
+    cmd = 'ssh'
+    temp = subprocess.Popen([cmd, '-c 1', local], stdout=subprocess.PIPE)
+    # get the output as a string
+    output = str(temp.communicate())
+
 
 
 if __name__ == '__main__':
