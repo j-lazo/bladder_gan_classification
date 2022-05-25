@@ -76,17 +76,4 @@ if __name__ == '__main__':
         app.run(read_directory)
     except SystemExit:
         pass
-    #base_path = '/media/benoit/DATA/Jorge/current_work/code_projects/bladder_gan_classification/results/bladder_tissue_classification_v2'
-    #directory_path =
-    #read_directory(directory_path)
-    # Get the list of servers from the text file
-    #servers = list(open('servers.txt'))
-    # Iterate over all the servers that we read from the text file
-    # and remove all the extra lines. This is just a preprocessing step
-    # to make sure there aren't any unnecessary lines.
-    #for i in range(len(servers)):
-    #    servers[i] = servers[i].strip('\n')
-    #outputlist = ping(servers)
 
-    # Uncomment the following lines to print the output of successful servers
-    # print(outputlist)
