@@ -60,7 +60,6 @@ def read_directory(_argv):
             if f not in list_existing_files:
                 list_files_update.append(f)
 
-    print(list_files_update)
     f = open(os.path.join(directory_path, output_file_name), 'w')
     for i, experiment_file in enumerate(list_files_update):
         f.write(''.join([experiment_file, "\r\n"]))
