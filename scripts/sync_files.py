@@ -46,6 +46,7 @@ def transfer_files(local_host):
 
     ssh = SSHClient()
     ssh.load_system_host_keys()
+    print(f'connecting to {local_host}')
     ssh.connect(local_host)
 
     # SCPCLient takes a paramiko transport as an argument
