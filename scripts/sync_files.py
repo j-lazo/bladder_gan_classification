@@ -88,6 +88,11 @@ def main(_argv):
         # read list experiment folders
         list_finished_experiments = [f for f in os.listdir(folder_results)
                                      if os.path.isdir(os.path.join(folder_results, f))]
+
+        # check the experiment is finished
+        list_finished_experiments = [f for f in list_finished_experiments
+                                     if len(os.listdir(os.path.join(folder_results, f))) >= 7]
+
         # read list .zip folders
         list_zipped_folders = [f for f in os.listdir(transfer_results) if f.endswith('.zip')]
 
