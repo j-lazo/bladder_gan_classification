@@ -6,23 +6,6 @@ from absl.flags import FLAGS
 import numpy as np
 
 
-def ping(servers):
-    # The command you want to execute
-    cmd = 'ping'
-
-    # send one packet of data to the host
-    # this is specified by '-c 1' in the argument list
-    outputlist = []
-    # Iterate over all the servers in the list and ping each server
-    for server in servers:
-        temp = subprocess.Popen([cmd, '-c 1', server], stdout=subprocess.PIPE)
-        # get the output as a string
-        output = str(temp.communicate())
-        # store the output in the list
-        outputlist.append(output)
-    return outputlist
-
-
 def read_file(dir_file):
     with open(dir_file, 'r') as f:
         lines = f.readlines()
@@ -40,7 +23,7 @@ def check_file_exists(path_list, name_file='list_experiments.txt'):
         return None
 
 
-def read_directory(_argv):
+def update_experiment_list(_argv):
     base_path = FLAGS.base_path
     output_file_name = FLAGS.output_file_name
 
@@ -73,7 +56,7 @@ if __name__ == '__main__':
     flags.DEFINE_string('base_path', None, 'base directory')
     flags.DEFINE_string('output_file_name', 'list_experiments.txt', 'name of the output file')
     try:
-        app.run(read_directory)
+        app.run(update_experiment_list)
     except SystemExit:
         pass
 
