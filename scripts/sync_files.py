@@ -81,9 +81,13 @@ def main(_argv):
     if mode == 'prepare_files':
         if not folder_results:
             raise ValueError('folder_results not defined')
+        else:
+            print(os.path.isdir(folder_results))
 
         if not transfer_results:
             raise ValueError('transfer_results not defined')
+        else:
+            print(os.path.isdir(transfer_results))
 
         # read list experiment folders
         list_finished_experiments = [f for f in os.listdir(folder_results)
