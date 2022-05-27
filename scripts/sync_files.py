@@ -80,12 +80,12 @@ def main(_argv):
 
     if mode == 'prepare_files':
         if not folder_results:
-            raise ValueError('folder_results not defined')
+            folder_results = os.path.join(os.getcwd(), 'results', 'bladder_tissue_classification_v2')
         else:
             print(os.path.isdir(folder_results))
 
         if not transfer_results:
-            raise ValueError('transfer_results not defined')
+            transfer_results = os.path.join(os.getcwd(), 'results', 'bladder_tissue_classification_v2_transfer')
         else:
             print(os.path.isdir(transfer_results))
 
