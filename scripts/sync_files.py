@@ -42,28 +42,23 @@ def check_file_exists(path_list, name_file='list_experiments.txt'):
         return None
 
 
-def transfer_files(local_path_results, name_file_local, name_file_remote):
+def transfer_files(local_host):
 
     ssh = SSHClient()
     ssh.load_system_host_keys()
-    ssh.connect('example.com')
+    ssh.connect(local_host)
 
     # SCPCLient takes a paramiko transport as an argument
     scp = SCPClient(ssh.get_transport())
 
-    scp.put('test.txt', 'test2.txt')
-    scp.get('test2.txt')
+    #scp.put('test.txt', 'test2.txt')
+    #scp.get('test2.txt')
 
     # Uploading the 'test' directory with its content in the
     # '/home/user/dump' remote directory
-    scp.put('test', recursive=True, remote_path='/home/user/dump')
+    #scp.put('test', recursive=True, remote_path='/home/user/dump')
 
     scp.close()
-
-    for file in list_missing:
-        pass
-
-    pass
 
 
 def main(_argv):
@@ -129,16 +124,25 @@ def main(_argv):
 
         f.close()
         print(f'list experiments file updated at dir: {directory_path}')
+        # 2Do Unzip new files
 
+        # 2Do: Analyze experiment
+        # 2Do:
 
     elif mode == 'transfer_results':
         list_files = os.listdir(local_path_results)
 
+        # first compare which files are missing in local
+        list_missing = list()
         if name_file_local in list_files:
             list_files_local = read_txt_file(os.path.join(local_path_results, name_file_local))
             list_files_remote = read_txt_file(os.path.join(local_path_results, name_file_remote))
             list_missing = [f for f in list_files_remote if f not in list_files_local]
             print(f'{len(list_missing)} need to be sync')
+
+        for i, missing_file in enumerate(tqdm.tqdm(list_missing, desc='Preparing files')):
+            print(f'Coping {missing_file} to local')
+            transfer_files(local)
 
 
 if __name__ == '__main__':
