@@ -107,7 +107,7 @@ def load_data_from_directory(path_data, csv_annotations=None):
     return list_files, dictionary_labels
 
 
-def make_tf_dataset(path, batch_size, training=False):
+def make_tf_dataset(path, batch_size, training=False, multioutput=False):
 
     global num_classes
     global training_mode
@@ -182,8 +182,11 @@ def make_tf_dataset(path, batch_size, training=False):
     filenames_ds = tf.data.Dataset.from_tensor_slices(list_path_files)
     images_ds = filenames_ds.map(parse_image, num_parallel_calls=tf.data.experimental.AUTOTUNE)
     labels_ds = tf.data.Dataset.from_tensor_slices(network_labels)
-    domain_ds = tf.data.Dataset.from_tensor_slices(images_domains)
-    ds = tf.data.Dataset.zip(((images_ds, domain_ds), labels_ds))
+    if multioutput:
+        domain_ds = tf.data.Dataset.from_tensor_slices(images_domains)
+        ds = tf.data.Dataset.zip(((images_ds, domain_ds), labels_ds))
+    else:
+        ds = tf.data.Dataset.zip(images_ds, labels_ds)
     if training:
         ds = configure_for_performance(ds)
     else:
