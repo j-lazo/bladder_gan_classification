@@ -186,7 +186,7 @@ def make_tf_dataset(path, batch_size, training=False, multi_output=False):
         domain_ds = tf.data.Dataset.from_tensor_slices(images_domains)
         ds = tf.data.Dataset.zip(((images_ds, domain_ds), labels_ds))
     else:
-        ds = tf.data.Dataset.zip(images_ds, labels_ds)
+        ds = tf.data.Dataset.zip((images_ds, labels_ds))
     if training:
         ds = configure_for_performance(ds)
     else:
