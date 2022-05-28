@@ -26,12 +26,16 @@ def compile_model(name_model, strategy, optimizer, loss, metrics,
                 model.summary()
                 print('Multi-GPU training')
                 model.compile(optimizer=optimizer, loss=loss, metrics=metrics)
+            else:
+                model = build_pretrained_model(name_model)
 
     else:
         if name_model == 'gan_model_multi_joint_features':
             model = build_gan_model_joint_features(backbones=backbones, gan_weights=gan_weights)
         elif name_model == 'gan_model_separate_features':
             model = build_gan_model_separate_features(backbones=backbones, gan_weights=gan_weights)
+        else:
+            model = build_pretrained_model(name_model)
 
         model.summary()
         # compile model
@@ -44,7 +48,11 @@ def compile_model(name_model, strategy, optimizer, loss, metrics,
 def call_models(name_model, path_dataset, mode='fit', backbones=['resnet101'], gan_model='checkpoint_charlie', epochs=2,
                 batch_size=1, learning_rate=0.001, val_data=None, test_data=None, eval_val_set=False, eval_train_set=False,
                 results_dir=os.path.join(os.getcwd(), 'results'), gpus_available=None, analyze_data=False):
-
+    multi_input_models = ['gan_model_multi_joint_features', 'gan_model_separate_features']
+    if name_model not in multi_input_models:
+        multioutput = False
+    else:
+        multioutput = True
     gan_pretrained_weights = os.path.join(os.getcwd(), 'scripts', 'models', 'weights_gans', gan_model)
     # prepare the data
     list_subdirs_dataset = os.listdir(path_dataset)
@@ -83,8 +91,8 @@ def call_models(name_model, path_dataset, mode='fit', backbones=['resnet101'], g
     val_x, dictionary_val = dam.load_data_from_directory(path_val_dataset,
                                                              csv_annotations=path_csv_file_val)
 
-    train_dataset = dam.make_tf_dataset(path_train_dataset, batch_size, training=True)
-    val_dataset = dam.make_tf_dataset(path_val_dataset, batch_size, training=True)
+    train_dataset = dam.make_tf_dataset(path_train_dataset, batch_size, training=True, multi_output=multioutput)
+    val_dataset = dam.make_tf_dataset(path_val_dataset, batch_size, training=True, multi_output=multioutput)
 
     train_steps = len(train_x) // batch_size
     val_steps = len(val_x) // batch_size
@@ -120,12 +128,16 @@ def call_models(name_model, path_dataset, mode='fit', backbones=['resnet101'], g
                 model.summary()
                 print('Multi-GPU training')
                 model.compile(optimizer=optimizer, loss=loss, metrics=metrics)
+            else:
+                model = build_pretrained_model(name_model)
 
     else:
         if name_model == 'gan_model_multi_joint_features':
             model = build_gan_model_joint_features(backbones=backbones, gan_weights=gan_weights)
         elif name_model == 'gan_model_separate_features':
             model = build_gan_model_separate_features(backbones=backbones, gan_weights=gan_weights)
+        else:
+            model = build_pretrained_model(name_model)
 
         model.summary()
         # compile model
@@ -159,11 +171,11 @@ def call_models(name_model, path_dataset, mode='fit', backbones=['resnet101'], g
         print(trained_model.history.keys())
         # in case evaluate val dataset is True
         if eval_val_set is True:
-            evaluate_and_predict(model, val_dataset, results_directory,
+            evaluate_and_predict(loaded_model, val_dataset, results_directory,
                                  results_id=new_results_id, output_name='val')
 
         if eval_train_set is True:
-            evaluate_and_predict(model, train_dataset, results_directory,
+            evaluate_and_predict(loaded_model, train_dataset, results_directory,
                                  results_id=new_results_id, output_name='train')
 
         if 'test' in list_subdirs_dataset:
@@ -171,7 +183,7 @@ def call_models(name_model, path_dataset, mode='fit', backbones=['resnet101'], g
             path_test_dataset = os.path.join(path_dataset, 'test')
             print(f'Test directory found at: {path_test_dataset}')
             evalute_test_directory(loaded_model, path_test_dataset, results_directory, new_results_id,
-                                   analyze_data=analyze_data)
+                                   analyze_data=analyze_data, multioutput=multioutput)
 
         else:
             path_test_dataset = test_data
