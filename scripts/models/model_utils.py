@@ -7,7 +7,12 @@ from utils.data_management import datasets as dam
 import utils.data_analysis as daa
 import numpy as np
 import pandas as pd
+import tensorflow as tf
+from tensorflow import keras
 
+input_sizes_models = {'vgg16': (224, 224), 'vgg19': (224, 224), 'inception_v3': (299, 299),
+                      'resnet50': (224, 224), 'resnet101': (224, 244), 'mobilenet': (224, 224),
+                      'densenet121': (224, 224), 'xception': (299, 299)}
 
 class Checkpoint:
     """Enhanced "tf.train.Checkpoint"."""
@@ -118,7 +123,8 @@ def load_pretrained_backbones(name_model, weights='imagenet', include_top=False,
     return new_base_model
 
 
-def evalute_test_directory(model, path_test_data, results_directory, new_results_id, analyze_data=True):
+def evalute_test_directory(model, path_test_data, results_directory, new_results_id,
+                           analyze_data=True, multioutput=True):
 
     # determine if there are sub_folders or if it's the absolute path of the dataset
     sub_dirs = [f for f in os.listdir(path_test_data) if os.path.isdir(os.path.join(path_test_data, f))]
@@ -128,7 +134,8 @@ def evalute_test_directory(model, path_test_data, results_directory, new_results
             test_data_dir = ''.join([path_test_data, '/', sub_dir])
             name_file = evaluate_and_predict(model, test_data_dir, results_directory,
                                              results_id=new_results_id, output_name='test',
-                                             analyze_data=analyze_data)
+                                             analyze_data=analyze_data,
+                                             multioutput=multioutput)
             print(f'Evaluation results saved at {name_file}')
 
     else:
@@ -141,13 +148,13 @@ def evalute_test_directory(model, path_test_data, results_directory, new_results
 
 def evaluate_and_predict(model, directory_to_evaluate, results_directory,
                          output_name='', results_id='', batch_size=1,
-                         analyze_data=False, output_dir=''):
+                         analyze_data=False, multioutput=True, output_dir=''):
     print(f'Evaluation of: {directory_to_evaluate}')
 
     # load the data to evaluate and predict
 
     test_x, dataset_dictionary = dam.load_data_from_directory(directory_to_evaluate)
-    test_dataset = dam.make_tf_dataset(directory_to_evaluate, batch_size=8)
+    test_dataset = dam.make_tf_dataset(directory_to_evaluate,batch_size=8, multioutput=multioutput)
     test_steps = (len(test_x) // batch_size)
 
     if len(test_x) % batch_size != 0:
@@ -243,3 +250,25 @@ def load_model(directory_model):
     input_size = (len(model.layers[0].output_shape[:]))
 
     return model, input_size
+
+
+def build_pretrained_model(name_model):
+    input_image = keras.Input(shape=(256, 256, 3), name="image")
+
+    x = tf.image.resize(input_image, input_sizes_models[name_model], method='bilinear')
+    x = get_preprocess_input_backbone(name_model, x)
+    base_model = load_pretrained_backbones(name_model)
+    for layer in base_model.layers:
+        layer.trainable = False
+
+    x = base_model(x)
+    x = GlobalAveragePooling2D()(x)
+    x = Dense(1024, activation='relu')(x)
+    x = Dropout(0.5)(x)
+    x = Dense(1024, activation='relu')(x)
+    x = Dropout(0.5)(x)
+    x = Dense(512, activation='relu')(x)
+    x = Flatten()(x)
+    output_layer = Dense(5, activation='softmax')(x)
+
+    return Model(inputs=input_image, outputs=output_layer, name='gan_merge_features')
