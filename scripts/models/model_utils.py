@@ -9,6 +9,8 @@ import numpy as np
 import pandas as pd
 import tensorflow as tf
 from tensorflow import keras
+from tensorflow.keras.layers import *
+from tensorflow.keras.models import Model
 
 input_sizes_models = {'vgg16': (224, 224), 'vgg19': (224, 224), 'inception_v3': (299, 299),
                       'resnet50': (224, 224), 'resnet101': (224, 244), 'mobilenet': (224, 224),
@@ -168,7 +170,7 @@ def evaluate_and_predict(model, directory_to_evaluate, results_directory,
     image_domains = list()
     print('Evaluation results:')
     print(evaluation)
-    predict_dataset = dam.make_tf_dataset(directory_to_evaluate, batch_size=1, multi_output=multi_output)
+    predict_dataset = dam.make_tf_dataset(directory_to_evaluate, batch_size=1, multi_output=multioutput)
     print(f'Tensorflow Dataset of {len(predict_dataset)} elements found')
     for i, x in enumerate(tqdm.tqdm(predict_dataset, desc='Making predictions')):
         name_file = test_x[i]
