@@ -182,7 +182,7 @@ def make_tf_dataset(path, batch_size, training=False, multi_output=False):
     filenames_ds = tf.data.Dataset.from_tensor_slices(list_path_files)
     images_ds = filenames_ds.map(parse_image, num_parallel_calls=tf.data.experimental.AUTOTUNE)
     labels_ds = tf.data.Dataset.from_tensor_slices(network_labels)
-    if multioutput:
+    if multi_output:
         domain_ds = tf.data.Dataset.from_tensor_slices(images_domains)
         ds = tf.data.Dataset.zip(((images_ds, domain_ds), labels_ds))
     else:
