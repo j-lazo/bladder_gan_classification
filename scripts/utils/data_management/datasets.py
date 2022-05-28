@@ -107,7 +107,7 @@ def load_data_from_directory(path_data, csv_annotations=None):
     return list_files, dictionary_labels
 
 
-def make_tf_dataset(path, batch_size, training=False, multioutput=False):
+def make_tf_dataset(path, batch_size, training=False, multi_output=False):
 
     global num_classes
     global training_mode
