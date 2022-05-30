@@ -12,6 +12,8 @@ import pandas as pd
 import seaborn as sns
 import oyaml as yaml
 import collections
+import tensorflow.keras.metrics.Precision as tf_precision
+import tensorflow.keras.metrics.Recall as tf_recall
 
 
 def plot_training_history(list_csv_files, save_dir=''):
@@ -289,3 +291,24 @@ def analyze_multiclass_experiment(gt_data_file, predictions_data_dir, plot_figur
 
         ordered_history.append(predictions_data_dir + list_history_files[-1])
         plot_training_history(ordered_history, save_dir=dir_save_fig)
+
+
+def perform_global_analysis(path_results=os.path.join(os.getcwd(), 'results', 'bladder_tissue_classification_v2'),
+                            output_file=os.path.join(os.getcwd(), 'results', 'results_resume.csv'):
+
+    if os.path.isfile(output_file):
+        df = pd.read_csv(output_file)
+        previous_experiments = df['folder name'].tolist()
+        date = df['date'].tolist()
+
+    else:
+        df = None
+        previous_experiments = list()
+
+    list_experiments = [f for f in os.listdir(path_results),
+                        if os.path.isdir(os.path.join(path_results, f))]
+
+    for i, experiment in enumerate(tqdm.tqdm(list_experiments, desc='Analysing folders')):
+        if experiment not in previous_experiments:
+            # read predictions file
+            # analyze data

@@ -142,6 +142,9 @@ def call_models(name_model, path_dataset, mode='fit', backbones=['resnet101'], g
         model.summary()
         # compile model
         print('Single-GPU training')
+        optimizer = Adam(learning_rate=learning_rate)
+        metrics = ["accuracy", tf.keras.metrics.Precision(), tf.keras.metrics.Recall()]
+        loss = 'categorical_crossentropy'
         model.compile(optimizer=optimizer, loss=loss, metrics=metrics)
 
     if mode == 'fit':
