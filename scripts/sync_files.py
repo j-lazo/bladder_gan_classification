@@ -151,10 +151,11 @@ def main(_argv):
                 compress_files(temporal_folder_dir, destination_dir=transfer_results)
                 # compress the file
                 # delete the previous temporal one
-                try:
-                    shutil.rmtree(temporal_folder_dir)
-                except OSError as e
-                    print("Error: %s - %s." % (e.filename, e.strerror))
+                print(f'going to remove {temporal_folder_dir}')
+                #try:
+                #    shutil.rmtree(temporal_folder_dir)
+                #except OSError as e:
+                #    print("Error: %s - %s." % (e.filename, e.strerror))
             # compress only the files to transfer
 
     elif mode == 'update_experiment_list':
