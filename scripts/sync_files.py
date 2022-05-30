@@ -7,6 +7,17 @@ from scp import SCPClient
 import tqdm
 import numpy as np
 import copy
+import yaml
+
+
+def read_yaml_file(path_file):
+    with open(path_file) as file:
+        document = yaml.full_load(file)
+
+    return document
+        #for item, doc in documents.items():
+        #    print(item, ":", doc)
+
 
 def move_files(name_file, destination_dir):
 
@@ -54,11 +65,6 @@ def transfer_files(local_host):
 
     #scp.put('test.txt', 'test2.txt')
     #scp.get('test2.txt')
-
-    # Uploading the 'test' directory with its content in the
-    # '/home/user/dump' remote directory
-    #scp.put('test', recursive=True, remote_path='/home/user/dump')
-
     scp.close()
 
 
@@ -125,10 +131,35 @@ def main(_argv):
 
         f.close()
         print(f'list experiments file updated at dir: {directory_path}')
-        # 2Do Unzip new files
 
-        # 2Do: Analyze experiment
-        # 2Do:
+    elif mode == 'unizp_and_analyze':
+
+        # unzip the files that haven't been unzip
+        dir_zipped_files = os.path.join(os.getcwd(), 'results', 'bladder_tissue_classification_v2_transfer')
+        dir_unzipped_files = os.path.join(os.getcwd(), 'results', 'bladder_tissue_classification_v2')
+
+        list_transfered_files = [f for f in os.listdir(dir_zipped_files) if f.endswith('.zip')]
+        list_unzipped_files = [f for f in os.listdir(dir_unzipped_files) if os.path.isdir(os.path.join(dir_unzipped_files, f))]
+
+        for i, zipped_file in enumerate(tqdm.tqdm(list_transfered_files, desc='Preparing files')):
+            if zipped_file.replace('.zip', '') not in list_unzipped_files:
+                filename = os.path.join(dir_zipped_files, zipped_file)
+                dir_unzipped = os.path.join(dir_unzipped_files, zipped_file.replace('.zip', ''))
+                if not os.path.isdir(dir_unzipped):
+                    os.mkdir(dir_unzipped)
+                print(f'Expanding {zipped_file}  ...')
+                shutil.unpack_archive(filename, dir_unzipped)
+
+        # analyze the yaml file
+
+        list_experiments = [f for f in os.listdir(dir_unzipped_files) if os.path.isdir(os.path.join(dir_unzipped_files, f))]
+        for j, experiment_folder in enumerate(tqdm.tqdm(list_experiments, desc='Preparing files')):
+            yaml_file = [f for f in os.listdir(os.path.join(dir_unzipped_files, experiment_folder)) if f.endswith('.yaml')]
+            if yaml_file:
+                yaml_file = yaml_file.pop()
+                path_yaml = os.path.join(dir_unzipped_files, experiment_folder, yaml_file)
+                results = read_yaml_file(path_yaml)
+                print(experiment_folder, results)
 
     elif mode == 'transfer_results':
         list_files = os.listdir(local_path_results)
@@ -148,7 +179,7 @@ def main(_argv):
 
 if __name__ == '__main__':
 
-    flags.DEFINE_string('mode', 'prepare_files', 'prepare_files or transfer_files, update_experiment_list')
+    flags.DEFINE_string('mode', 'prepare_files', 'prepare_files or transfer_files or  update_experiment_list or unizp_and_analyze')
     flags.DEFINE_string('remote', None, 'dir to remote')
     flags.DEFINE_string('local', None, 'dir to local')
     flags.DEFINE_string('local_path_results', os.path.join(os.getcwd(), 'results'), 'dir to local results')
