@@ -12,8 +12,6 @@ import pandas as pd
 import seaborn as sns
 import oyaml as yaml
 import collections
-import tensorflow.keras.metrics.Precision as tf_precision
-import tensorflow.keras.metrics.Recall as tf_recall
 
 
 def plot_training_history(list_csv_files, save_dir=''):
@@ -293,8 +291,28 @@ def analyze_multiclass_experiment(gt_data_file, predictions_data_dir, plot_figur
         plot_training_history(ordered_history, save_dir=dir_save_fig)
 
 
+def analyze_individual_cases(name_csv_file):
+    df = pd.read_csv(name_csv_file)
+    print(df)
+    plt.figure()
+    ax = sns.boxplot(x="name_model", y="acc all", data=df)
+    ax = sns.swarmplot(x="name_model", y="acc all", data=df, color=".25")
+    plt.show()
+
+
 def perform_global_analysis(path_results=os.path.join(os.getcwd(), 'results', 'bladder_tissue_classification_v2'),
-                            output_file=os.path.join(os.getcwd(), 'results', 'results_resume.csv'):
+                            output_file=os.path.join(os.getcwd(), 'results', 'results_resume.csv'),
+                            gt_file=''):
+
+    # define all the lists:
+    name_experiment = list()
+    date_experiment = list()
+    name_model = list()
+    backbones  = list ()
+    learning_rate = ()
+    acc_all = list()
+    acc_nbi = list()
+    acc_wli = list()
 
     if os.path.isfile(output_file):
         df = pd.read_csv(output_file)
@@ -305,10 +323,16 @@ def perform_global_analysis(path_results=os.path.join(os.getcwd(), 'results', 'b
         df = None
         previous_experiments = list()
 
-    list_experiments = [f for f in os.listdir(path_results),
+    list_experiments = [f for f in os.listdir(path_results)
                         if os.path.isdir(os.path.join(path_results, f))]
 
     for i, experiment in enumerate(tqdm.tqdm(list_experiments, desc='Analysing folders')):
         if experiment not in previous_experiments:
+            pass
             # read predictions file
-            # analyze data
+            # analyze data"""
+
+    # merge previous and new results
+    # sort by name
+    # save results
+    #DataFrame.to_csv(output_file)
