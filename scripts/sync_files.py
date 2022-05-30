@@ -1,4 +1,6 @@
 import os
+
+import pandas as pd
 from absl import app, flags
 from absl.flags import FLAGS
 import shutil
@@ -8,6 +10,21 @@ import tqdm
 import numpy as np
 import copy
 import yaml
+from matplotlib import pyplot as plt
+import seaborn as sns
+
+
+def analyze_individual_cases(name_csv_file):
+
+    df = pd.read_csv(name_csv_file)
+
+    fig1 = plt.figure(1, figsize=(11, 7))
+    ax1 = sns.boxplot(x="name_model", y="acc all", data=df)
+    ax1 = sns.swarmplot(x="name_model", y="acc all", data=df, color=".25")
+    ax1.set_ylim([0.5, 1.0])
+    ax1.title.set_text('')
+
+    plt.show()
 
 
 def read_yaml_file(path_file):
@@ -26,7 +43,20 @@ def move_files(name_file, destination_dir):
     destination_path = os.path.join(destination_dir, name_file)
     shutil.move(current_path, destination_path)
     print(f'file_saved_at {destination_dir} ')
-    pass
+
+
+def find_pattern_names(string_name, str_pattern):
+    """
+    Looks for a pattern name in a string and returns the number after it
+    :param string_name: the string where to look for a pattern
+    :param str_pattern: the pattern that needs to be found
+    :return:
+    """
+    match = re.search(str_pattern + '(\d+)', string_name)
+    if match:
+        return match.group(1)
+    else:
+        return np.nan
 
 
 def compress_files(dir_name, destination_dir=os.path.join(os.getcwd())):
@@ -79,8 +109,11 @@ def main(_argv):
     transfer_results = FLAGS.transfer_results
     base_path = FLAGS.base_path
     output_file_name = FLAGS.output_file_name
+    gt_results_file = FLAGS.gt_results_file
+    output_csv_file = FLAGS.output_csv_file
 
     if mode == 'prepare_files':
+        compressed_results = os.path.join(os.getcwd(), 'results', 'bladder_tissue_classification_v2_compressed')
         if not folder_results:
             folder_results = os.path.join(os.getcwd(), 'results', 'bladder_tissue_classification_v2')
         else:
@@ -103,9 +136,26 @@ def main(_argv):
         list_zipped_folders = [f for f in os.listdir(transfer_results) if f.endswith('.zip')]
 
         for i, experiment_folder in enumerate(tqdm.tqdm(list_finished_experiments, desc='Preparing files')):
+            # compress the whole file including weights
             if experiment_folder+'.zip' not in list_zipped_folders:
                 path_folder = os.path.join(folder_results, experiment_folder)
-                compress_files(path_folder, destination_dir=transfer_results)
+                compress_files(path_folder, destination_dir=compressed_results)
+                # make a temporal folder with only the files you want to compress
+                temporal_folder_dir = os.path.join(os.getcwd(), 'results', experiment_folder)
+                os.mkdir(temporal_folder_dir)
+                # move files to temporal folder
+                list_files = [f for f in os.listdir(path_folder) if f.endswith('.png') or
+                              f.endswith('.yaml') or f.endswith('.csv')]
+                for file_name in list_files:
+                    shutil.copyfile(os.path.join(path_folder, file_name), os.path.join(temporal_folder_dir, file_name))
+                compress_files(temporal_folder_dir, destination_dir=transfer_results)
+                # compress the file
+                # delete the previous temporal one
+                try:
+                    shutil.rmtree(temporal_folder_dir)
+                except OSError as e
+                    print("Error: %s - %s." % (e.filename, e.strerror))
+            # compress only the files to transfer
 
     elif mode == 'update_experiment_list':
 
@@ -138,6 +188,8 @@ def main(_argv):
         dir_zipped_files = os.path.join(os.getcwd(), 'results', 'bladder_tissue_classification_v2_transfer')
         dir_unzipped_files = os.path.join(os.getcwd(), 'results', 'bladder_tissue_classification_v2')
 
+        #df_real_values = pd.read_csv(gt_results_file)
+
         list_transfered_files = [f for f in os.listdir(dir_zipped_files) if f.endswith('.zip')]
         list_unzipped_files = [f for f in os.listdir(dir_unzipped_files) if os.path.isdir(os.path.join(dir_unzipped_files, f))]
 
@@ -145,21 +197,102 @@ def main(_argv):
             if zipped_file.replace('.zip', '') not in list_unzipped_files:
                 filename = os.path.join(dir_zipped_files, zipped_file)
                 dir_unzipped = os.path.join(dir_unzipped_files, zipped_file.replace('.zip', ''))
-                if not os.path.isdir(dir_unzipped):
-                    os.mkdir(dir_unzipped)
-                print(f'Expanding {zipped_file}  ...')
-                shutil.unpack_archive(filename, dir_unzipped)
+                #if not os.path.isdir(dir_unzipped):
+                #    os.mkdir(dir_unzipped)
+                #print(f'Expanding {zipped_file}  ...')
+                #shutil.unpack_archive(filename, dir_unzipped)
 
         # analyze the yaml file
 
+        name_experiment = list()
+        date_experiment = list()
+        name_models = list()
+        backbones = list()
+
+        dictionary_experiments = {}
+
         list_experiments = [f for f in os.listdir(dir_unzipped_files) if os.path.isdir(os.path.join(dir_unzipped_files, f))]
         for j, experiment_folder in enumerate(tqdm.tqdm(list_experiments, desc='Preparing files')):
+            # extract the information from the folder's name
+
+            name_model = experiment_folder.split('_fit')[0]
+            ending = experiment_folder.split('lr_')[1]
+            learning_rate = float(ending.split('_bs')[0])
+            pre_bs = ending.split('bs_')[1]
+            batch_size = int(pre_bs.split('_')[0])
+            date = ending.split(''.join(['bs_', str(batch_size), '_']))[1]
+
+            name_experiment.append(experiment_folder)
+            date_experiment.append(date)
+            name_models.append(name_model)
+            #print(learning_rate)
+            #learning_rates.append(learning_rate)
+
+            if '+' in name_model:
+                backbone_name = name_model.split('+')[1]
+                backbones.append(backbone_name)
+            else:
+                backbone_name = ''
+                backbones.append('')
+
             yaml_file = [f for f in os.listdir(os.path.join(dir_unzipped_files, experiment_folder)) if f.endswith('.yaml')]
             if yaml_file:
                 yaml_file = yaml_file.pop()
                 path_yaml = os.path.join(dir_unzipped_files, experiment_folder, yaml_file)
                 results = read_yaml_file(path_yaml)
-                print(experiment_folder, results)
+                acc_all = float(results['Accuracy ALL '])
+                acc_nbi = float(results['Accuracy NBI '])
+                acc_wli = float(results['Accuracy WLI '])
+
+            else:
+                acc_all = None
+                acc_nbi = None
+                acc_wli = None
+
+            information_experiment = {'experiment_folder': experiment_folder, 'date': date, 'name_model': name_model,
+                                      'backbones': backbone_name, 'batch_size': batch_size, 'learning_rate': learning_rate,
+                                      'acc all': acc_all, 'acc wli': acc_wli, 'acc nbi': acc_nbi}
+
+            dictionary_experiments.update({experiment_folder: information_experiment})
+
+        print(np.unique(name_models))
+        list_acc_all = [dictionary_experiments[experiment]['acc all'] for experiment in dictionary_experiments]
+        list_acc_nbi = [dictionary_experiments[experiment]['acc nbi'] for experiment in dictionary_experiments]
+        list_acc_wli = [dictionary_experiments[experiment]['acc wli'] for experiment in dictionary_experiments]
+
+        sorted_list_all = [x for _, x in sorted(zip(list_acc_all, dictionary_experiments))]
+        sorted_list_nbi = [x for _, x in sorted(zip(list_acc_nbi, dictionary_experiments))]
+        sorted_list_wli = [x for _, x in sorted(zip(list_acc_wli, dictionary_experiments))]
+
+        sorted_dict = dict()
+        srted_nbi = dict()
+        sorted_wli = dict()
+
+        for x in reversed(sorted_list_all):
+            sorted_dict.update({x: dictionary_experiments[x]})
+
+        for x in reversed(sorted_list_nbi):
+            srted_nbi.update({x: dictionary_experiments[x]})
+
+        for x in reversed(sorted_list_wli):
+            sorted_wli.update({x: dictionary_experiments[x]})
+
+        new_df = pd.DataFrame.from_dict(dictionary_experiments, orient='index')
+        output_csv_file_dir = os.path.join(os.getcwd(), 'results', output_csv_file)
+        new_df.to_csv(output_csv_file_dir, index=False)
+
+        sorted_df = pd.DataFrame.from_dict(sorted_dict, orient='index')
+        output_csv_file_dir2 = os.path.join(os.getcwd(), 'results', 'sorted_experiments_information.csv')
+        sorted_df.to_csv(output_csv_file_dir2, index=False)
+
+        sorted_df_nbi = pd.DataFrame.from_dict(srted_nbi, orient='index')
+        output_csv_file_dir3 = os.path.join(os.getcwd(), 'results', 'sorted_nbi_experiments_information.csv')
+        sorted_df_nbi.to_csv(output_csv_file_dir3, index=False)
+
+        sorted_df_wli = pd.DataFrame.from_dict(sorted_wli, orient='index')
+        output_csv_file_dir4 = os.path.join(os.getcwd(), 'results', 'sorted_wli_experiments_information.csv')
+        sorted_df_wli.to_csv(output_csv_file_dir4, index=False)
+        analyze_individual_cases(output_csv_file_dir)
 
     elif mode == 'transfer_results':
         list_files = os.listdir(local_path_results)
@@ -189,6 +322,8 @@ if __name__ == '__main__':
     flags.DEFINE_string('transfer_results', None, 'folder with transfer folder')
     flags.DEFINE_string('base_path', None, 'base directory')
     flags.DEFINE_string('output_file_name', 'list_experiments.txt', 'name of the output file')
+    flags.DEFINE_string('output_csv_file', 'experiments_information.csv', 'name of the output file')
+    flags.DEFINE_string('gt_results_file', None, 'path to the gt values')
 
     try:
         app.run(main)
