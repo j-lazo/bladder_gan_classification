@@ -15,7 +15,7 @@ def compile_model(name_model, strategy, optimizer, loss, metrics,
 
     if strategy:
         with strategy.scope():
-            
+
             if name_model == 'gan_model_multi_joint_features':
                 model = build_gan_model_joint_features(backbones=backbones, gan_weights=gan_weights)
                 model.summary()
@@ -50,7 +50,7 @@ def call_models(name_model, path_dataset, mode='fit', backbones=['resnet101'], g
                 batch_size=1, learning_rate=0.001, val_data=None, test_data=None, eval_val_set=False, eval_train_set=False,
                 results_dir=os.path.join(os.getcwd(), 'results'), gpus_available=None, analyze_data=False):
     multi_input_models = ['gan_model_multi_joint_features', 'gan_model_separate_features',
-                          'build_gan_model_joint_features_and_domain']
+                          'gan_model_joint_features_and_domain']
     if name_model not in multi_input_models:
         multioutput = False
     else:
@@ -126,7 +126,7 @@ def call_models(name_model, path_dataset, mode='fit', backbones=['resnet101'], g
                 model = build_gan_model_joint_features(backbones=backbones, gan_weights=gan_pretrained_weights)
             elif name_model == 'gan_model_separate_features':
                 model = build_gan_model_separate_features(backbones=backbones, gan_weights=gan_pretrained_weights)
-            elif name_model == 'build_gan_model_joint_features_and_domain':
+            elif name_model == 'gan_model_joint_features_and_domain':
                 build_gan_model_joint_features_and_domain(backbones=backbones, gan_weights=gan_pretrained_weights)
             else:
                 model = build_pretrained_model(name_model)
@@ -140,7 +140,7 @@ def call_models(name_model, path_dataset, mode='fit', backbones=['resnet101'], g
             model = build_gan_model_joint_features(backbones=backbones, gan_weights=gan_weights)
         elif name_model == 'gan_model_separate_features':
             model = build_gan_model_separate_features(backbones=backbones, gan_weights=gan_weights)
-        elif name_model == 'build_gan_model_joint_features_and_domain':
+        elif name_model == 'gan_model_joint_features_and_domain':
             model = build_gan_model_joint_features_and_domain(backbones=backbones, gan_weights=gan_pretrained_weights)
         else:
             model = build_pretrained_model(name_model)
