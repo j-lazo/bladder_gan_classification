@@ -127,7 +127,7 @@ def call_models(name_model, path_dataset, mode='fit', backbones=['resnet101'], g
             elif name_model == 'gan_model_separate_features':
                 model = build_gan_model_separate_features(backbones=backbones, gan_weights=gan_pretrained_weights)
             elif name_model == 'gan_model_joint_features_and_domain':
-                build_gan_model_joint_features_and_domain(backbones=backbones, gan_weights=gan_pretrained_weights)
+                model = build_gan_model_joint_features_and_domain(backbones=backbones, gan_weights=gan_pretrained_weights)
             else:
                 model = build_pretrained_model(name_model)
 
