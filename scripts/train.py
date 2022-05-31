@@ -48,7 +48,8 @@ def compile_model(name_model, strategy, optimizer, loss, metrics,
 
 def call_models(name_model, path_dataset, mode='fit', backbones=['resnet101'], gan_model='checkpoint_charlie', epochs=2,
                 batch_size=1, learning_rate=0.001, val_data=None, test_data=None, eval_val_set=False, eval_train_set=False,
-                results_dir=os.path.join(os.getcwd(), 'results'), gpus_available=None, analyze_data=False):
+                results_dir=os.path.join(os.getcwd(), 'results'), gpus_available=None, analyze_data=False,
+                specific_domain=None):
     multi_input_models = ['gan_model_multi_joint_features', 'gan_model_separate_features',
                           'gan_model_joint_features_and_domain']
     if name_model not in multi_input_models:
@@ -85,18 +86,18 @@ def call_models(name_model, path_dataset, mode='fit', backbones=['resnet101'], g
 
     csv_file_train = [f for f in os.listdir(path_train_dataset) if f.endswith('.csv')].pop()
     path_csv_file_train = os.path.join(path_train_dataset, csv_file_train)
-    train_x, dictionary_train = dam.load_data_from_directory(path_train_dataset,
-                                                            csv_annotations=path_csv_file_train)
+    train_x, dictionary_train = dam.load_data_from_directory(path_train_dataset, csv_annotations=path_csv_file_train,
+                                                             specific_domain=specific_domain)
 
     csv_file_val = [f for f in os.listdir(path_val_dataset) if f.endswith('.csv')].pop()
     path_csv_file_val = os.path.join(path_val_dataset, csv_file_val)
-    val_x, dictionary_val = dam.load_data_from_directory(path_val_dataset,
-                                                             csv_annotations=path_csv_file_val)
+    val_x, dictionary_val = dam.load_data_from_directory(path_val_dataset, csv_annotations=path_csv_file_val,
+                                                         specific_domain=specific_domain)
 
     train_dataset = dam.make_tf_dataset(path_train_dataset, batch_size,
-                                        training=True, multi_output=multioutput)
+                                        training=True, multi_output=multioutput, specific_domain=specific_domain)
     val_dataset = dam.make_tf_dataset(path_val_dataset, batch_size,
-                                      training=True, multi_output=multioutput)
+                                      training=True, multi_output=multioutput, specific_domain=specific_domain)
 
     train_steps = len(train_x) // batch_size
     val_steps = len(val_x) // batch_size
@@ -110,7 +111,6 @@ def call_models(name_model, path_dataset, mode='fit', backbones=['resnet101'], g
         strategy = tf.distribute.MirroredStrategy()
     else:
         strategy = None
-
 
     # load and compile the  model
     #model = compile_model(name_model, strategy, optimizer, loss, metrics, backbones=backbones,
@@ -213,9 +213,10 @@ def main(_argv):
     learning_rate = FLAGS.learning_rate
     analyze_data = FLAGS.analyze_data
     backbones = FLAGS.backbones
+    specific_domain = FLAGS.specific_domain
     call_models(name_model, path_dataset, batch_size=batch_size, gpus_available=physical_devices,
                 epochs=epochs, results_dir=results_dir, learning_rate=learning_rate, analyze_data=analyze_data,
-                backbones=backbones)
+                backbones=backbones, specific_domain=specific_domain)
 
 
 if __name__ == '__main__':
@@ -229,6 +230,8 @@ if __name__ == '__main__':
     flags.DEFINE_float('learning_rate', 0.001, 'learning rate')
     flags.DEFINE_boolean('analyze_data', True, 'analyze the data after the experiment')
     flags.DEFINE_list('backbones', ['resnet101'], 'A list of the nets used as backbones: resnet101, resnet50, densenet121, vgg19')
+    flags.DEFINE_string('specific_domain', None, 'In case a specific domain wants to be selected for training and validation data ops:'
+                                                 '[NBI, WLI]')
 
     try:
         app.run(main)

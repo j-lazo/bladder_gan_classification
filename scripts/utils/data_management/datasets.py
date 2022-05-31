@@ -42,7 +42,7 @@ def generate_experiment_ID(name_model='', learning_rate='na', batch_size='na', b
     return id_name
 
 
-def load_data_from_directory(path_data, csv_annotations=None):
+def load_data_from_directory(path_data, csv_annotations=None, specific_domain=None):
     """
         Give a path, creates two lists with the
         Parameters
@@ -90,24 +90,38 @@ def load_data_from_directory(path_data, csv_annotations=None):
     list_files = [f for f in list_files if f.endswith('.png')]
     list_path_files = [f for f in list_path_files if f.endswith('.png')]
 
+    output_list_files = list()
     for j, file in enumerate(list_files):
         if file in list_imgs:
+            # find the index first
             index_file = list_imgs.index(file)
-            # here you have to find the index first
-            new_dictionary_labels = {file: {'image_name': file, 'path_file': list_path_files[j],
-                                            'img_class': list_classes[index_file],
-                                            'img_domain': list_domain[index_file]}}
-            dictionary_labels = {**dictionary_labels, **new_dictionary_labels}
+            if specific_domain:
+                if list_domain[index_file] == specific_domain:
+                    new_dictionary_labels = {file: {'image_name': file, 'path_file': list_path_files[j],
+                                                    'img_class': list_classes[index_file],
+                                                    'img_domain': list_domain[index_file]}}
+                    output_list_files.append(file)
+                    dictionary_labels = {**dictionary_labels, **new_dictionary_labels}
+            else:
+                new_dictionary_labels = {file: {'image_name': file, 'path_file': list_path_files[j],
+                                                'img_class': list_classes[index_file],
+                                                'img_domain': list_domain[index_file]}}
+                output_list_files.append(file)
+                dictionary_labels = {**dictionary_labels, **new_dictionary_labels}
         else:
             list_files.remove(file)
 
     print(f'Found {len(list_path_files)} images corresponding to {len(list_unique_classes)} classes and '
           f'{len(list_unique_domains)} domains at: {path_data}')
 
-    return list_files, dictionary_labels
+    if specific_domain:
+        print(f'Only images from domain {specific_domain} selected, in total {len(output_list_files)} images '
+              f'are considered in the dataset')
+
+    return output_list_files, dictionary_labels
 
 
-def make_tf_dataset(path, batch_size, training=False, multi_output=False):
+def make_tf_dataset(path, batch_size, training=False, multi_output=False, specific_domain=None):
 
     global num_classes
     global training_mode
@@ -156,7 +170,8 @@ def make_tf_dataset(path, batch_size, training=False, multi_output=False):
     images_class = list()
     images_domains = list()
     csv_annotations_file = [os.path.join(path, f) for f in os.listdir(path) if f.endswith('.csv')].pop()
-    list_files, dictionary_labels = load_data_from_directory(path, csv_annotations=csv_annotations_file)
+    list_files, dictionary_labels = load_data_from_directory(path, csv_annotations=csv_annotations_file,
+                                                             specific_domain=specific_domain)
     if training:
         random.shuffle(list_files)
 
