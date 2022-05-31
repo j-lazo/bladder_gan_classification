@@ -6,7 +6,6 @@ import shutil
 import tqdm
 import numpy as np
 import copy
-from utils import data_analysis as daa
 from utils.data_management import file_management as dam
 
 
@@ -96,8 +95,6 @@ def main(_argv):
         dir_zipped_files = os.path.join(os.getcwd(), 'results', 'bladder_tissue_classification_v2_transfer')
         dir_unzipped_files = os.path.join(os.getcwd(), 'results', 'bladder_tissue_classification_v2')
 
-        #df_real_values = pd.read_csv(gt_results_file)
-
         list_transfered_files = [f for f in os.listdir(dir_zipped_files) if f.endswith('.zip')]
         list_unzipped_files = [f for f in os.listdir(dir_unzipped_files) if os.path.isdir(os.path.join(dir_unzipped_files, f))]
 
@@ -111,6 +108,7 @@ def main(_argv):
                 shutil.unpack_archive(filename, dir_unzipped)
 
     elif mode == 'analyze':
+
         # analyze the yamls files
         if not dir_to_analyze:
             dir_unzipped_files = os.path.join(os.getcwd(), 'results', 'bladder_tissue_classification_v2')
@@ -200,7 +198,8 @@ def main(_argv):
         sorted_df_wli = pd.DataFrame.from_dict(sorted_wli, orient='index')
         output_csv_file_dir4 = os.path.join(os.getcwd(), 'results', 'sorted_wli_experiments_information.csv')
         sorted_df_wli.to_csv(output_csv_file_dir4, index=False)
-        daa.analyze_individual_cases(output_csv_file_dir)
+
+        #daa.analyze_individual_cases(output_csv_file_dir)
 
     elif mode == 'transfer_results':
         list_files = os.listdir(local_path_results)
