@@ -244,13 +244,13 @@ def analyze_multiclass_experiment(gt_data_file, predictions_data_dir, plot_figur
     print('Accuracy WLI: ', accuracy_score(wli_tissue_types, predictions_wli))
     print('Accuracy NBI: ', accuracy_score(nbi_tissue_types, predictions_nbi))
     # Precision
-    print('Precision ALL: ', precision_score(existing_gt_vals, ordered_predictiosn, average=None))
-    print('Precision WLI: ', precision_score(wli_tissue_types, predictions_wli, average=None))
-    print('Precision NBI: ', precision_score(nbi_tissue_types, predictions_nbi, average=None, zero_division=1))
+    print('Precision ALL: ', precision_score(existing_gt_vals, ordered_predictiosn, average='macro', zero_division=1))
+    print('Precision WLI: ', precision_score(wli_tissue_types, predictions_wli, average='macro', zero_division=1))
+    print('Precision NBI: ', precision_score(nbi_tissue_types, predictions_nbi, average='macro', zero_division=1))
     # Recall
-    print('Recall ALL: ', recall_score(existing_gt_vals, ordered_predictiosn, average=None))
-    print('Recall WLI: ', recall_score(wli_tissue_types, predictions_wli, average=None))
-    print('Recall NBI: ', recall_score(nbi_tissue_types, predictions_nbi, average=None, zero_division=1))
+    print('Recall ALL: ', recall_score(existing_gt_vals, ordered_predictiosn, average='macro', zero_division=1))
+    print('Recall WLI: ', recall_score(wli_tissue_types, predictions_wli, average='macro', zero_division=1))
+    print('Recall NBI: ', recall_score(nbi_tissue_types, predictions_nbi, average='macro', zero_division=1))
 
     # Confusion Matrices
     compute_confusion_matrix(existing_gt_vals, ordered_predictiosn, plot_figure=False,
@@ -293,7 +293,6 @@ def analyze_multiclass_experiment(gt_data_file, predictions_data_dir, plot_figur
 
 def analyze_individual_cases(name_csv_file):
     df = pd.read_csv(name_csv_file)
-    print(df)
     plt.figure()
     ax = sns.boxplot(x="name_model", y="acc all", data=df)
     ax = sns.swarmplot(x="name_model", y="acc all", data=df, color=".25")
