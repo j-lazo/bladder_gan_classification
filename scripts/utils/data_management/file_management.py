@@ -40,7 +40,7 @@ def read_txt_file(dir_file):
 
 def compress_files(dir_name, destination_dir=os.path.join(os.getcwd())):
     print(f'Compressing: {dir_name} ... ')
-    output_name = os.path.split(dir_name)[-1]
+    output_name = os.path.split(os.path.normpath(dir_name))[-1]
     shutil.make_archive(output_name, 'zip', dir_name)
     move_files(output_name + '.zip', destination_dir)
 
