@@ -209,7 +209,7 @@ def call_models(name_model, path_dataset, mode='fit', backbones=['resnet101'], g
     if prepare_finished_experiment:
         compressed_results = os.path.join(os.getcwd(), 'results', 'bladder_tissue_classification_v2_compressed')
         transfer_results = os.path.join(os.getcwd(), 'results', 'bladder_tissue_classification_v2_transfer')
-            path_folder = results_directory
+        path_folder = results_directory
         fam.compress_files(path_folder, destination_dir=compressed_results)
         # make a temporal folder with only the files you want to compress
         experiment_folder = os.path.split(os.path.normpath(path_folder))[-1]
