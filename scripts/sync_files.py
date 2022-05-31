@@ -141,7 +141,7 @@ def main(_argv):
                 path_folder = os.path.join(folder_results, experiment_folder)
                 compress_files(path_folder, destination_dir=compressed_results)
                 # make a temporal folder with only the files you want to compress
-                temporal_folder_dir = os.path.join(os.getcwd(), 'results', experiment_folder)
+                temporal_folder_dir = os.path.join(os.getcwd(), 'results', 'remove_folders', experiment_folder)
                 os.mkdir(temporal_folder_dir)
                 # move files to temporal folder
                 list_files = [f for f in os.listdir(path_folder) if f.endswith('.png') or
@@ -151,12 +151,7 @@ def main(_argv):
                 compress_files(temporal_folder_dir, destination_dir=transfer_results)
                 # compress the file
                 # delete the previous temporal one
-                print(f'going to remove {temporal_folder_dir}')
-                #try:
-                #    shutil.rmtree(temporal_folder_dir)
-                #except OSError as e:
-                #    print("Error: %s - %s." % (e.filename, e.strerror))
-            # compress only the files to transfer
+
 
     elif mode == 'update_experiment_list':
 
