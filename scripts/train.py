@@ -3,6 +3,8 @@ import numpy as np
 from absl import app, flags
 from absl.flags import FLAGS
 from utils.data_management import datasets as dam
+from utils.data_management import file_management as fam
+
 from tensorflow.keras.callbacks import EarlyStopping, ModelCheckpoint, ReduceLROnPlateau, CSVLogger, TensorBoard
 from tensorflow.keras.optimizers import SGD, Adam, RMSprop, Nadam
 import datetime
@@ -206,8 +208,11 @@ def call_models(name_model, path_dataset, mode='fit', backbones=['resnet101'], g
 
     if prepare_finished_experiment:
         compressed_results = os.path.join(os.getcwd(), 'results', 'bladder_tissue_classification_v2_compressed')
-        dam.compress_files(path_folder, destination_dir=compressed_results)
+        transfer_results = os.path.join(os.getcwd(), 'results', 'bladder_tissue_classification_v2_transfer')
+            path_folder = results_directory
+        fam.compress_files(path_folder, destination_dir=compressed_results)
         # make a temporal folder with only the files you want to compress
+        experiment_folder = os.path.split(os.path.normpath(path_folder))[-1]
         temporal_folder_dir = os.path.join(os.getcwd(), 'results', 'remove_folders', experiment_folder)
         os.mkdir(temporal_folder_dir)
         # move files to temporal folder
@@ -217,7 +222,8 @@ def call_models(name_model, path_dataset, mode='fit', backbones=['resnet101'], g
         for file_name in list_files:
             shutil.copyfile(os.path.join(path_folder, file_name), os.path.join(temporal_folder_dir, file_name))
         # compress the file
-        dam.compress_files(temporal_folder_dir, destination_dir=transfer_results)
+        fam.compress_files(temporal_folder_dir, destination_dir=transfer_results)
+        print(f'Experiment finished, results compressed and saved in {transfer_results}')
 
 
 def main(_argv):
@@ -251,7 +257,7 @@ if __name__ == '__main__':
     flags.DEFINE_list('backbones', ['resnet101'], 'A list of the nets used as backbones: resnet101, resnet50, densenet121, vgg19')
     flags.DEFINE_string('specific_domain', None, 'In case a specific domain wants to be selected for training and validation data ops:'
                                                  '[NBI, WLI]')
-    flags.DEFINE_boolean('prepare_finished_experiment')
+    flags.DEFINE_boolean('prepare_finished_experiment', False, 'either compress the files and move them to the transfer folder or not')
 
     try:
         app.run(main)
