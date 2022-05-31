@@ -9,7 +9,7 @@ import tensorflow_addons as tfa
 from utils import image as img_fun
 
 def generate_experiment_ID(name_model='', learning_rate='na', batch_size='na', backbone_model='',
-                           prediction_model='', mode=''):
+                           prediction_model='', mode='', specific_domain=None):
     """
     Generate a ID name for the experiment considering the name of the model, the learning rate,
     the batch size, and the date of the experiment
@@ -31,10 +31,17 @@ def generate_experiment_ID(name_model='', learning_rate='na', batch_size='na', b
             name_mod = ''.join([name_model, '+', backbone_model])
         else:
             name_mod = name_model
-        id_name = ''.join([name_mod, '_', mode, '_lr_', str(lr),
-                                  '_bs_', str(batch_size), '_',
-                                  training_date_time.strftime("%d_%m_%Y_%H_%M")
-                                  ])
+
+        if specific_domain:
+            id_name = ''.join([name_mod, '_', mode, '_lr_', str(lr),
+                              '_bs_', str(batch_size), '_', 'trained_with', specific_domain, '_',
+                               training_date_time.strftime("%d_%m_%Y_%H_%M")
+                               ])
+        else:
+            id_name = ''.join([name_mod, '_', mode, '_lr_', str(lr),
+                              '_bs_', str(batch_size), '_',
+                               training_date_time.strftime("%d_%m_%Y_%H_%M")
+                               ])
     else:
         predictions_date_time = datetime.datetime.now()
         id_name = ''.join([prediction_model, '_predictions_', predictions_date_time.strftime("%d_%m_%Y_%H_%M")])

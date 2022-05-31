@@ -8,6 +8,7 @@ from tensorflow.keras.optimizers import SGD, Adam, RMSprop, Nadam
 import datetime
 from models.model_utils import *
 from models.gan_classification import *
+import shutil
 
 
 def compile_model(name_model, strategy, optimizer, loss, metrics,
@@ -49,7 +50,7 @@ def compile_model(name_model, strategy, optimizer, loss, metrics,
 def call_models(name_model, path_dataset, mode='fit', backbones=['resnet101'], gan_model='checkpoint_charlie', epochs=2,
                 batch_size=1, learning_rate=0.001, val_data=None, test_data=None, eval_val_set=False, eval_train_set=False,
                 results_dir=os.path.join(os.getcwd(), 'results'), gpus_available=None, analyze_data=False,
-                specific_domain=None):
+                specific_domain=None, prepare_finished_experiment=False):
     multi_input_models = ['gan_model_multi_joint_features', 'gan_model_separate_features',
                           'gan_model_joint_features_and_domain']
     if name_model not in multi_input_models:
@@ -75,7 +76,7 @@ def call_models(name_model, path_dataset, mode='fit', backbones=['resnet101'], g
     backbone_model = ''.join([name_model + '_' for name_model in backbones])
     new_results_id = dam.generate_experiment_ID(name_model=name_model, learning_rate=learning_rate,
                                             batch_size=batch_size, backbone_model=backbone_model,
-                                            mode=mode)
+                                            mode=mode, specific_domain=specific_domain)
 
     results_directory = ''.join([results_dir, '/', new_results_id, '/'])
     temp_name_model = results_directory + new_results_id + "_model.h5"
@@ -180,10 +181,12 @@ def call_models(name_model, path_dataset, mode='fit', backbones=['resnet101'], g
         print(trained_model.history.keys())
         # in case evaluate val dataset is True
         if eval_val_set is True:
+            loaded_model, _ = load_model(dir_save_model)
             evaluate_and_predict(loaded_model, val_dataset, results_directory,
                                  results_id=new_results_id, output_name='val')
 
         if eval_train_set is True:
+            loaded_model, _ = load_model(dir_save_model)
             evaluate_and_predict(loaded_model, train_dataset, results_directory,
                                  results_id=new_results_id, output_name='train')
 
@@ -201,6 +204,21 @@ def call_models(name_model, path_dataset, mode='fit', backbones=['resnet101'], g
             evalute_test_directory(loaded_model, path_test_dataset, results_directory, new_results_id,
                                    analyze_data=analyze_data)
 
+    if prepare_finished_experiment:
+        compressed_results = os.path.join(os.getcwd(), 'results', 'bladder_tissue_classification_v2_compressed')
+        dam.compress_files(path_folder, destination_dir=compressed_results)
+        # make a temporal folder with only the files you want to compress
+        temporal_folder_dir = os.path.join(os.getcwd(), 'results', 'remove_folders', experiment_folder)
+        os.mkdir(temporal_folder_dir)
+        # move files to temporal folder
+        list_files = [f for f in os.listdir(path_folder) if f.endswith('.png') or
+                      f.endswith('.yaml') or f.endswith('.csv')]
+        # temporal folder to delete
+        for file_name in list_files:
+            shutil.copyfile(os.path.join(path_folder, file_name), os.path.join(temporal_folder_dir, file_name))
+        # compress the file
+        dam.compress_files(temporal_folder_dir, destination_dir=transfer_results)
+
 
 def main(_argv):
     physical_devices = tf.config.list_physical_devices('GPU')
@@ -214,9 +232,10 @@ def main(_argv):
     analyze_data = FLAGS.analyze_data
     backbones = FLAGS.backbones
     specific_domain = FLAGS.specific_domain
+    prepare_finished_experiment = FLAGS.prepare_finished_experiment
     call_models(name_model, path_dataset, batch_size=batch_size, gpus_available=physical_devices,
                 epochs=epochs, results_dir=results_dir, learning_rate=learning_rate, analyze_data=analyze_data,
-                backbones=backbones, specific_domain=specific_domain)
+                backbones=backbones, specific_domain=specific_domain, prepare_finished_experiment=prepare_finished_experiment)
 
 
 if __name__ == '__main__':
@@ -232,6 +251,7 @@ if __name__ == '__main__':
     flags.DEFINE_list('backbones', ['resnet101'], 'A list of the nets used as backbones: resnet101, resnet50, densenet121, vgg19')
     flags.DEFINE_string('specific_domain', None, 'In case a specific domain wants to be selected for training and validation data ops:'
                                                  '[NBI, WLI]')
+    flags.DEFINE_boolean('prepare_finished_experiment')
 
     try:
         app.run(main)
