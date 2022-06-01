@@ -129,6 +129,11 @@ def main(_argv):
             pre_bs = ending.split('bs_')[1]
             batch_size = int(pre_bs.split('_')[0])
             date = ending.split(''.join(['bs_', str(batch_size), '_']))[1]
+            if 'trained_with' in date:
+                data_used_in_train = date.split('trained_with_')[-1][:3]
+                date = date.split(data_used_in_train + '_')[-1]
+            else:
+                data_used_in_train = 'ALL'
 
             name_experiment.append(experiment_folder)
             date_experiment.append(date)
@@ -146,25 +151,51 @@ def main(_argv):
                 yaml_file = yaml_file.pop()
                 path_yaml = os.path.join(dir_unzipped_files, experiment_folder, yaml_file)
                 results = dam.read_yaml_file(path_yaml)
-                acc_all = float(results['Accuracy ALL '])
-                acc_nbi = float(results['Accuracy NBI '])
-                acc_wli = float(results['Accuracy WLI '])
+                acc_all = float(results['Accuracy ALL'])
+                acc_nbi = float(results['Accuracy NBI'])
+                acc_wli = float(results['Accuracy WLI'])
+
+                prec_all = float(results['Precision ALL'])
+                prec_nbi = float(results['Precision NBI'])
+                prec_wli = float(results['Precision WLI'])
+
+                rec_all = float(results['Recall ALL'])
+                rec_nbi = float(results['Recall NBI'])
+                rec_wli = float(results['Recall WLI'])
+
+                f1_all = float(results['F-1 ALL'])
+                f1_nbi = float(results['F-1 NBI'])
+                f1_wli = float(results['F-1 WLI'])
 
             else:
                 acc_all = None
                 acc_nbi = None
                 acc_wli = None
+                prec_all = None
+                prec_nbi = None
+                prec_wli = None
+                rec_all = None
+                rec_nbi = None
+                rec_wli = None
+                f1_all = None
+                f1_nbi = None
+                f1_wli = None
 
             information_experiment = {'experiment_folder': experiment_folder, 'date': date, 'name_model': name_model,
-                                      'backbones': backbone_name, 'batch_size': batch_size, 'learning_rate': learning_rate,
-                                      'acc all': acc_all, 'acc wli': acc_wli, 'acc nbi': acc_nbi}
+                                      'backbones': backbone_name, 'batch_size': batch_size,
+                                      'learning_rate': learning_rate, 'training_data_used': data_used_in_train,
+                                      'Accuracy ALL': acc_all, 'Accuracy WLI': acc_wli, 'Accuracy NBI': acc_nbi,
+                                      'Precision ALL': prec_all, 'Precision WLI': prec_nbi, 'Precision NBI': prec_wli,
+                                      'Recall ALL': rec_all, 'Recall WLI': rec_nbi, 'Recall NBI': rec_wli,
+                                      'F-1 ALL': f1_all, 'F-1 WLI': f1_nbi, 'F-1 NBI': f1_wli,
+                                      }
 
             dictionary_experiments.update({experiment_folder: information_experiment})
 
         print(np.unique(name_models))
-        list_acc_all = [dictionary_experiments[experiment]['acc all'] for experiment in dictionary_experiments]
-        list_acc_nbi = [dictionary_experiments[experiment]['acc nbi'] for experiment in dictionary_experiments]
-        list_acc_wli = [dictionary_experiments[experiment]['acc wli'] for experiment in dictionary_experiments]
+        list_acc_all = [dictionary_experiments[experiment]['Accuracy ALL'] for experiment in dictionary_experiments]
+        list_acc_nbi = [dictionary_experiments[experiment]['Accuracy NBI'] for experiment in dictionary_experiments]
+        list_acc_wli = [dictionary_experiments[experiment]['Accuracy WLI'] for experiment in dictionary_experiments]
 
         sorted_list_all = [x for _, x in sorted(zip(list_acc_all, dictionary_experiments))]
         sorted_list_nbi = [x for _, x in sorted(zip(list_acc_nbi, dictionary_experiments))]
