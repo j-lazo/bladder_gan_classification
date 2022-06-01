@@ -37,7 +37,7 @@ def extract_experiment_information_from_name(experiment_ID_name):
 
     information_experiment = {'experiment_folder': experiment_ID_name, 'date': date, 'name_model': name_model,
                               'backbones': backbone_name, 'batch_size': batch_size, 'learning_rate': learning_rate,
-                              'traine_data_used': data_used_in_train}
+                              'training_data_used': data_used_in_train}
 
     return information_experiment
 
@@ -281,15 +281,15 @@ def analyze_multiclass_experiment(gt_data_file, predictions_data_dir, plot_figur
     performance_resume = {'Accuracy ALL': float(acc_all),
                           'Accuracy WLI': float(acc_wli),
                           'Accuracy NBI': float(acc_nbi),
-                          'Macro Precision ALL': float(macro_prec_all),
-                          'Marco Precision WLI': float(macro_prec_wli),
-                          'Macro Precision NBI': float(marco_prec_nbi),
-                          'Macro Recall ALL': float(macro_rec_all),
-                          'Macro Recall WLI': float(macro_rec_wli),
-                          'Macro Recall NBI': float(macro_rec_nbi),
-                          'Macro F-1 ALL': float(macro_f1_all),
-                          'Macro F-1 WLI': float(macro_f1_wli),
-                          'Macro F-1 NBI': float(macro_f1_nbi),
+                          'Precision ALL': float(macro_prec_all),
+                          'Precision WLI': float(macro_prec_wli),
+                          'Precision NBI': float(marco_prec_nbi),
+                          'Recall ALL': float(macro_rec_all),
+                          'Recall WLI': float(macro_rec_wli),
+                          'Recall NBI': float(macro_rec_nbi),
+                          'F-1 ALL': float(macro_f1_all),
+                          'F-1 WLI': float(macro_f1_wli),
+                          'F-1 NBI': float(macro_f1_nbi),
                           }
 
     dir_data_yaml = os.path.join(dir_save_fig, 'performance_analysis.yaml')
