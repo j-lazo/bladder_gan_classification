@@ -8,10 +8,38 @@ from sklearn.metrics import recall_score
 from sklearn.metrics import accuracy_score
 from sklearn.metrics import precision_score
 from sklearn.metrics import confusion_matrix
+from sklearn.metrics import f1_score
 import pandas as pd
 import seaborn as sns
 import oyaml as yaml
 import collections
+
+
+def extract_experiment_information_from_name(experiment_ID_name):
+
+    name_model = experiment_ID_name.split('_fit')[0]
+    ending = experiment_ID_name.split('lr_')[1]
+    learning_rate = float(ending.split('_bs')[0])
+    pre_bs = ending.split('bs_')[1]
+    batch_size = int(pre_bs.split('_')[0])
+    date = ending.split(''.join(['bs_', str(batch_size), '_']))[1]
+
+    if 'trained_with' in date:
+        data_used_in_train = date.split('trained_with_')[-1][:3]
+        date = date.split(data_used_in_train + '_')[-1]
+    else:
+        data_used_in_train = 'ALL'
+
+    if '+' in name_model:
+        backbone_name = name_model.split('+')[1]
+    else:
+        backbone_name = ''
+
+    information_experiment = {'experiment_folder': experiment_ID_name, 'date': date, 'name_model': name_model,
+                              'backbones': backbone_name, 'batch_size': batch_size, 'learning_rate': learning_rate,
+                              'traine_data_used': data_used_in_train}
+
+    return information_experiment
 
 
 def plot_training_history(list_csv_files, save_dir=''):
@@ -197,7 +225,7 @@ def analyze_multiclass_experiment(gt_data_file, predictions_data_dir, plot_figur
 
     list_prediction_files = [f for f in os.listdir(predictions_data_dir) if 'predictions' in f and '(_pre' not in f]
     file_predictiosn = list_prediction_files.pop()
-    path_file_predictions = predictions_data_dir + file_predictiosn
+    path_file_predictions = os.path.join(predictions_data_dir, file_predictiosn)
     print(f'file predictions found: {file_predictiosn}')
 
     df_ground_truth = pd.read_csv(gt_data_file)
@@ -228,31 +256,47 @@ def analyze_multiclass_experiment(gt_data_file, predictions_data_dir, plot_figur
                 predictions_wli.append(predictions_vals[index])
                 wli_tissue_types.append(gt_vals[index_gt])
 
-    # dri to save the figures
+    # dir to save the figures
     if dir_save_figs:
         dir_save_fig = dir_save_figs
     else:
         dir_save_fig = predictions_data_dir
 
-    data_yaml = {'Accuracy ALL ': float(accuracy_score(existing_gt_vals, ordered_predictiosn)),
-                 'Accuracy WLI ': float(accuracy_score(wli_tissue_types, predictions_wli)),
-                 'Accuracy NBI ': float(accuracy_score(nbi_tissue_types, predictions_nbi))
-                 }
+    acc_all = accuracy_score(existing_gt_vals, ordered_predictiosn)
+    acc_wli = accuracy_score(wli_tissue_types, predictions_wli)
+    acc_nbi = accuracy_score(nbi_tissue_types, predictions_nbi)
 
-    # ACCURACY
-    print('Accuracy ALL: ', accuracy_score(existing_gt_vals, ordered_predictiosn))
-    print('Accuracy WLI: ', accuracy_score(wli_tissue_types, predictions_wli))
-    print('Accuracy NBI: ', accuracy_score(nbi_tissue_types, predictions_nbi))
-    # Precision
-    print('Precision ALL: ', precision_score(existing_gt_vals, ordered_predictiosn, average='macro', zero_division=1))
-    print('Precision WLI: ', precision_score(wli_tissue_types, predictions_wli, average='macro', zero_division=1))
-    print('Precision NBI: ', precision_score(nbi_tissue_types, predictions_nbi, average='macro', zero_division=1))
-    # Recall
-    print('Recall ALL: ', recall_score(existing_gt_vals, ordered_predictiosn, average='macro', zero_division=1))
-    print('Recall WLI: ', recall_score(wli_tissue_types, predictions_wli, average='macro', zero_division=1))
-    print('Recall NBI: ', recall_score(nbi_tissue_types, predictions_nbi, average='macro', zero_division=1))
+    macro_prec_all = precision_score(existing_gt_vals, ordered_predictiosn, average='macro', zero_division=1)
+    macro_prec_wli = precision_score(wli_tissue_types, predictions_wli, average='macro', zero_division=1)
+    marco_prec_nbi = precision_score(nbi_tissue_types, predictions_nbi, average='macro', zero_division=1)
+
+    macro_rec_all = recall_score(existing_gt_vals, ordered_predictiosn, average='macro', zero_division=1)
+    macro_rec_wli = recall_score(wli_tissue_types, predictions_wli, average='macro', zero_division=1)
+    macro_rec_nbi = recall_score(nbi_tissue_types, predictions_nbi, average='macro', zero_division=1)
+
+    macro_f1_all = f1_score(existing_gt_vals, ordered_predictiosn, average='macro', zero_division=1)
+    macro_f1_wli = f1_score(wli_tissue_types, predictions_wli, average='macro', zero_division=1)
+    macro_f1_nbi = f1_score(nbi_tissue_types, predictions_nbi, average='macro', zero_division=1)
+
+    performance_resume = {'Accuracy ALL': float(acc_all),
+                          'Accuracy WLI': float(acc_wli),
+                          'Accuracy NBI': float(acc_nbi),
+                          'Macro Precision ALL': float(macro_prec_all),
+                          'Marco Precision WLI': float(macro_prec_wli),
+                          'Macro Precision NBI': float(marco_prec_nbi),
+                          'Macro Recall ALL': float(macro_rec_all),
+                          'Macro Recall WLI': float(macro_rec_wli),
+                          'Macro Recall NBI': float(macro_rec_nbi),
+                          'Macro F-1 ALL': float(macro_f1_all),
+                          'Macro F-1 WLI': float(macro_f1_wli),
+                          'Macro F-1 NBI': float(macro_f1_nbi),
+                          }
+
+    dir_data_yaml = os.path.join(dir_save_fig, 'performance_analysis.yaml')
+    save_yaml(dir_data_yaml, performance_resume)
 
     # Confusion Matrices
+
     compute_confusion_matrix(existing_gt_vals, ordered_predictiosn, plot_figure=False,
                              dir_save_fig=dir_save_fig + 'confusion_matrix_all.png')
 
@@ -261,9 +305,6 @@ def analyze_multiclass_experiment(gt_data_file, predictions_data_dir, plot_figur
 
     compute_confusion_matrix(nbi_tissue_types, predictions_nbi,
                              dir_save_fig=dir_save_fig + 'confusion_matrix_nbi.png')
-
-    dir_data_yaml = dir_save_fig + 'performance_analysis.yaml'
-    save_yaml(dir_data_yaml, data_yaml)
 
     gt_values = []
     for name in predictions_names:
@@ -290,6 +331,8 @@ def analyze_multiclass_experiment(gt_data_file, predictions_data_dir, plot_figur
         ordered_history.append(predictions_data_dir + list_history_files[-1])
         plot_training_history(ordered_history, save_dir=dir_save_fig)
 
+    return performance_resume
+
 
 def analyze_individual_cases(name_csv_file):
     df = pd.read_csv(name_csv_file)
@@ -307,7 +350,7 @@ def perform_global_analysis(path_results=os.path.join(os.getcwd(), 'results', 'b
     name_experiment = list()
     date_experiment = list()
     name_model = list()
-    backbones  = list ()
+    backbones = list()
     learning_rate = ()
     acc_all = list()
     acc_nbi = list()
