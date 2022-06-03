@@ -126,11 +126,11 @@ def load_pretrained_backbones(name_model, weights='imagenet', include_top=False,
 
 
 def evalute_test_directory(model, path_test_data, results_directory, new_results_id,
-                           analyze_data=True, multioutput=True):
+                           analyze_data=True, multioutput=True, list_test_cases=None, fold=None):
 
     # determine if there are sub_folders or if it's the absolute path of the dataset
     sub_dirs = [f for f in os.listdir(path_test_data) if os.path.isdir(os.path.join(path_test_data, f))]
-    if sub_dirs:
+    if sub_dirs and list_test_cases is None:
         print(f'sub-directoires {sub_dirs} found in test folder')
         for sub_dir in sub_dirs:
             test_data_dir = ''.join([path_test_data, '/', sub_dir])
@@ -143,26 +143,31 @@ def evalute_test_directory(model, path_test_data, results_directory, new_results
     else:
         name_file = evaluate_and_predict(model, path_test_data, results_directory,
                                          results_id=new_results_id, output_name='test',
-                                         analyze_data=analyze_data)
+                                         analyze_data=analyze_data, list_test_cases=list_test_cases,
+                                         fold=fold)
 
         print(f'Evaluation results saved at {name_file}')
 
 
 def evaluate_and_predict(model, directory_to_evaluate, results_directory,
                          output_name='', results_id='', batch_size=1,
-                         analyze_data=False, multioutput=True, output_dir=''):
+                         analyze_data=False, multioutput=True, output_dir='', fold=None,
+                         list_test_cases=None):
+
     print(f'Evaluation of: {directory_to_evaluate}')
 
     # load the data to evaluate and predict
 
-    test_x, dataset_dictionary = dam.load_data_from_directory(directory_to_evaluate)
-    test_dataset = dam.make_tf_dataset(directory_to_evaluate,batch_size=8, multi_output=multioutput)
+    test_x, dataset_dictionary = dam.load_data_from_directory(directory_to_evaluate,
+                                                              case_specific=list_test_cases)
+
+    test_dataset = dam.make_tf_dataset(test_x, dataset_dictionary, batch_size=8, multi_output=multioutput)
     test_steps = (len(test_x) // batch_size)
 
     if len(test_x) % batch_size != 0:
         test_steps += 1
 
-    evaluation = model.evaluate(test_dataset, steps=test_steps)
+    evaluation = model.evaluate(test_dataset, steps=2)
     inference_times = list()
     prediction_names = list()
     prediction_outputs = list()
@@ -170,7 +175,7 @@ def evaluate_and_predict(model, directory_to_evaluate, results_directory,
     image_domains = list()
     print('Evaluation results:')
     print(evaluation)
-    predict_dataset = dam.make_tf_dataset(directory_to_evaluate, batch_size=1, multi_output=multioutput)
+    predict_dataset = dam.make_tf_dataset(test_x, dataset_dictionary, batch_size=1, multi_output=multioutput)
     print(f'Tensorflow Dataset of {len(predict_dataset)} elements found')
     for i, x in enumerate(tqdm.tqdm(predict_dataset, desc='Making predictions')):
         name_file = test_x[i]
@@ -216,14 +221,18 @@ def evaluate_and_predict(model, directory_to_evaluate, results_directory,
 
     df['over all'] = label_index
     # save the predictions  of each case
-    path_results_csv_file = ''.join([results_directory, 'predictions_', output_name, '_', results_id, '_.csv'])
+    if fold:
+        path_results_csv_file = ''.join([results_directory, 'predictions_', output_name, '_', fold, '_', results_id, '_.csv'])
+    else:
+        path_results_csv_file = ''.join([results_directory, 'predictions_', output_name, '_', results_id, '_.csv'])
+
     df.to_csv(path_results_csv_file, index=False)
 
     if analyze_data is True:
         gt_data_file = [f for f in os.listdir(directory_to_evaluate) if f.endswith('.csv')].pop()
         path_gt_data_file = os.path.join(directory_to_evaluate, gt_data_file)
         daa.analyze_multiclass_experiment(path_gt_data_file, results_directory, plot_figure=True,
-                                          analyze_training_history=True)
+                                          analyze_training_history=True, k_folds=fold)
 
     return path_results_csv_file
 

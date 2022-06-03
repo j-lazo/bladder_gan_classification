@@ -49,7 +49,7 @@ def generate_experiment_ID(name_model='', learning_rate='na', batch_size='na', b
     return id_name
 
 
-def load_data_from_directory(path_data, csv_annotations=None, specific_domain=None):
+def load_data_from_directory(path_data, csv_annotations=None, specific_domain=None, case_specific=None):
     """
         Give a path, creates two lists with the
         Parameters
@@ -72,9 +72,6 @@ def load_data_from_directory(path_data, csv_annotations=None, specific_domain=No
 
     if csv_annotations:
       data_frame = pd.read_csv(csv_annotations)
-      list_imgs = data_frame['image_name'].tolist()
-      list_classes = data_frame['tissue type'].tolist()
-      list_domain = data_frame['imaging type'].tolist()
 
     else:
         if csv_list:
@@ -82,9 +79,15 @@ def load_data_from_directory(path_data, csv_annotations=None, specific_domain=No
             print(f'csv file {csv_in_dir} found in {path_data}, using it as ground truth data')
             csv_annotations = os.path.join(path_data, csv_in_dir)
             data_frame = pd.read_csv(csv_annotations)
-            list_imgs = data_frame['image_name'].tolist()
-            list_classes = data_frame['tissue type'].tolist()
-            list_domain = data_frame['imaging type'].tolist()
+
+    list_imgs = data_frame['image_name'].tolist()
+    list_classes = data_frame['tissue type'].tolist()
+    list_domain = data_frame['imaging type'].tolist()
+
+    # choose case specific files
+    if case_specific:
+        list_cases = data_frame['case number'].tolist()
+        list_imgs = [image for i, image in enumerate(list_imgs) if list_cases[i] in case_specific]
 
     list_unique_classes = np.unique(list_classes)
     list_unique_domains = np.unique(list_domain)
@@ -96,8 +99,8 @@ def load_data_from_directory(path_data, csv_annotations=None, specific_domain=No
     # remove all the files which are not images
     list_files = [f for f in list_files if f.endswith('.png')]
     list_path_files = [f for f in list_path_files if f.endswith('.png')]
-
     output_list_files = list()
+
     for j, file in enumerate(list_files):
         if file in list_imgs:
             # find the index first
@@ -128,7 +131,7 @@ def load_data_from_directory(path_data, csv_annotations=None, specific_domain=No
     return output_list_files, dictionary_labels
 
 
-def make_tf_dataset(path, batch_size, training=False, multi_output=False, specific_domain=None):
+def make_tf_dataset(list_files, dictionary_labels, batch_size, training=False, multi_output=False, specific_domain=None):
 
     global num_classes
     global training_mode
@@ -176,9 +179,10 @@ def make_tf_dataset(path, batch_size, training=False, multi_output=False, specif
     path_imgs = list()
     images_class = list()
     images_domains = list()
-    csv_annotations_file = [os.path.join(path, f) for f in os.listdir(path) if f.endswith('.csv')].pop()
-    list_files, dictionary_labels = load_data_from_directory(path, csv_annotations=csv_annotations_file,
-                                                             specific_domain=specific_domain)
+    #csv_annotations_file = [os.path.join(path, f) for f in os.listdir(path) if f.endswith('.csv')].pop()
+    #list_files, dictionary_labels = load_data_from_directory(path, csv_annotations=csv_annotations_file,
+    #                                                         specific_domain=specific_domain)
+
     if training:
         random.shuffle(list_files)
 

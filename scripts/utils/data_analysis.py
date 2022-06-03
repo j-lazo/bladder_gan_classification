@@ -64,7 +64,7 @@ def plot_training_history(list_csv_files, save_dir=''):
         train_history = pd.read_csv(list_csv_files[-1])
         header_2 = train_history.columns.values.tolist()
         # mix the headers in case they are different among files
-        dictionary = {header_2[i]:name for i, name in enumerate(header_1)}
+        dictionary = {header_2[i]: name for i, name in enumerate(header_1)}
         train_history.rename(columns=dictionary, inplace=True)
         # append the dataframes in a single one
         train_history = fine_tune_history.append(train_history, ignore_index=True)
@@ -108,7 +108,7 @@ def plot_training_history(list_csv_files, save_dir=''):
     if save_dir == '':
         dir_save_figure = os.getcwd() + '/training_history.png'
     else:
-        dir_save_figure = save_dir + 'training_history.png'
+        dir_save_figure = save_dir
 
     print(f'figure saved at: {dir_save_figure}')
     plt.savefig(dir_save_figure)
@@ -200,7 +200,7 @@ def compute_confusion_matrix(gt_data, predicted_data, plot_figure=False, dir_sav
 
 
 def analyze_multiclass_experiment(gt_data_file, predictions_data_dir, plot_figure=False, dir_save_figs=None,
-                                  analyze_training_history=False):
+                                  analyze_training_history=False, k_folds=None):
     """
     Analyze the results of a multi-class classification experiment
 
@@ -224,6 +224,10 @@ def analyze_multiclass_experiment(gt_data_file, predictions_data_dir, plot_figur
     nbi_tissue_types = []
 
     list_prediction_files = [f for f in os.listdir(predictions_data_dir) if 'predictions' in f and '(_pre' not in f]
+    if k_folds:
+        list_prediction_files = [f for f in os.listdir(predictions_data_dir) if 'predictions' in f and '(_pre' not in f
+                                 and k_folds in f]
+
     file_predictiosn = list_prediction_files.pop()
     path_file_predictions = os.path.join(predictions_data_dir, file_predictiosn)
     print(f'file predictions found: {file_predictiosn}')
@@ -292,19 +296,33 @@ def analyze_multiclass_experiment(gt_data_file, predictions_data_dir, plot_figur
                           'F-1 NBI': float(macro_f1_nbi),
                           }
 
-    dir_data_yaml = os.path.join(dir_save_fig, 'performance_analysis.yaml')
+    if k_folds:
+        yaml_file_name = ''.join(['performance_analysis_', k_folds, '.yaml'])
+        name_fig_1 = ''.join(['confusion_matrix_all_', k_folds, '.png'])
+        name_fig_2 = ''.join(['confusion_matrix_wli_', k_folds, '.png'])
+        name_fig_3 = ''.join(['confusion_matrix_nbi_', k_folds, '.png'])
+        save_hist_fig_name = ''.join(['training_history_', k_folds, '.png'])
+    else:
+        yaml_file_name = 'performance_analysis.yaml'
+        name_fig_1 = 'confusion_matrix_all.png'
+        name_fig_2 = 'confusion_matrix_wli.png'
+        name_fig_3 = 'confusion_matrix_nbi.png'
+        save_hist_fig_name = 'training_history.png'
+
+    dir_data_yaml = os.path.join(dir_save_fig, yaml_file_name)
+    dir_save_hist = os.path.join(dir_save_fig, save_hist_fig_name)
     save_yaml(dir_data_yaml, performance_resume)
 
     # Confusion Matrices
 
     compute_confusion_matrix(existing_gt_vals, ordered_predictiosn, plot_figure=False,
-                             dir_save_fig=dir_save_fig + 'confusion_matrix_all.png')
+                             dir_save_fig=dir_save_fig + name_fig_1)
 
     compute_confusion_matrix(wli_tissue_types, predictions_wli,
-                             dir_save_fig=dir_save_fig + 'confusion_matrix_wli.png')
+                             dir_save_fig=dir_save_fig + name_fig_2)
 
     compute_confusion_matrix(nbi_tissue_types, predictions_nbi,
-                             dir_save_fig=dir_save_fig + 'confusion_matrix_nbi.png')
+                             dir_save_fig=dir_save_fig + name_fig_3)
 
     gt_values = []
     for name in predictions_names:
@@ -329,7 +347,7 @@ def analyze_multiclass_experiment(gt_data_file, predictions_data_dir, plot_figur
             ordered_history.append(fine_tune_file_dir)
 
         ordered_history.append(predictions_data_dir + list_history_files[-1])
-        plot_training_history(ordered_history, save_dir=dir_save_fig)
+        plot_training_history(ordered_history, save_dir=dir_save_hist)
 
     return performance_resume
 
