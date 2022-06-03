@@ -334,11 +334,26 @@ def analyze_multiclass_experiment(gt_data_file, predictions_data_dir, plot_figur
     return performance_resume
 
 
-def analyze_individual_cases(name_csv_file):
-    df = pd.read_csv(name_csv_file)
-    plt.figure()
-    ax = sns.boxplot(x="name_model", y="acc all", data=df)
-    ax = sns.swarmplot(x="name_model", y="acc all", data=df, color=".25")
+def boxplot_individual_cases(data_frame, columns_header, title_plot=''):
+    print(data_frame)
+    fig1 = plt.figure(1, figsize=(11, 7))
+    fig1.canvas.set_window_title(title_plot)
+    fig1.suptitle(title_plot, fontsize=14)
+    ax1 = fig1.add_subplot(131)
+    ax1 = sns.boxplot(x=columns_header[0], y=columns_header[1], data=data_frame)
+    ax1 = sns.swarmplot(x=columns_header[0], y=columns_header[1], data=data_frame, color=".25")
+    ax1.title.set_text('ALL')
+
+    ax2 = fig1.add_subplot(132)
+    ax2 = sns.boxplot(x=columns_header[0], y=columns_header[2], data=data_frame)
+    ax2 = sns.swarmplot(x=columns_header[0], y=columns_header[2], data=data_frame, color=".25")
+    ax2.title.set_text('WLI')
+
+    ax3 = fig1.add_subplot(133)
+    ax3 = sns.boxplot(x=columns_header[0], y=columns_header[3], data=data_frame)
+    ax3 = sns.swarmplot(x=columns_header[0], y=columns_header[3], data=data_frame, color=".25")
+    ax3.title.set_text('NBI')
+
     plt.show()
 
 
