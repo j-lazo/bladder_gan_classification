@@ -144,7 +144,8 @@ def evalute_test_directory(model, path_test_data, results_directory, new_results
         name_file = evaluate_and_predict(model, path_test_data, results_directory,
                                          results_id=new_results_id, output_name='test',
                                          analyze_data=analyze_data, list_test_cases=list_test_cases,
-                                         fold=fold)
+                                         fold=fold,
+                                         multioutput=multioutput)
 
         print(f'Evaluation results saved at {name_file}')
 

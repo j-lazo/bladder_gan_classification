@@ -49,7 +49,7 @@ def compile_model(name_model, strategy, optimizer, loss, metrics,
 def call_models(name_model, path_dataset, mode='fit', backbones=['resnet101'], gan_model='checkpoint_charlie', epochs=2,
                 batch_size=1, learning_rate=0.001, val_data=None, test_data=None, eval_val_set=False, eval_train_set=False,
                 results_dir=os.path.join(os.getcwd(), 'results'), gpus_available=None, analyze_data=False,
-                specific_domain=None, prepare_finished_experiment=False, k_folds={None}, val_division=0.25):
+                specific_domain=None, prepare_finished_experiment=False, k_folds={None}, val_division=0.2):
 
     multi_input_models = ['gan_model_multi_joint_features', 'gan_model_separate_features',
                           'gan_model_joint_features_and_domain']
@@ -100,6 +100,7 @@ def call_models(name_model, path_dataset, mode='fit', backbones=['resnet101'], g
             dic_val = {x: dictionary_files[x] for x in val_x}
 
             # option 2, select case_specific folds as train / val
+            # pass
             train_dataset = dam.make_tf_dataset(train_x, dic_train, batch_size,
                                                 training=True, multi_output=multioutput,
                                                 specific_domain=specific_domain)
@@ -245,7 +246,8 @@ def call_models(name_model, path_dataset, mode='fit', backbones=['resnet101'], g
                 loaded_model, _ = load_model(dir_save_model)
                 print(f'Test directory found at: {path_test_dataset}')
                 evalute_test_directory(loaded_model, path_test_dataset, results_directory, new_results_id,
-                                       analyze_data=analyze_data, list_test_cases=list_test_cases, fold=fold)
+                                       analyze_data=analyze_data, list_test_cases=list_test_cases, fold=fold,
+                                       multioutput=multioutput)
 
     tf.keras.backend.clear_session()
     if prepare_finished_experiment:
