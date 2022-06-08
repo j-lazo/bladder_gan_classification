@@ -7,6 +7,7 @@ from tensorflow.keras.optimizers import SGD, Adam, RMSprop, Nadam
 import datetime
 from models.model_utils import *
 from models.gan_classification import *
+from models.simple_models import *
 import shutil
 import random
 
@@ -52,7 +53,7 @@ def call_models(name_model, path_dataset, mode='fit', backbones=['resnet101'], g
                 specific_domain=None, prepare_finished_experiment=False, k_folds={None}, val_division=0.2):
 
     multi_input_models = ['gan_model_multi_joint_features', 'gan_model_separate_features',
-                          'gan_model_joint_features_and_domain']
+                          'gan_model_joint_features_and_domain', 'simple_model_domain_input']
 
     if name_model not in multi_input_models:
         multioutput = False
@@ -165,6 +166,8 @@ def call_models(name_model, path_dataset, mode='fit', backbones=['resnet101'], g
                     model = build_gan_model_separate_features(backbones=backbones, gan_weights=gan_pretrained_weights)
                 elif name_model == 'gan_model_joint_features_and_domain':
                     model = build_gan_model_joint_features_and_domain(backbones=backbones, gan_weights=gan_pretrained_weights)
+                elif name_model == 'simple_model_domain_input':
+                    model = build_simple_model_with_domain_input(backbones=backbones)   
                 else:
                     model = build_pretrained_model(name_model)
 
@@ -179,6 +182,8 @@ def call_models(name_model, path_dataset, mode='fit', backbones=['resnet101'], g
                 model = build_gan_model_separate_features(backbones=backbones, gan_weights=gan_weights)
             elif name_model == 'gan_model_joint_features_and_domain':
                 model = build_gan_model_joint_features_and_domain(backbones=backbones, gan_weights=gan_pretrained_weights)
+            elif name_model == 'simple_model_domain_input':
+                model = build_simple_model_with_domain_input(backbones=backbones)
             else:
                 model = build_pretrained_model(name_model)
 

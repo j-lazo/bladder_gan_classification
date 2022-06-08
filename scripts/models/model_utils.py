@@ -263,7 +263,6 @@ def load_model(directory_model):
 
     return model, input_size
 
-
 def build_pretrained_model(name_model):
     input_image = keras.Input(shape=(256, 256, 3), name="image")
 
