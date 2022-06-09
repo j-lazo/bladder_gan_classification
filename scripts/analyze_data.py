@@ -113,7 +113,9 @@ def compute_metrics_boxplots(dir_to_csv=(os.path.join(os.getcwd(), 'results', 's
                         'densenet121': 'densenet',
                         'gan_model_separate_features+densenet121_': 'sf D',
                         'gan_model_separate_features+resnet101_': 'sf R',
-                        'resnet101': 'resnet101'}
+                        'resnet101': 'resnet101',
+                        'simple_model_domain_input+resnet101_': 'smd R',
+                        'simple_model_domain_input+densenet121_': 'smd D'}
 
     selected_models_basic = ['densenet121', 'resnet101']
     selected_models_joint = ['gan_model_separate_features+densenet121_',
@@ -123,43 +125,64 @@ def compute_metrics_boxplots(dir_to_csv=(os.path.join(os.getcwd(), 'results', 's
 
     selected_models_d = ['densenet121', 'resnet101',
                        'gan_model_separate_features+densenet121_',
-                        'gan_model_multi_joint_features+densenet121_',
-                       'gan_model_joint_features_and_domain+densenet121_']
+                        'gan_model_multi_joint_features+densenet121_',]
+                       #'gan_model_joint_features_and_domain+densenet121_',]
+                         #'simple_model_domain_input+densenet121_']
 
     selected_models_r = ['resnet101', 'densenet121',
                        'gan_model_separate_features+resnet101_',
-                       'gan_model_multi_joint_features+resnet101_',
-                       'gan_model_joint_features_and_domain+resnet101_'
-                       ]
+                       'gan_model_multi_joint_features+resnet101_',]
+                       #'gan_model_joint_features_and_domain+resnet101_',]
+                         #'simple_model_domain_input+resnet101_']
 
-    #for name_model in selected_models:
+    selected_models_c = ['gan_model_separate_features+densenet121_',
+                         'gan_model_multi_joint_features+densenet121_',
+                         'gan_model_joint_features_and_domain+densenet121_'
+                         'gan_model_separate_features+resnet101_',
+                         'gan_model_multi_joint_features+resnet101_',
+                         'gan_model_joint_features_and_domain+resnet101_'
+                         ]
+
+    selected_models = selected_models_r
+
     list_x = list()
     list_y1 = list()
     list_y2 = list()
     list_y3 = list()
-    chosen_learning_rates = [0.00001, 0.001]
+    list_domain = list()
+    chosen_learning_rates = [0.00001]
     chosen_batch_sizes = [32]
-    chosen_trained_data = ['WLI']
+    chosen_trained_data = ['ALL']
+
+    # 'Accuracy', 'Precision', 'Recall', 'F-1'
+    metric_analysis = 'F-1'
+    metrics_box = ['ALL', 'WLI', 'NBI']
+    metrics_box = [''.join([metric_analysis, ' ', m]) for m in metrics_box]
+
+    lis_metric_1 = df[''.join([metric_analysis, ' ', 'ALL'])].tolist()
+    lis_metric_2 = df[''.join([metric_analysis, ' ', 'WLI'])].tolist()
+    lis_metric_3 = df[''.join([metric_analysis, ' ', 'NBI'])].tolist()
+
     for j, model in enumerate(name_models):
-        if model in selected_models_r \
+        if model in selected_models \
                 and learning_rates[j] in chosen_learning_rates \
                 and batch_sizes[j] in chosen_batch_sizes \
                 and training_data_used[j] in chosen_trained_data:
-            #if '121' in model:
-            #    model = model.replace('121', '')
 
-            #model = model.replace('_', ' ')
             model_name = alternative_name[model]
             list_x.append(model_name)
-            list_y1.append(acc_all[j])
-            list_y2.append(acc_wli[j])
-            list_y3.append(acc_nbi[j])
+            list_y1.append(lis_metric_1[j])
+            list_y2.append(lis_metric_2[j])
+            list_y3.append(lis_metric_3[j])
+            list_domain.append(data_used[j])
 
     zipped = list(zip(list_x, list_y1, list_y2, list_y3))
-    columns = ['name model', 'ACC ALL', 'ACC WLI', 'ACC NBI']
+    columns = ['name model'] + metrics_box
     df_analysis = pd.DataFrame(zipped, columns=columns)
     title_plot = 'Comparion base models'#name_model.replace('_', ' ')
-    daa.boxplot_individual_cases(df_analysis, columns, title_plot=title_plot)
+    #daa.boxplot_seaborn(df_analysis, columns, title_plot=title_plot)
+    title_fig = ''.join([metric_analysis,' ', 'trained using ', chosen_trained_data[0]])
+    daa.box_plot_matplotlib(df_analysis, metrics=metrics_box, title=title_fig, y_label=metric_analysis)
 
 
 def prepare_data(dir_dataset, destination_directory=os.path.join(os.getcwd(), 'datasets', 'bladder_tissue_classification_k_folds')):
