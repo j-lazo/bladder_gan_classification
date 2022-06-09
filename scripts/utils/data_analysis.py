@@ -13,6 +13,9 @@ import pandas as pd
 import seaborn as sns
 import oyaml as yaml
 import collections
+from matplotlib.patches import Polygon
+import scipy
+from matplotlib import gridspec
 
 
 def extract_experiment_information_from_name(experiment_ID_name):
@@ -352,24 +355,186 @@ def analyze_multiclass_experiment(gt_data_file, predictions_data_dir, plot_figur
     return performance_resume
 
 
-def boxplot_individual_cases(data_frame, columns_header, title_plot=''):
+def box_plot_matplotlib(dataframe, title='', y_label='', computer_stat_sig=True, metrics=None):
+    # Generate some random indices that we'll use to resample the original data
+    # arrays. For code brevity, just use the same random indices for each array
+    print(dataframe)
+    # you need to group the results by model name
+    list_models = dataframe['name model'].tolist()
+
+    unique_models = np.unique(list_models)
+    if not metrics:
+        metrics = list(dataframe.columns.values)
+        metrics.remove('name model')
+
+    metrics_models = {m: {metric: list() for metric in metrics[:]} for m in unique_models}
+    for i, model in enumerate(list_models):
+        row = dataframe.loc[i]
+        name_model = row['name model']
+        metrics_models[name_model][metrics[0]].append(row[metrics[0]])
+        metrics_models[name_model][metrics[1]].append(row[metrics[1]])
+        metrics_models[name_model][metrics[2]].append(row[metrics[2]])
+
+    data = list()
+    for name_model in metrics_models:
+        data.append(metrics_models[name_model][metrics[0]])
+        data.append(metrics_models[name_model][metrics[1]])
+        data.append(metrics_models[name_model][metrics[2]])
+
+    if computer_stat_sig:
+        r1 = scipy.stats.mannwhitneyu(metrics_models['densenet'][metrics[0]], metrics_models['resnet101'][metrics[0]])
+        r2 = scipy.stats.mannwhitneyu(metrics_models['densenet'][metrics[1]], metrics_models['resnet101'][metrics[1]])
+        r3 = scipy.stats.mannwhitneyu(metrics_models['densenet'][metrics[2]], metrics_models['resnet101'][metrics[2]])
+        print('densenet vs resnet101')
+        print(metrics[0], r1)
+        print(metrics[1], r2)
+        print(metrics[2], r3)
+        jf_model = [m for m in unique_models if 'jf' in m].pop()
+        sf_model = [m for m in unique_models if 'sf' in m].pop()
+
+        r4 = scipy.stats.mannwhitneyu(metrics_models[jf_model][metrics[0]], metrics_models['resnet101'][metrics[0]])
+        r5 = scipy.stats.mannwhitneyu(metrics_models[jf_model][metrics[1]], metrics_models['resnet101'][metrics[1]])
+        r6 = scipy.stats.mannwhitneyu(metrics_models[jf_model][metrics[2]], metrics_models['resnet101'][metrics[2]])
+        print(f'{jf_model} vs resnet')
+        print(metrics[0], r4)
+        print(metrics[1], r5)
+        print(metrics[2], r6)
+        r7 = scipy.stats.mannwhitneyu(metrics_models[sf_model][metrics[0]], metrics_models['resnet101'][metrics[0]])
+        r8 = scipy.stats.mannwhitneyu(metrics_models[sf_model][metrics[1]], metrics_models['resnet101'][metrics[1]])
+        r9 = scipy.stats.mannwhitneyu(metrics_models[sf_model][metrics[2]], metrics_models['resnet101'][metrics[2]])
+        print(f'{sf_model} vs resnet')
+        print(metrics[0], r7)
+        print(metrics[1], r8)
+        print(metrics[2], r9)
+
+        r10 = scipy.stats.mannwhitneyu(metrics_models[jf_model][metrics[0]], metrics_models['densenet'][metrics[0]])
+        r11 = scipy.stats.mannwhitneyu(metrics_models[jf_model][metrics[1]], metrics_models['densenet'][metrics[1]])
+        r12 = scipy.stats.mannwhitneyu(metrics_models[jf_model][metrics[2]], metrics_models['densenet'][metrics[2]])
+        print(f'{jf_model} vs densenet')
+        print(metrics[0], r10)
+        print(metrics[1], r11)
+        print(metrics[2], r12)
+        r13 = scipy.stats.mannwhitneyu(metrics_models[sf_model][metrics[0]], metrics_models['densenet'][metrics[0]])
+        r14 = scipy.stats.mannwhitneyu(metrics_models[sf_model][metrics[1]], metrics_models['densenet'][metrics[1]])
+        r15 = scipy.stats.mannwhitneyu(metrics_models[sf_model][metrics[2]], metrics_models['densenet'][metrics[2]])
+        print(f'{sf_model} vs densenet')
+        print(metrics[0], r13)
+        print(metrics[1], r14)
+        print(metrics[2], r15)
+
+    labels = ['' for x in range(len(data))]
+    for i, label in enumerate(labels):
+        if i % 3 == 0:
+            labels[i + 1] = unique_models[int(i/3)]
+
+    fig, ax1 = plt.subplots(figsize=(15, 9))
+    fig.canvas.set_window_title('Boxplot Comparison')
+    fig.subplots_adjust(left=0.075, right=0.95, top=0.85, bottom=0.25)
+
+    bp = ax1.boxplot(data, notch=0, sym='+', vert=1, whis=1.5)
+    plt.setp(bp['boxes'], color='black')
+    plt.setp(bp['whiskers'], color='black')
+    plt.setp(bp['fliers'], color='red', marker='+')
+
+    # Add a horizontal grid to the plot, but make it very light in color
+    # so we can use it for reading data values but not be distracting
+    ax1.yaxis.grid(True, linestyle='-', which='major', color='lightgrey',
+                   alpha=0.5)
+    # Hide these grid behind plot objects
+    ax1.set_axisbelow(True)
+    # ax1.set_title(Title)
+    # ax1.set_xlabel('Model')
+    ax1.set_ylabel(y_label, fontsize=15)
+
+    # Now fill the boxes with desired colors
+    # box_colors = ['darkkhaki', 'royalblue']
+    box_colors = ['green', 'royalblue', 'orange']
+    num_boxes = len(data)
+    medians = np.empty(num_boxes)
+    averages = np.empty(num_boxes)
+    for i in range(num_boxes):
+        box = bp['boxes'][i]
+        boxX = []
+        boxY = []
+        for j in range(5):
+            boxX.append(box.get_xdata()[j])
+            boxY.append(box.get_ydata()[j])
+        box_coords = np.column_stack([boxX, boxY])
+        # Alternate between Dark Khaki and Royal Blue
+        ax1.add_patch(Polygon(box_coords, facecolor=box_colors[i % 3]))
+        # Now draw the median lines back over what we just filled in
+        med = bp['medians'][i]
+        medianX = []
+        medianY = []
+        for j in range(2):
+            medianX.append(med.get_xdata()[j])
+            medianY.append(med.get_ydata()[j])
+            ax1.plot(medianX, medianY, 'k')
+        medians[i] = medianY[0]
+        averages[i] = np.average(data[i])
+        # Finally, overplot the sample averages, with horizontal alignment
+        # in the center of each box
+        ax1.plot(np.average(med.get_xdata()), np.average(data[i]),
+                 color='w', marker='*', markeredgecolor='k')
+
+    # Set the axes ranges and axes labels
+    ax1.set_xlim(0.5, num_boxes + 0.5)
+    top = 1.1
+    bottom = -0.1
+    ax1.set_ylim(bottom, top)
+
+    ax1.set_xticklabels(labels, fontsize=15, weight='bold')
+
+    pos = np.arange(num_boxes) + 1
+    upper_labels = [str(round(s, 2)) for s in medians]
+    weights = ['bold', 'semibold', 'semibold']
+    for tick, label in zip(range(num_boxes), ax1.get_xticklabels()):
+        k = tick % 3
+        ax1.text(pos[tick], 0.95, upper_labels[tick],
+                 transform=ax1.get_xaxis_transform(),
+                 horizontalalignment='center', size='large',
+                 weight=weights[k], color=box_colors[k])
+
+    # Finally, add a basic legend
+
+    fig.text(0.10, 0.15, 'All data',
+             backgroundcolor=box_colors[0], color='black', weight='roman',
+             size='large')
+    fig.text(0.10, 0.12, 'WLI data',
+             backgroundcolor=box_colors[1],
+             color='black', weight='roman', size='large')
+    fig.text(0.10, 0.09, 'NBI data',
+             backgroundcolor=box_colors[2],
+             color='black', weight='roman', size='large')
+
+    fig.text(0.10, 0.05, '*', color='white', backgroundcolor='silver',
+             weight='roman', size='large')
+    fig.text(0.115, 0.05, 'Average Value', color='black', weight='roman',
+             size='large')
+    plt.show()
+
+
+def boxplot_seaborn(data_frame, columns_header, title_plot=''):
     print(data_frame)
-    fig1 = plt.figure(1, figsize=(11, 7))
+    fig1 = plt.figure(1, figsize=(15, 9))
     fig1.canvas.set_window_title(title_plot)
     fig1.suptitle(title_plot, fontsize=14)
     ax1 = fig1.add_subplot(131)
     ax1 = sns.boxplot(x=columns_header[0], y=columns_header[1], data=data_frame)
     ax1 = sns.swarmplot(x=columns_header[0], y=columns_header[1], data=data_frame, color=".25")
+    ax1.set_ylim([0, 1.0])
     ax1.title.set_text('ALL')
 
     ax2 = fig1.add_subplot(132)
     ax2 = sns.boxplot(x=columns_header[0], y=columns_header[2], data=data_frame)
     ax2 = sns.swarmplot(x=columns_header[0], y=columns_header[2], data=data_frame, color=".25")
+    ax2.set_ylim([0, 1.0])
     ax2.title.set_text('WLI')
 
     ax3 = fig1.add_subplot(133)
     ax3 = sns.boxplot(x=columns_header[0], y=columns_header[3], data=data_frame)
     ax3 = sns.swarmplot(x=columns_header[0], y=columns_header[3], data=data_frame, color=".25")
+    ax3.set_ylim([0, 1.0])
     ax3.title.set_text('NBI')
 
     plt.show()
