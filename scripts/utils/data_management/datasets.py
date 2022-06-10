@@ -8,6 +8,7 @@ import datetime
 import tensorflow_addons as tfa
 from utils import image as img_fun
 
+
 def generate_experiment_ID(name_model='', learning_rate='na', batch_size='na', backbone_model='',
                            prediction_model='', mode='', specific_domain=None):
     """
