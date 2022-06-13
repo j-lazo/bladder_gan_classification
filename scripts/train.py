@@ -180,9 +180,9 @@ def call_models(name_model, path_dataset, mode='fit', backbones=['resnet101'], g
 
         else:
             if name_model == 'gan_model_multi_joint_features':
-                model = build_gan_model_joint_features(backbones=backbones, gan_weights=gan_weights)
+                model = build_gan_model_joint_features(backbones=backbones, gan_weights=gan_pretrained_weights)
             elif name_model == 'gan_model_separate_features':
-                model = build_gan_model_separate_features(backbones=backbones, gan_weights=gan_weights)
+                model = build_gan_model_separate_features(backbones=backbones, gan_weights=gan_pretrained_weights)
             elif name_model == 'gan_model_joint_features_and_domain':
                 model = build_gan_model_joint_features_and_domain(backbones=backbones, gan_weights=gan_pretrained_weights)
             elif name_model == 'simple_model_domain_input':
