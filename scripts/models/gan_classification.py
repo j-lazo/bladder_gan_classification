@@ -47,14 +47,22 @@ def build_gan_model_joint_features(backbones=['resnet101', 'resnet101', 'resnet1
     # x2 = [c2, r2]
 
     # outputs from the generators
-    c = tf.keras.backend.switch(t_input, c1, c2)
-    r = tf.keras.backend.switch(t_input, r1, r2)
+    # if you want to have a classifiers evaluating the results from converted and re-converted uncomment bellow
+    """gen_a2b = tf.keras.backend.switch(t_input, c1, c2)
+    gen_b2a = tf.keras.backend.switch(t_input, r1, r2)"""
+
+    # if you want to have a classifiers evaluating the results produced by each Generator separate use bellow
+    gen_a2b = tf.keras.backend.switch(t_input, c1, r2)
+    gen_b2a = tf.keras.backend.switch(t_input, r1, c2)
 
     # then we need to resize and re-scale the data
-    input_backbone_2 = tf.math.scalar_mul(255., tf.math.divide(tf.math.subtract(c, tf.reduce_min(c)),
-                                                 tf.math.subtract(tf.reduce_max(c), tf.math.reduce_min(c))))
-    input_backbone_3 = tf.math.scalar_mul(255., tf.math.divide(tf.math.subtract(r, tf.reduce_min(r)),
-                                                 tf.math.subtract(tf.reduce_max(r), tf.math.reduce_min(r))))
+    input_backbone_2 = tf.math.scalar_mul(255., tf.math.divide(tf.math.subtract(gen_a2b, tf.reduce_min(gen_a2b)),
+                                                               tf.math.subtract(tf.reduce_max(gen_a2b),
+                                                                                tf.math.reduce_min(gen_a2b))))
+
+    input_backbone_3 = tf.math.scalar_mul(255., tf.math.divide(tf.math.subtract(gen_b2a, tf.reduce_min(gen_b2a)),
+                                                               tf.math.subtract(tf.reduce_max(gen_b2a),
+                                                                                tf.math.reduce_min(gen_b2a))))
 
     input_backbone_2 = tf.cast(input_backbone_2, tf.float32)
     input_backbone_3 = tf.cast(input_backbone_3, tf.float32)
@@ -150,14 +158,22 @@ def build_gan_model_joint_features_and_domain(backbones=['resnet101', 'resnet101
     # x2 = [c2, r2]
 
     # outputs from the generators
-    c = tf.keras.backend.switch(t_input, c1, c2)
-    r = tf.keras.backend.switch(t_input, r1, r2)
+    # if you want to have a classifiers evaluating the results from converted and re-converted uncomment bellow
+    """gen_a2b = tf.keras.backend.switch(t_input, c1, c2)
+    gen_b2a = tf.keras.backend.switch(t_input, r1, r2)"""
+
+    # if you want to have a classifiers evaluating the results produced by each Generator separate use bellow
+    gen_a2b = tf.keras.backend.switch(t_input, c1, r2)
+    gen_b2a = tf.keras.backend.switch(t_input, r1, c2)
 
     # then we need to resize and re-scale the data
-    input_backbone_2 = tf.math.scalar_mul(255., tf.math.divide(tf.math.subtract(c, tf.reduce_min(c)),
-                                                 tf.math.subtract(tf.reduce_max(c), tf.math.reduce_min(c))))
-    input_backbone_3 = tf.math.scalar_mul(255., tf.math.divide(tf.math.subtract(r, tf.reduce_min(r)),
-                                                 tf.math.subtract(tf.reduce_max(r), tf.math.reduce_min(r))))
+    input_backbone_2 = tf.math.scalar_mul(255., tf.math.divide(tf.math.subtract(gen_a2b, tf.reduce_min(gen_a2b)),
+                                                               tf.math.subtract(tf.reduce_max(gen_a2b),
+                                                                                tf.math.reduce_min(gen_a2b))))
+
+    input_backbone_3 = tf.math.scalar_mul(255., tf.math.divide(tf.math.subtract(gen_b2a, tf.reduce_min(gen_b2a)),
+                                                               tf.math.subtract(tf.reduce_max(gen_b2a),
+                                                                                tf.math.reduce_min(gen_b2a))))
 
     input_backbone_2 = tf.cast(input_backbone_2, tf.float32)
     input_backbone_3 = tf.cast(input_backbone_3, tf.float32)
@@ -255,14 +271,22 @@ def build_gan_model_separate_features(backbones=['resnet101', 'resnet101', 'resn
     # x2 = [c2, r2]
 
     # outputs from the generators
-    c = tf.keras.backend.switch(t_input, c1, c2)
-    r = tf.keras.backend.switch(t_input, r1, r2)
+    # if you want to have a classifiers evaluating the results from converted and re-converted uncomment bellow
+    """gen_a2b = tf.keras.backend.switch(t_input, c1, c2)
+    gen_b2a = tf.keras.backend.switch(t_input, r1, r2)"""
+
+    # if you want to have a classifiers evaluating the results produced by each Generator separate use bellow
+    gen_a2b = tf.keras.backend.switch(t_input, c1, r2)
+    gen_b2a = tf.keras.backend.switch(t_input, r1, c2)
 
     # then we need to resize and re-scale the data
-    input_backbone_2 = tf.math.scalar_mul(255., tf.math.divide(tf.math.subtract(c, tf.reduce_min(c)),
-                                                 tf.math.subtract(tf.reduce_max(c), tf.math.reduce_min(c))))
-    input_backbone_3 = tf.math.scalar_mul(255., tf.math.divide(tf.math.subtract(r, tf.reduce_min(r)),
-                                                 tf.math.subtract(tf.reduce_max(r), tf.math.reduce_min(r))))
+    input_backbone_2 = tf.math.scalar_mul(255., tf.math.divide(tf.math.subtract(gen_a2b, tf.reduce_min(gen_a2b)),
+                                                               tf.math.subtract(tf.reduce_max(gen_a2b),
+                                                                                tf.math.reduce_min(gen_a2b))))
+
+    input_backbone_3 = tf.math.scalar_mul(255., tf.math.divide(tf.math.subtract(gen_b2a, tf.reduce_min(gen_b2a)),
+                                                               tf.math.subtract(tf.reduce_max(gen_b2a),
+                                                                                tf.math.reduce_min(gen_b2a))))
 
     input_backbone_2 = tf.cast(input_backbone_2, tf.float32)
     input_backbone_3 = tf.cast(input_backbone_3, tf.float32)
@@ -367,14 +391,22 @@ def build_gan_model_separate_features_v2(backbones=['resnet101', 'resnet101', 'r
     # x2 = [c2, r2]
 
     # outputs from the generators
-    c = tf.keras.backend.switch(t_input, c1, c2)
-    r = tf.keras.backend.switch(t_input, r1, r2)
+    # if you want to have a classifiers evaluating the results from converted and re-converted uncomment bellow
+    """gen_a2b = tf.keras.backend.switch(t_input, c1, c2)
+    gen_b2a = tf.keras.backend.switch(t_input, r1, r2)"""
+
+    # if you want to have a classifiers evaluating the results produced by each Generator separate use bellow
+    gen_a2b = tf.keras.backend.switch(t_input, c1, r2)
+    gen_b2a = tf.keras.backend.switch(t_input, r1, c2)
 
     # then we need to resize and re-scale the data
-    input_backbone_2 = tf.math.scalar_mul(255., tf.math.divide(tf.math.subtract(c, tf.reduce_min(c)),
-                                                 tf.math.subtract(tf.reduce_max(c), tf.math.reduce_min(c))))
-    input_backbone_3 = tf.math.scalar_mul(255., tf.math.divide(tf.math.subtract(r, tf.reduce_min(r)),
-                                                 tf.math.subtract(tf.reduce_max(r), tf.math.reduce_min(r))))
+    input_backbone_2 = tf.math.scalar_mul(255., tf.math.divide(tf.math.subtract(gen_a2b, tf.reduce_min(gen_a2b)),
+                                                               tf.math.subtract(tf.reduce_max(gen_a2b),
+                                                                                tf.math.reduce_min(gen_a2b))))
+
+    input_backbone_3 = tf.math.scalar_mul(255., tf.math.divide(tf.math.subtract(gen_b2a, tf.reduce_min(gen_b2a)),
+                                                               tf.math.subtract(tf.reduce_max(gen_b2a),
+                                                                                tf.math.reduce_min(gen_b2a))))
 
     input_backbone_2 = tf.cast(input_backbone_2, tf.float32)
     input_backbone_3 = tf.cast(input_backbone_3, tf.float32)
