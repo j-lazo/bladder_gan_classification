@@ -8,6 +8,18 @@ input_sizes_models = {'vgg16': (224, 224), 'vgg19': (224, 224), 'inception_v3': 
                       'densenet121': (224, 224), 'xception': (299, 299)}
 
 
+def simple_residual_model(input_size=256, num_filters=[32, 64, 128, 256, 512]):
+    input_layer = Input((input_size, input_size, 3))
+    x = input_layer
+    for f in num_filters[:-1]:
+        x = residual_block(x, f)
+        x = MaxPool2D((2, 2))(x)
+
+    output_layer = residual_block(x, num_filters[-1])
+
+    return Model(inputs=input_layer, outputs=output_layer, name='simple_residual_model')
+
+
 def build_simple_model_with_domain_input(backbones):
     # inputs
     name_model = backbones[0]

@@ -16,6 +16,25 @@ def _get_norm_layer(norm):
         return keras.layers.LayerNormalization
 
 
+def residual_block(x, num_filters):
+    x = Conv2D(num_filters, (3, 3), padding="same")(x)
+    x = BatchNormalization()(x)
+    x = Activation("relu")(x)
+
+    skip = Conv2D(num_filters, (3, 3), padding="same")(x)
+    skip = Activation("relu")(skip)
+    skip = BatchNormalization()(skip)
+
+    x = Conv2D(num_filters, (3, 3), padding="same")(x)
+    x = BatchNormalization()(x)
+    x = Activation("relu")(x)
+
+    x = tf.math.add_n([x, skip])
+    x = Activation("relu")(x)
+
+    return x
+
+
 def ResnetGenerator(input_shape=(256, 256, 3),
                     output_channels=3,
                     dim=64,
