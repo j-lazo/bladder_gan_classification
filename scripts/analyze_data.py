@@ -142,6 +142,7 @@ def compute_metrics_boxplots(dir_to_csv=(os.path.join(os.getcwd(), 'results', 's
                          'gan_model_multi_joint_features+resnet101_',
                          'gan_model_joint_features_and_domain+resnet101_'
                          ]
+    selected_res = ['resnet101']
 
     selected_models = selected_models_r
 
@@ -152,7 +153,7 @@ def compute_metrics_boxplots(dir_to_csv=(os.path.join(os.getcwd(), 'results', 's
     list_domain = list()
     chosen_learning_rates = [0.00001]
     chosen_batch_sizes = [32]
-    chosen_trained_data = ['ALL']
+    chosen_trained_data = ['WLI']
 
     # 'Accuracy', 'Precision', 'Recall', 'F-1'
     metric_analysis = 'F-1'
@@ -176,13 +177,16 @@ def compute_metrics_boxplots(dir_to_csv=(os.path.join(os.getcwd(), 'results', 's
             list_y3.append(lis_metric_3[j])
             list_domain.append(data_used[j])
 
-    zipped = list(zip(list_x, list_y1, list_y2, list_y3))
+    #zipped = list(zip(list_x, list_y1, list_y2, list_y3))
+    zipped = list(zip(list_x, list_y1, list_y2, list_y3, list_domain))
     columns = ['name model'] + metrics_box
+    columns.append('training_data_used')
     df_analysis = pd.DataFrame(zipped, columns=columns)
     title_plot = 'Comparion base models'#name_model.replace('_', ' ')
     #daa.boxplot_seaborn(df_analysis, columns, title_plot=title_plot)
-    title_fig = ''.join([metric_analysis,' ', 'trained using ', chosen_trained_data[0]])
-    daa.box_plot_matplotlib(df_analysis, metrics=metrics_box, title=title_fig, y_label=metric_analysis)
+    title_fig = ''.join([metric_analysis, ' ', 'trained using ', chosen_trained_data[0]])
+    daa.box_plot_matplotlib(df_analysis, metrics=metrics_box, title=title_fig, y_label=metric_analysis,
+                            analysis_type='by_model')
 
 
 def prepare_data(dir_dataset, destination_directory=os.path.join(os.getcwd(), 'datasets', 'bladder_tissue_classification_k_folds')):

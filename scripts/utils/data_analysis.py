@@ -15,6 +15,7 @@ import oyaml as yaml
 import collections
 from matplotlib.patches import Polygon
 import scipy
+from utils.data_management import file_management as fam
 from matplotlib import gridspec
 
 
@@ -116,23 +117,6 @@ def plot_training_history(list_csv_files, save_dir=''):
     print(f'figure saved at: {dir_save_figure}')
     plt.savefig(dir_save_figure)
     plt.close()
-
-
-def check_path_exists(path, default_ext):
-    name, ext = os.path.splitext(path)
-    if ext == '':
-        if default_ext[0] == '.':
-            default_ext = default_ext[1:]
-        path = name + '.' + default_ext
-    return path
-
-
-def save_yaml(path, data, **kwargs):
-
-    path = check_path_exists(path, 'yml')
-
-    with open(path, 'w') as f:
-        yaml.dump(data, f, **kwargs)
 
 
 def compute_confusion_matrix(gt_data, predicted_data, plot_figure=False, dir_save_fig=''):
@@ -314,7 +298,7 @@ def analyze_multiclass_experiment(gt_data_file, predictions_data_dir, plot_figur
 
     dir_data_yaml = os.path.join(dir_save_fig, yaml_file_name)
     dir_save_hist = os.path.join(dir_save_fig, save_hist_fig_name)
-    save_yaml(dir_data_yaml, performance_resume)
+    fam.save_yaml(dir_data_yaml, performance_resume)
 
     # Confusion Matrices
 
@@ -355,33 +339,10 @@ def analyze_multiclass_experiment(gt_data_file, predictions_data_dir, plot_figur
     return performance_resume
 
 
-def box_plot_matplotlib(dataframe, title='', y_label='', computer_stat_sig=True, metrics=None):
-    # Generate some random indices that we'll use to resample the original data
-    # arrays. For code brevity, just use the same random indices for each array
-    print(dataframe)
-    # you need to group the results by model name
-    list_models = dataframe['name model'].tolist()
+def Mann_Whitney_U_test(metrics_models, metrics, unique_models=None, analysis_type='by_model'):
+    if analysis_type == 'by_model':
 
-    unique_models = np.unique(list_models)
-    if not metrics:
-        metrics = list(dataframe.columns.values)
-        metrics.remove('name model')
-
-    metrics_models = {m: {metric: list() for metric in metrics[:]} for m in unique_models}
-    for i, model in enumerate(list_models):
-        row = dataframe.loc[i]
-        name_model = row['name model']
-        metrics_models[name_model][metrics[0]].append(row[metrics[0]])
-        metrics_models[name_model][metrics[1]].append(row[metrics[1]])
-        metrics_models[name_model][metrics[2]].append(row[metrics[2]])
-
-    data = list()
-    for name_model in metrics_models:
-        data.append(metrics_models[name_model][metrics[0]])
-        data.append(metrics_models[name_model][metrics[1]])
-        data.append(metrics_models[name_model][metrics[2]])
-
-    if computer_stat_sig:
+        print(metrics_models)
         r1 = scipy.stats.mannwhitneyu(metrics_models['densenet'][metrics[0]], metrics_models['resnet101'][metrics[0]])
         r2 = scipy.stats.mannwhitneyu(metrics_models['densenet'][metrics[1]], metrics_models['resnet101'][metrics[1]])
         r3 = scipy.stats.mannwhitneyu(metrics_models['densenet'][metrics[2]], metrics_models['resnet101'][metrics[2]])
@@ -421,11 +382,82 @@ def box_plot_matplotlib(dataframe, title='', y_label='', computer_stat_sig=True,
         print(metrics[0], r13)
         print(metrics[1], r14)
         print(metrics[2], r15)
+    elif analysis_type == 'by_data_type':
+        pass
 
-    labels = ['' for x in range(len(data))]
-    for i, label in enumerate(labels):
-        if i % 3 == 0:
-            labels[i + 1] = unique_models[int(i/3)]
+
+def generate_dctionary_metrics_results(dataframe, metrics, domain_type='WLI'):
+    list_models = dataframe['name model'].tolist()
+    unique_models = list(np.unique(list_models))
+    metrics_models = {m: {metric: list() for metric in metrics[:]} for m in unique_models}
+    for i, model in enumerate(list_models):
+        row = dataframe.loc[i]
+        if row['training_data_used'] == domain_type:
+            name_model = row['name model']
+            metrics_models[name_model][metrics[0]].append(row[metrics[0]])
+            metrics_models[name_model][metrics[1]].append(row[metrics[1]])
+            metrics_models[name_model][metrics[2]].append(row[metrics[2]])
+
+    return metrics_models, unique_models
+
+
+def generate_data_list_plot(metrics_models, metrics):
+    data = list()
+    for name_model in metrics_models:
+        data.append(metrics_models[name_model][metrics[0]])
+        data.append(metrics_models[name_model][metrics[1]])
+        data.append(metrics_models[name_model][metrics[2]])
+
+    return data
+
+
+def box_plot_matplotlib(dataframe, title='', y_label='', computer_stat_sig=True, metrics=None,
+                        analysis_type='by_model'):
+    # Generate some random indices that we'll use to resample the original data
+    # arrays. For code brevity, just use the same random indices for each array
+    print(dataframe)
+
+    if not metrics:
+        metrics = list(dataframe.columns.values)
+        metrics.remove('name model')
+        if 'training_data_used' in metrics:
+            metrics.remove('training_data_used')
+
+    # you need to group the results by model name
+    if analysis_type == 'by_model':
+
+        metrics_models, unique_models = generate_dctionary_metrics_results(dataframe, metrics)
+        data = generate_data_list_plot(metrics_models, metrics)
+
+        if computer_stat_sig:
+            Mann_Whitney_U_test(metrics_models, metrics, unique_models, analysis_type=analysis_type)
+
+        labels = ['' for x in range(len(data))]
+        for i, label in enumerate(labels):
+            if i % 3 == 0:
+                labels[i + 1] = unique_models[int(i/3)]
+
+    elif analysis_type == 'by_data_type':
+        list_data_used = dataframe['training_data_used'].tolist()
+        unique_types_data = np.unique(list_data_used)
+        data = list()
+        metrics_models = {}
+        unique_models = list()
+        for type_training_data in unique_types_data:
+            metric, uniques = generate_dctionary_metrics_results(dataframe, metrics,
+                                                                  domain_type=type_training_data)
+            data = data + generate_data_list_plot(metrics_models, metrics)
+            metrics_models = {**metrics_models, **metric}
+            unique_models = unique_models + uniques
+
+        print(metrics_models)
+        if computer_stat_sig:
+            Mann_Whitney_U_test(metrics_models, metrics, unique_models, analysis_type=analysis_type)
+
+        labels = ['' for x in range(len(data))]
+        for i, label in enumerate(labels):
+            if i % 3 == 0:
+                labels[i + 1] = unique_models[int(i/3)]
 
     fig, ax1 = plt.subplots(figsize=(15, 9))
     fig.canvas.set_window_title('Boxplot Comparison')
@@ -529,13 +561,13 @@ def boxplot_seaborn(data_frame, columns_header, title_plot=''):
     ax2 = sns.boxplot(x=columns_header[0], y=columns_header[2], data=data_frame)
     ax2 = sns.swarmplot(x=columns_header[0], y=columns_header[2], data=data_frame, color=".25")
     ax2.set_ylim([0, 1.0])
-    ax2.title.set_text('WLI')
+    ax2.title.set_text('NBI')
 
     ax3 = fig1.add_subplot(133)
     ax3 = sns.boxplot(x=columns_header[0], y=columns_header[3], data=data_frame)
     ax3 = sns.swarmplot(x=columns_header[0], y=columns_header[3], data=data_frame, color=".25")
     ax3.set_ylim([0, 1.0])
-    ax3.title.set_text('NBI')
+    ax3.title.set_text('WLI')
 
     plt.show()
 
