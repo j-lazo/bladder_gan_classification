@@ -1,3 +1,5 @@
+import os
+
 from absl import app, flags
 from absl.flags import FLAGS
 from utils.data_management import datasets as dam
@@ -47,6 +49,54 @@ def compile_model(name_model, strategy, optimizer, loss, metrics,
     return model
 
 
+def fit_model(model, callbacks, train_dataset, epochs, batch_size, val_dataset, train_steps, val_steps, dir_save_model,
+              eval_val_set, results_directory, new_results_id, eval_train_set, list_subdirs_dataset, path_dataset,
+              analyze_data, multioutput, test_data, fold, list_test_cases=None):
+
+    start_time = datetime.datetime.now()
+    trained_model = model.fit(train_dataset,
+                              epochs=epochs,
+                              shuffle=True,
+                              batch_size=batch_size,
+                              validation_data=val_dataset,
+                              steps_per_epoch=train_steps,
+                              validation_steps=val_steps,
+                              verbose=True,
+                              callbacks=callbacks)
+
+    model.save(dir_save_model)
+
+    print('Total Training TIME:', (datetime.datetime.now() - start_time))
+    print('History Model Keys:')
+    print(trained_model.history.keys())
+    # in case evaluate val dataset is True
+    if eval_val_set is True:
+        loaded_model, _ = load_model(dir_save_model)
+        evaluate_and_predict(loaded_model, val_dataset, results_directory,
+                             results_id=new_results_id, output_name='val')
+
+    if eval_train_set is True:
+        loaded_model, _ = load_model(dir_save_model)
+        evaluate_and_predict(loaded_model, train_dataset, results_directory,
+                             results_id=new_results_id, output_name='train')
+
+    if 'test' in list_subdirs_dataset:
+        loaded_model, _ = load_model(dir_save_model)
+        path_test_dataset = os.path.join(path_dataset, 'test')
+        print(f'Test directory found at: {path_test_dataset}')
+        evalute_test_directory(loaded_model, path_test_dataset, results_directory, new_results_id,
+                               analyze_data=analyze_data, multioutput=multioutput)
+
+    else:
+        path_test_dataset = test_data
+        loaded_model, _ = load_model(dir_save_model)
+        print(f'Test directory found at: {path_test_dataset}')
+        evalute_test_directory(loaded_model, path_test_dataset, results_directory, new_results_id,
+                               analyze_data=analyze_data, list_test_cases=list_test_cases, fold=fold,
+                               multioutput=multioutput)
+    return model
+
+
 def call_models(name_model, path_dataset, mode='fit', backbones=['resnet101'], gan_model='checkpoint_charlie', epochs=2,
                 batch_size=1, learning_rate=0.001, val_data=None, test_data=None, eval_val_set=False, eval_train_set=False,
                 results_dir=os.path.join(os.getcwd(), 'results'), gpus_available=None, analyze_data=False,
@@ -54,7 +104,7 @@ def call_models(name_model, path_dataset, mode='fit', backbones=['resnet101'], g
 
     multi_input_models = ['gan_model_multi_joint_features', 'gan_model_separate_features',
                           'gan_model_joint_features_and_domain', 'simple_model_domain_input',
-                          'gan_model_separate_features_v2']
+                          'gan_model_separate_features_v2', 'simple_separation_model']
 
     if name_model not in multi_input_models:
         multioutput = False
@@ -71,10 +121,25 @@ def call_models(name_model, path_dataset, mode='fit', backbones=['resnet101'], g
                                                 batch_size=batch_size, backbone_model=backbone_model,
                                                 mode=mode, specific_domain=specific_domain)
 
+    training_date_time = datetime.datetime.now()
+    dataset_name = os.path.split(os.path.normpath(path_dataset))[-1]
+    information_experiment = {'experiment folder': new_results_id,
+                              'date': training_date_time.strftime("%d:%m %Y-%H-%M"),
+                              'name model': name_model,
+                              'backbone': backbone_model,
+                              'domain data used': specific_domain,
+                              'batch size': int(batch_size),
+                              'learning rate': float(learning_rate),
+                              'backbone gan': gan_model,
+                              'dataset': dataset_name}
+
     results_directory = ''.join([results_dir, '/', new_results_id, '/'])
     # if results experiment doesn't exists create it
     if not os.path.isdir(results_directory):
         os.mkdir(results_directory)
+
+    path_experiment_information = os.path.join(results_directory, 'experiment_information.yaml')
+    fam.save_yaml(path_experiment_information, information_experiment)
 
     for fold in k_folds:
         print('fold:', fold)
@@ -155,6 +220,7 @@ def call_models(name_model, path_dataset, mode='fit', backbones=['resnet101'], g
         #model = compile_model(name_model, strategy, optimizer, loss, metrics, backbones=backbones,
         #                      gan_weights=gan_pretrained_weights)
 
+
         if strategy:
             with strategy.scope():
                 optimizer = Adam(learning_rate=learning_rate)
@@ -171,6 +237,8 @@ def call_models(name_model, path_dataset, mode='fit', backbones=['resnet101'], g
                     model = build_simple_model_with_domain_input(backbones=backbones)
                 elif name_model == 'gan_model_separate_features_v2':
                     model = build_gan_model_separate_features_v2(backbones=backbones, gan_weights=gan_pretrained_weights)
+                elif name_model == 'simple_separation_model':
+                    model = build_simple_separation_model(backbones=backbones)
                 else:
                     model = build_pretrained_model(name_model)
 
@@ -189,6 +257,8 @@ def call_models(name_model, path_dataset, mode='fit', backbones=['resnet101'], g
                 model = build_simple_model_with_domain_input(backbones=backbones)
             elif name_model == 'gan_model_separate_features_v2':
                 model = build_gan_model_separate_features_v2(backbones=backbones, gan_weights=gan_pretrained_weights)
+            elif name_model == 'simple_separation_model':
+                model = build_simple_separation_model(backbones=backbones)
             else:
                 model = build_pretrained_model(name_model)
 
@@ -213,51 +283,17 @@ def call_models(name_model, path_dataset, mode='fit', backbones=['resnet101'], g
             callbacks = [
                 ModelCheckpoint(temp_name_model,
                                 monitor="val_loss", save_best_only=True),
-                ReduceLROnPlateau(monitor='val_loss', patience=25),
+                ReduceLROnPlateau(monitor='val_loss', patience=15),
                 CSVLogger(history_name),
-                EarlyStopping(monitor='val_loss', patience=20, restore_best_weights=True)]
-            start_time = datetime.datetime.now()
+                EarlyStopping(monitor='val_loss', patience=10, restore_best_weights=True)]
 
-            trained_model = model.fit(train_dataset,
-                                      epochs=epochs,
-                                      shuffle=True,
-                                      batch_size=batch_size,
-                                      validation_data=val_dataset,
-                                      steps_per_epoch=train_steps,
-                                      validation_steps=val_steps,
-                                      verbose=True,
-                                      callbacks=callbacks)
+            fit_model(model, callbacks, train_dataset, epochs, batch_size, val_dataset, train_steps, val_steps,
+                      dir_save_model, eval_val_set, results_directory, new_results_id, eval_train_set,
+                      list_subdirs_dataset, path_dataset, analyze_data, multioutput, test_data, fold)
 
-            model.save(dir_save_model)
+        elif mode == 'eager_train':
 
-            print('Total Training TIME:', (datetime.datetime.now() - start_time))
-            print('History Model Keys:')
-            print(trained_model.history.keys())
-            # in case evaluate val dataset is True
-            if eval_val_set is True:
-                loaded_model, _ = load_model(dir_save_model)
-                evaluate_and_predict(loaded_model, val_dataset, results_directory,
-                                     results_id=new_results_id, output_name='val')
-
-            if eval_train_set is True:
-                loaded_model, _ = load_model(dir_save_model)
-                evaluate_and_predict(loaded_model, train_dataset, results_directory,
-                                     results_id=new_results_id, output_name='train')
-
-            if 'test' in list_subdirs_dataset:
-                loaded_model, _ = load_model(dir_save_model)
-                path_test_dataset = os.path.join(path_dataset, 'test')
-                print(f'Test directory found at: {path_test_dataset}')
-                evalute_test_directory(loaded_model, path_test_dataset, results_directory, new_results_id,
-                                       analyze_data=analyze_data, multioutput=multioutput)
-
-            else:
-                path_test_dataset = test_data
-                loaded_model, _ = load_model(dir_save_model)
-                print(f'Test directory found at: {path_test_dataset}')
-                evalute_test_directory(loaded_model, path_test_dataset, results_directory, new_results_id,
-                                       analyze_data=analyze_data, list_test_cases=list_test_cases, fold=fold,
-                                       multioutput=multioutput)
+            eager_train(model, train_dataset, epochs)
 
     tf.keras.backend.clear_session()
     if prepare_finished_experiment:
@@ -278,6 +314,50 @@ def call_models(name_model, path_dataset, mode='fit', backbones=['resnet101'], g
         # compress the file
         fam.compress_files(temporal_folder_dir, destination_dir=transfer_results)
         print(f'Experiment finished, results compressed and saved in {transfer_results}')
+
+
+def eager_train(model, train_dataset, epochs):
+    # Instantiate an optimizer to train the model.
+    optimizer = keras.optimizers.SGD(learning_rate=1e-3)
+    # Instantiate a loss function.
+    loss_fn = keras.losses.SparseCategoricalCrossentropy(from_logits=True)
+
+    # Prepare the metrics.
+    train_acc_metric = keras.metrics.SparseCategoricalAccuracy()
+    val_acc_metric = keras.metrics.SparseCategoricalAccuracy()
+
+    for epoch in range(epochs):
+        print("\nStart of epoch %d" % (epoch,))
+        # Iterate over the batches of the dataset.
+        for step, (x_batch_train, y_batch_train) in enumerate(train_dataset):
+            # Open a GradientTape to record the operations run
+            # during the forward pass, which enables auto-differentiation.
+            with tf.GradientTape() as tape:
+                # Run the forward pass of the layer.
+                # The operations that the layer applies
+                # to its inputs are going to be recorded
+                # on the GradientTape.
+                logits = model(x_batch_train, training=True)
+                # Compute the loss value for this minibatch.
+                loss_value = loss_fn(y_batch_train, logits)
+
+                # Use the gradient tape to automatically retrieve
+                # the gradients of the trainable variables with respect to the loss.
+                grads = tape.gradient(loss_value, model.trainable_weights)
+
+                # Run one step of gradient descent by updating
+                # the value of the variables to minimize the loss.
+                optimizer.apply_gradients(zip(grads, model.trainable_weights))
+
+                # Log every 200 batches.
+                if step % 200 == 0:
+                    print(
+                        "Training loss (for one batch) at step %d: %.4f"
+                        % (step, float(loss_value))
+                    )
+                    print("Seen so far: %s samples" % ((step + 1) * batch_size))
+
+    pass
 
 
 def main(_argv):
