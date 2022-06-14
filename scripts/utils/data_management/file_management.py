@@ -63,8 +63,22 @@ def transfer_files(local_host):
 def read_yaml_file(path_file):
     with open(path_file) as file:
         document = yaml.full_load(file)
-
     return document
+
+
+def check_path_exists(path, default_ext):
+    name, ext = os.path.splitext(path)
+    if ext == '':
+        if default_ext[0] == '.':
+            default_ext = default_ext[1:]
+        path = name + '.' + default_ext
+    return path
+
+
+def save_yaml(path, data, **kwargs):
+    path = check_path_exists(path, 'yml')
+    with open(path, 'w') as f:
+        yaml.dump(data, f, **kwargs)
 
 
 def move_files(name_file, destination_dir):

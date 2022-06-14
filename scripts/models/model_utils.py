@@ -162,13 +162,13 @@ def evaluate_and_predict(model, directory_to_evaluate, results_directory,
     test_x, dataset_dictionary = dam.load_data_from_directory(directory_to_evaluate,
                                                               case_specific=list_test_cases)
 
-    test_dataset = dam.make_tf_dataset(test_x, dataset_dictionary, batch_size=8, multi_output=multioutput)
+    test_dataset = dam.make_tf_dataset(test_x, dataset_dictionary, batch_size=1, multi_output=multioutput)
     test_steps = (len(test_x) // batch_size)
 
     if len(test_x) % batch_size != 0:
         test_steps += 1
 
-    evaluation = model.evaluate(test_dataset, steps=2)
+    evaluation = model.evaluate(test_dataset, steps=len(test_x))
     inference_times = list()
     prediction_names = list()
     prediction_outputs = list()
