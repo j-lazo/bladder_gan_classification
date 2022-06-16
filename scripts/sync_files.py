@@ -146,10 +146,14 @@ def main(_argv):
                 backbone_name = ''
                 backbones.append('')
 
-            yaml_file = [f for f in os.listdir(os.path.join(dir_unzipped_files, experiment_folder)) if f.endswith('.yaml')]
-            if yaml_file:
-                yaml_file = yaml_file.pop()
+            yaml_files = [f for f in os.listdir(os.path.join(dir_unzipped_files, experiment_folder)) if f.endswith('.yaml')]
+            if yaml_files:
+                if 'performance_analysis.yaml' in yaml_files:
+                    yaml_file = 'performance_analysis.yaml'
+                else:
+                    yaml_file = yaml_files.pop()
                 path_yaml = os.path.join(dir_unzipped_files, experiment_folder, yaml_file)
+                print(path_yaml)
                 results = dam.read_yaml_file(path_yaml)
                 acc_all = float(results['Accuracy ALL'])
                 acc_nbi = float(results['Accuracy NBI'])
