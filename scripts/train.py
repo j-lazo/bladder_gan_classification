@@ -375,6 +375,7 @@ def main(_argv):
     specific_domain = FLAGS.specific_domain
     prepare_finished_experiment = FLAGS.prepare_finished_experiment
     k_folds = FLAGS.k_folds
+    gan_weights = FLAGS.gan_weights
 
     if k_folds:
         folds_dict = {'fold_1': [26, 14, 25, 12, 18, 17, 16, 32],
@@ -384,13 +385,13 @@ def main(_argv):
 
         call_models(name_model, path_dataset, batch_size=batch_size, gpus_available=physical_devices,
                 epochs=epochs, results_dir=results_dir, learning_rate=learning_rate, analyze_data=analyze_data,
-                backbones=backbones, specific_domain=specific_domain,
+                backbones=backbones, specific_domain=specific_domain, gan_model=gan_weights,
                 prepare_finished_experiment=prepare_finished_experiment, k_folds=folds_dict)
 
     else:
         call_models(name_model, path_dataset, batch_size=batch_size, gpus_available=physical_devices,
                     epochs=epochs, results_dir=results_dir, learning_rate=learning_rate, analyze_data=analyze_data,
-                    backbones=backbones, specific_domain=specific_domain,
+                    backbones=backbones, specific_domain=specific_domain, gan_model=gan_weights,
                     prepare_finished_experiment=prepare_finished_experiment)
 
 
@@ -410,6 +411,7 @@ if __name__ == '__main__':
                                                  '[NBI, WLI]')
     flags.DEFINE_boolean('prepare_finished_experiment', False, 'either compress the files and move them to the transfer folder or not')
     flags.DEFINE_boolean('k_folds', False, 'in case k-folds cross validation is taking palce')
+    flags.DEFINE_string('gan_weights', 'checkpoint_charlie', 'weights for the generator')
 
     try:
         app.run(main)
