@@ -264,7 +264,7 @@ def load_model(directory_model):
 
     return model, input_size
 
-def build_pretrained_model(name_model):
+def build_pretrained_model(num_classes, name_model):
     input_image = keras.Input(shape=(256, 256, 3), name="image")
 
     x = tf.image.resize(input_image, input_sizes_models[name_model], method='bilinear')
@@ -281,6 +281,6 @@ def build_pretrained_model(name_model):
     x = Dropout(0.5)(x)
     x = Dense(512, activation='relu')(x)
     x = Flatten()(x)
-    output_layer = Dense(5, activation='softmax')(x)
+    output_layer = Dense(num_classes, activation='softmax')(x)
 
     return Model(inputs=input_image, outputs=output_layer, name='gan_merge_features')
