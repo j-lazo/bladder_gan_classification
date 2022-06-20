@@ -121,40 +121,63 @@ def main(_argv):
 
         list_experiments = [f for f in os.listdir(dir_unzipped_files) if os.path.isdir(os.path.join(dir_unzipped_files, f))]
         for j, experiment_folder in enumerate(tqdm.tqdm(list_experiments, desc='Preparing files')):
-            # extract the information from the folder's name
-
-            name_model = experiment_folder.split('_fit')[0]
-            ending = experiment_folder.split('lr_')[1]
-            learning_rate = float(ending.split('_bs')[0])
-            pre_bs = ending.split('bs_')[1]
-            batch_size = int(pre_bs.split('_')[0])
-            date = ending.split(''.join(['bs_', str(batch_size), '_']))[1]
-            if 'trained_with' in date:
-                data_used_in_train = date.split('trained_with_')[-1][:3]
-                date = date.split(data_used_in_train + '_')[-1]
-            else:
-                data_used_in_train = 'ALL'
-
-            name_experiment.append(experiment_folder)
-            date_experiment.append(date)
-            name_models.append(name_model)
-
-            if '+' in name_model:
-                backbone_name = name_model.split('+')[1]
-                backbones.append(backbone_name)
-            else:
-                backbone_name = ''
-                backbones.append('')
+            # extract the information from the folder's
 
             yaml_files = [f for f in os.listdir(os.path.join(dir_unzipped_files, experiment_folder)) if f.endswith('.yaml')]
+
             if yaml_files:
-                if 'performance_analysis.yaml' in yaml_files:
-                    yaml_file = 'performance_analysis.yaml'
+                if 'experiment_information.yaml' in yaml_files:
+                    performance_yaml_file = 'performance_analysis.yaml'
+                    experiment_information_yaml = 'experiment_information.yaml'
+                    path_yaml_information = os.path.join(dir_unzipped_files, experiment_folder,
+                                                         experiment_information_yaml)
+                    info_experiment = dam.read_yaml_file(path_yaml_information)
+                    date = info_experiment['date']
+                    name_model = info_experiment['name model']
+                    backbone_name = info_experiment['backbone']
+                    batch_size = info_experiment['batch size']
+                    learning_rate = info_experiment['learning rate']
+                    data_used_in_train = info_experiment['domain data used']
+                    backbone_gan = info_experiment['backbone gan']
+                    dataset_training = info_experiment['dataset']
+                    name_experiment.append(experiment_folder)
+                    date_experiment.append(date)
+                    name_models.append(name_model)
+                    backbones.append(backbone_name)
+
                 else:
-                    yaml_file = yaml_files.pop()
-                path_yaml = os.path.join(dir_unzipped_files, experiment_folder, yaml_file)
-                print(path_yaml)
-                results = dam.read_yaml_file(path_yaml)
+                    performance_yaml_file = yaml_files.pop()
+                    # extract the information from the folder's name
+
+                    name_model = experiment_folder.split('_fit')[0]
+                    ending = experiment_folder.split('lr_')[1]
+                    learning_rate = float(ending.split('_bs')[0])
+                    pre_bs = ending.split('bs_')[1]
+                    batch_size = int(pre_bs.split('_')[0])
+                    date = ending.split(''.join(['bs_', str(batch_size), '_']))[1]
+                    if 'trained_with' in date:
+                        data_used_in_train = date.split('trained_with_')[-1][:3]
+                        date = date.split(data_used_in_train + '_')[-1]
+                    else:
+                        data_used_in_train = 'ALL'
+
+                    dataset_training = 'bladder_tissue_classification_v2'
+                    backbone_gan = 'checkpoint_charlie'
+                    name_experiment.append(experiment_folder)
+                    date_experiment.append(date)
+                    name_models.append(name_model)
+
+                    if '+' in name_model:
+                        backbone_name = name_model.split('+')[1]
+                        backbones.append(backbone_name)
+                    else:
+                        backbone_name = ''
+                        backbones.append('')
+
+                path_yaml_performance = os.path.join(dir_unzipped_files, experiment_folder, performance_yaml_file)
+
+                results = dam.read_yaml_file(path_yaml_performance)
+
                 acc_all = float(results['Accuracy ALL'])
                 acc_nbi = float(results['Accuracy NBI'])
                 acc_wli = float(results['Accuracy WLI'])
@@ -185,9 +208,12 @@ def main(_argv):
                 f1_nbi = None
                 f1_wli = None
 
+            if data_used_in_train == '':
+                data_used_in_train = 'ALL'
             information_experiment = {'experiment_folder': experiment_folder, 'date': date, 'name_model': name_model,
                                       'backbones': backbone_name, 'batch_size': batch_size,
-                                      'learning_rate': learning_rate, 'training_data_used': data_used_in_train,
+                                      'learning_rate': learning_rate, 'dataset': dataset_training,
+                                      'backbone GAN': backbone_gan, 'training_data_used': data_used_in_train,
                                       'Accuracy ALL': acc_all, 'Accuracy WLI': acc_wli, 'Accuracy NBI': acc_nbi,
                                       'Precision ALL': prec_all, 'Precision WLI': prec_nbi, 'Precision NBI': prec_wli,
                                       'Recall ALL': rec_all, 'Recall WLI': rec_nbi, 'Recall NBI': rec_wli,
