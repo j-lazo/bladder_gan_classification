@@ -124,7 +124,7 @@ def call_models(name_model, path_dataset, mode='fit', backbones=['resnet101'], g
     training_date_time = datetime.datetime.now()
     dataset_name = os.path.split(os.path.normpath(path_dataset))[-1]
     information_experiment = {'experiment folder': new_results_id,
-                              'date': training_date_time.strftime("%d:%m %Y-%H-%M"),
+                              'date': training_date_time.strftime("%d-%m-%Y %H:%M"),
                               'name model': name_model,
                               'backbone': backbone_model,
                               'domain data used': specific_domain,
