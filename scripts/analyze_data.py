@@ -82,25 +82,13 @@ def compute_metrics_batch_experiments(dir_experiment_files, dir_output_csv_file_
 
 def compute_metrics_boxplots(dir_to_csv=(os.path.join(os.getcwd(), 'results', 'sorted_experiments_information.csv')),
                              metrics='all', exclusion_criteria=None):
-    metrics = ['Accuracy', 'Precision', 'Recall', 'F-1']
 
+    metrics = ['Accuracy', 'Precision', 'Recall', 'F-1']
     df = pd.read_csv(dir_to_csv)
     name_models = df['name_model'].tolist()
     batch_sizes = df['batch_size'].tolist()
     learning_rates = df['learning_rate'].tolist()
     data_used = df['training_data_used'].tolist()
-    acc_all = df['Accuracy ALL'].tolist()
-    acc_wli = df['Accuracy WLI'].tolist()
-    acc_nbi = df['Accuracy NBI'].tolist()
-    prec_all = df['Precision ALL'].tolist()
-    prec_wli = df['Precision WLI'].tolist()
-    prec_nbi = df['Precision NBI'].tolist()
-    rec_all = df['Recall ALL'].tolist()
-    rec_wli = df['Recall WLI'].tolist()
-    rec_nbi = df['Recall NBI'].tolist()
-    f1_all = df['F-1 ALL'].tolist()
-    f1_wli = df['F-1 WLI'].tolist()
-    f1_nbi = df['F-1 NBI'].tolist()
     training_data_used = df['training_data_used'].tolist()
 
     unique_models = np.unique(name_models)
@@ -156,7 +144,16 @@ def compute_metrics_boxplots(dir_to_csv=(os.path.join(os.getcwd(), 'results', 's
     list_domain = list()
     chosen_learning_rates = [0.00001]
     chosen_batch_sizes = [32]
-    chosen_trained_data = ['WLI']
+    chosen_dataset = ['bladder_tissue_classification_v2',
+                      'bladder_tissue_classification_v2_augmented',
+                      'bladder_tissue_classification_gan']
+    chosen_trained_data = ['ALL']
+    chosen_gan_backbones = ['checkpoint_charlie',]
+                            #'not_complete_wli2nbi']
+    dictionary_selection = {'name_model': selected_models, 'learning_rate': chosen_learning_rates,
+                            'batch_size': chosen_batch_sizes, 'dataset': chosen_dataset,
+                            'backbone GAN': chosen_gan_backbones, 'training_data_used': chosen_trained_data}
+    selection = select_specific_cases(df, dictionary_selection)
 
     # 'Accuracy', 'Precision', 'Recall', 'F-1'
     metric_analysis = 'Accuracy'
@@ -180,16 +177,41 @@ def compute_metrics_boxplots(dir_to_csv=(os.path.join(os.getcwd(), 'results', 's
             list_y3.append(lis_metric_3[j])
             list_domain.append(data_used[j])
 
-    #zipped = list(zip(list_x, list_y1, list_y2, list_y3))
     zipped = list(zip(list_x, list_y1, list_y2, list_y3, list_domain))
-    columns = ['name model'] + metrics_box
+    columns = ['name_model'] + metrics_box
+    x_axis = 'name_model'
+    y_axis = metrics_box
     columns.append('training_data_used')
+    print(columns)
     df_analysis = pd.DataFrame(zipped, columns=columns)
-    title_plot = 'Comparion base models'#name_model.replace('_', ' ')
-    daa.boxplot_seaborn(df_analysis, columns, title_plot=title_plot)
+    title_plot = 'Comparison base models'#name_model.replace('_', ' ')
+    daa.boxplot_seaborn(selection, x_axis, y_axis, title_plot=title_plot, hue='dataset')
     title_fig = ''.join([metric_analysis, ' ', 'trained using ', chosen_trained_data[0]])
     #daa.box_plot_matplotlib(df_analysis, metrics=metrics_box, title=title_fig, y_label=metric_analysis,
     #                        analysis_type='by_model')
+
+
+def select_specific_cases(data_frame, dictionary_selection):
+    """
+    Based on the keys of a given dictionary, returns a dataframe which fulfills the conditions given by the
+    dictionary
+    :param data_frame:
+    :type data_frame:
+    :param dictionary_selection:
+    :type dictionary_selection:
+    :return:
+    :rtype:
+    """
+
+    print(data_frame)
+    keys_df = data_frame.keys().tolist()
+    new_dict = {k: dictionary_selection[k] for k in dictionary_selection if k in keys_df}
+    result_df = data_frame.copy()
+    print(result_df)
+    for k in new_dict:
+        result_df = result_df[result_df[k].isin(new_dict[k])]
+
+    return result_df
 
 
 def prepare_data(dir_dataset, destination_directory=os.path.join(os.getcwd(), 'datasets', 'bladder_tissue_classification_k_folds')):

@@ -188,11 +188,12 @@ def compute_confusion_matrix(gt_data, predicted_data, plot_figure=False, dir_sav
 
 
 def group_data_tumor():
-
+    tumor_classes = ['CIS', 'HGC', 'LGC']
     pass
 
 
 def group_data_lesion():
+    lesion_classes = ['CIS', 'HGC', 'LGC', 'NTL']
     pass
 
 
@@ -579,41 +580,46 @@ def box_plot_matplotlib(dataframe, title='', y_label='', computer_stat_sig=True,
     plt.show()
 
 
-def boxplot_seaborn(data_frame, columns_header, title_plot=''):
+def boxplot_seaborn(data_frame, x_axis, y_axis, title_plot='', hue=None):
     print(data_frame)
+    meanprops = {"marker": "*",
+                 "markerfacecolor": "white",
+                 "markeredgecolor": "black",
+                 "markersize": "10"}
     fig1 = plt.figure(1, figsize=(15, 9))
     fig1.canvas.set_window_title(title_plot)
     fig1.suptitle(title_plot, fontsize=14)
     ax1 = fig1.add_subplot(131)
-    ax1 = sns.boxplot(x=columns_header[0], y=columns_header[1], data=data_frame, showmeans=True,
-                      meanprops={"marker": "*",
-                                 "markerfacecolor": "white",
-                                 "markeredgecolor": "black",
-                                 "markersize": "10"}
-                      )
-    ax1 = sns.swarmplot(x=columns_header[0], y=columns_header[1], data=data_frame, color=".25")
+    if hue:
+        ax1 = sns.boxplot(x=x_axis, y=y_axis[0], data=data_frame, showmeans=True,
+                          hue=hue, meanprops=meanprops)
+    else:
+        ax1 = sns.boxplot(x=x_axis, y=y_axis[0], data=data_frame, showmeans=True,
+                          meanprops=meanprops)
+        ax1 = sns.swarmplot(x=x_axis, y=y_axis[0], data=data_frame, color=".25")
     ax1.set_ylim([0, 1.0])
     ax1.title.set_text('ALL')
 
     ax2 = fig1.add_subplot(132)
-    ax2 = sns.boxplot(x=columns_header[0], y=columns_header[2], data=data_frame, showmeans=True,
-                      meanprops={"marker": "*",
-                                 "markerfacecolor": "white",
-                                 "markeredgecolor": "black",
-                                 "markersize": "10"}
-                      )
-    ax2 = sns.swarmplot(x=columns_header[0], y=columns_header[2], data=data_frame, color=".25")
+    if hue:
+        ax2 = sns.boxplot(x=x_axis, y=y_axis[1], data=data_frame, showmeans=True,
+                          hue=hue, meanprops=meanprops)
+    else:
+        ax2 = sns.boxplot(x=x_axis, y=y_axis[1], data=data_frame, showmeans=True,
+                          meanprops=meanprops)
+        ax2 = sns.swarmplot(x=x_axis, y=y_axis[1], data=data_frame, color=".25")
     ax2.set_ylim([0, 1.0])
     ax2.title.set_text('WLI')
 
     ax3 = fig1.add_subplot(133)
-    ax3 = sns.boxplot(x=columns_header[0], y=columns_header[3], data=data_frame, showmeans=True,
-                      meanprops={"marker": "*",
-                                 "markerfacecolor": "white",
-                                 "markeredgecolor": "black",
-                                 "markersize": "10"}
-                      )
-    ax3 = sns.swarmplot(x=columns_header[0], y=columns_header[3], data=data_frame, color=".25")
+    if hue:
+        ax3 = sns.boxplot(x=x_axis, y=y_axis[2], data=data_frame, showmeans=True,
+                          hue=hue, meanprops=meanprops)
+    else:
+        ax3 = sns.boxplot(x=x_axis, y=y_axis[2], data=data_frame, showmeans=True,
+                          hue=hue)
+        ax3 = sns.swarmplot(x=x_axis, y=y_axis[2], data=data_frame, color=".25")
+
     ax3.set_ylim([0, 1.0])
     ax3.title.set_text('NBI')
 
