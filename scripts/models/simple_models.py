@@ -21,7 +21,7 @@ def simple_residual_model(input_size=256, num_filters=[32, 64, 128, 256, 512]):
     return Model(inputs=input_layer, outputs=output_layer, name='simple_residual_model')
 
 
-def build_simple_model_with_domain_input(backbones):
+def build_simple_model_with_domain_input(num_classes, backbones):
     # inputs
     name_model = backbones[0]
     input_image = keras.Input(shape=(256, 256, 3), name="image")
@@ -42,12 +42,12 @@ def build_simple_model_with_domain_input(backbones):
     x = Dropout(0.5)(x)
     x = Dense(512, activation='relu')(x)
     x = Flatten()(x)
-    output_layer = Dense(5, activation='softmax')(x)
+    output_layer = Dense(num_classes, activation='softmax')(x)
 
     return Model(inputs=[input_image, t_input], outputs=output_layer, name='simple_model_with_domain')
 
 
-def build_simple_separation_model(backbones):
+def build_simple_separation_model(num_classes, backbones):
     # inputs
     name_model = backbones[0]
     input_image = keras.Input(shape=(256, 256, 3), name="image")
@@ -82,7 +82,7 @@ def build_simple_separation_model(backbones):
     x2 = Dropout(0.5)(x2)
     x2 = Dense(512, activation='relu')(x2)
     x2 = Flatten()(x2)
-    x2 = Dense(5, activation='softmax')(x2)
+    x2 = Dense(num_classes, activation='softmax')(x2)
 
     output_layer = tf.keras.backend.switch(t_input, x1, x2)
 

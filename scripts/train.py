@@ -132,7 +132,7 @@ def call_models(name_model, path_dataset, mode='fit', backbones=['resnet101'], g
                               'learning rate': float(learning_rate),
                               'backbone gan': gan_model,
                               'dataset': dataset_name}
-
+    num_classes = 4
     results_directory = ''.join([results_dir, '/', new_results_id, '/'])
     # if results experiment doesn't exists create it
     if not os.path.isdir(results_directory):
@@ -228,19 +228,19 @@ def call_models(name_model, path_dataset, mode='fit', backbones=['resnet101'], g
                 loss = 'categorical_crossentropy'
 
                 if name_model == 'gan_model_multi_joint_features':
-                    model = build_gan_model_joint_features(backbones=backbones, gan_weights=gan_pretrained_weights)
+                    model = build_gan_model_joint_features(num_classes, backbones=backbones, gan_weights=gan_pretrained_weights)
                 elif name_model == 'gan_model_separate_features':
-                    model = build_gan_model_separate_features(backbones=backbones, gan_weights=gan_pretrained_weights)
+                    model = build_gan_model_separate_features(num_classes, backbones=backbones, gan_weights=gan_pretrained_weights)
                 elif name_model == 'gan_model_joint_features_and_domain':
-                    model = build_gan_model_joint_features_and_domain(backbones=backbones, gan_weights=gan_pretrained_weights)
+                    model = build_gan_model_joint_features_and_domain(num_classes, backbones=backbones, gan_weights=gan_pretrained_weights)
                 elif name_model == 'simple_model_domain_input':
-                    model = build_simple_model_with_domain_input(backbones=backbones)
+                    model = build_simple_model_with_domain_input(num_classes, backbones=backbones)
                 elif name_model == 'gan_model_separate_features_v2':
-                    model = build_gan_model_separate_features_v2(backbones=backbones, gan_weights=gan_pretrained_weights)
+                    model = build_gan_model_separate_features_v2(num_classes, backbones=backbones, gan_weights=gan_pretrained_weights)
                 elif name_model == 'simple_separation_model':
-                    model = build_simple_separation_model(backbones=backbones)
+                    model = build_simple_separation_model(num_classes, backbones=backbones)
                 else:
-                    model = build_pretrained_model(name_model)
+                    model = build_pretrained_model(num_classes, name_model)
 
                 model.summary()
                 print('Multi-GPU training')
@@ -248,17 +248,17 @@ def call_models(name_model, path_dataset, mode='fit', backbones=['resnet101'], g
 
         else:
             if name_model == 'gan_model_multi_joint_features':
-                model = build_gan_model_joint_features(backbones=backbones, gan_weights=gan_pretrained_weights)
+                model = build_gan_model_joint_features(num_classes, backbones=backbones, gan_weights=gan_pretrained_weights)
             elif name_model == 'gan_model_separate_features':
-                model = build_gan_model_separate_features(backbones=backbones, gan_weights=gan_pretrained_weights)
+                model = build_gan_model_separate_features(num_classes, backbones=backbones, gan_weights=gan_pretrained_weights)
             elif name_model == 'gan_model_joint_features_and_domain':
-                model = build_gan_model_joint_features_and_domain(backbones=backbones, gan_weights=gan_pretrained_weights)
+                model = build_gan_model_joint_features_and_domain(num_classes, backbones=backbones, gan_weights=gan_pretrained_weights)
             elif name_model == 'simple_model_domain_input':
-                model = build_simple_model_with_domain_input(backbones=backbones)
+                model = build_simple_model_with_domain_input(num_classes, backbones=backbones)
             elif name_model == 'gan_model_separate_features_v2':
-                model = build_gan_model_separate_features_v2(backbones=backbones, gan_weights=gan_pretrained_weights)
+                model = build_gan_model_separate_features_v2(num_classes, backbones=backbones, gan_weights=gan_pretrained_weights)
             elif name_model == 'simple_separation_model':
-                model = build_simple_separation_model(backbones=backbones)
+                model = build_simple_separation_model(num_classes, backbones=backbones)
             else:
                 model = build_pretrained_model(name_model)
 

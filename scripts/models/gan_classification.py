@@ -11,7 +11,7 @@ input_sizes_models = {'vgg16': (224, 224), 'vgg19': (224, 224), 'inception_v3': 
                       'simple_residual_model': (256, 256)}
 
 
-def build_gan_model_joint_features(backbones=['resnet101', 'resnet101', 'resnet101'], gan_weights=None,
+def build_gan_model_joint_features(num_classes, backbones=['resnet101', 'resnet101', 'resnet101'], gan_weights=None,
                              after_concat='globalpooling'):
 
     if len(backbones) <= 2:
@@ -117,12 +117,12 @@ def build_gan_model_joint_features(backbones=['resnet101', 'resnet101', 'resnet1
     x = Dropout(0.5)(x)
     x = Dense(512, activation='relu')(x)
     x = Flatten()(x)
-    output_layer = Dense(5, activation='softmax')(x)
+    output_layer = Dense(num_classes, activation='softmax')(x)
 
     return Model(inputs=[input_image, t_input], outputs=output_layer, name='gan_merge_features')
 
 
-def build_gan_model_joint_features_and_domain(backbones=['resnet101', 'resnet101', 'resnet101'], gan_weights=None,
+def build_gan_model_joint_features_and_domain(num_classes, backbones=['resnet101', 'resnet101', 'resnet101'], gan_weights=None,
                              after_concat='globalpooling'):
 
     if len(backbones) <= 2:
@@ -229,12 +229,12 @@ def build_gan_model_joint_features_and_domain(backbones=['resnet101', 'resnet101
     x = Dropout(0.5)(x)
     x = Dense(512, activation='relu')(x)
     x = Flatten()(x)
-    output_layer = Dense(5, activation='softmax')(x)
+    output_layer = Dense(num_classes, activation='softmax')(x)
 
     return Model(inputs=[input_image, t_input], outputs=output_layer, name='gan_merge_features_and_domain')
 
 
-def build_gan_model_separate_features(backbones=['resnet101', 'resnet101', 'resnet101'], gan_weights=None,
+def build_gan_model_separate_features(num_classes, backbones=['resnet101', 'resnet101', 'resnet101'], gan_weights=None,
                              after_concat='globalpooling'):
 
 
@@ -349,12 +349,12 @@ def build_gan_model_separate_features(backbones=['resnet101', 'resnet101', 'resn
 
     x = Flatten()(x)
     x = Dense(512, activation='relu')(x)
-    output_layer = Dense(5, activation='softmax')(x)
+    output_layer = Dense(num_classes, activation='softmax')(x)
 
     return Model(inputs=[input_image, t_input], outputs=output_layer, name='gan_separate_features')
 
 
-def build_gan_model_separate_features_v2(backbones=['resnet101', 'resnet101', 'resnet101'], gan_weights=None,
+def build_gan_model_separate_features_v2(num_classes, backbones=['resnet101', 'resnet101', 'resnet101'], gan_weights=None,
                              after_concat='globalpooling'):
 
 
@@ -469,7 +469,7 @@ def build_gan_model_separate_features_v2(backbones=['resnet101', 'resnet101', 'r
 
     x = Flatten()(x)
     x = Dense(512, activation='relu')(x)
-    output_layer = Dense(5, activation='softmax')(x)
+    output_layer = Dense(num_classes, activation='softmax')(x)
 
     return Model(inputs=[input_image, t_input], outputs=output_layer, name='gan_separate_features')
 
@@ -479,7 +479,7 @@ def dimage_domain_classifier(x, weights=None):
     return 0 #Model()
 
 
-def build_gan_model_joint_features_plus_domain(backbones=['resnet101', 'resnet101', 'resnet101'], gan_weights=None,
+def build_gan_model_joint_features_plus_domain(num_classes, backbones=['resnet101', 'resnet101', 'resnet101'], gan_weights=None,
                              after_concat='globalpooling'):
 
 
@@ -598,6 +598,6 @@ def build_gan_model_joint_features_plus_domain(backbones=['resnet101', 'resnet10
 
     x = Flatten()(x)
     x = Dense(512, activation='relu')(x)
-    output_layer = Dense(5, activation='softmax')(x)
+    output_layer = Dense(num_classes, activation='softmax')(x)
 
     return Model(inputs=[input_image, t_input], outputs=output_layer, name='gan_separate_features')
