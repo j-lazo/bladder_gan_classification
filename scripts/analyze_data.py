@@ -25,7 +25,6 @@ def compute_metrics_batch_experiments(dir_experiment_files, dir_output_csv_file_
     output_csv_file = os.path.join(dir_output_csv_file_dir, 'results', 'experiment_performances.csv')
     name_experiment = list()
     dictionary_experiments = {}
-
     list_experiments = [f for f in os.listdir(dir_experiment_files) if os.path.isdir(os.path.join(dir_experiment_files, f))]
     for j, experiment_folder in enumerate(tqdm.tqdm(list_experiments[:], desc='Preparing files')):
 
@@ -38,7 +37,7 @@ def compute_metrics_batch_experiments(dir_experiment_files, dir_output_csv_file_
         dictionary_experiments.update({experiment_folder: resume_experiment})
 
         dir_data_yaml = os.path.join(predictions_data_dir, 'performance_analysis.yaml')
-        daa.save_yaml(dir_data_yaml, performance_resume)
+        fam.save_yaml(dir_data_yaml, performance_resume)
 
     new_df = pd.DataFrame.from_dict(dictionary_experiments, orient='index')
     output_csv_file_dir = os.path.join(os.getcwd(), 'results', output_csv_file)
@@ -115,7 +114,9 @@ def compute_metrics_boxplots(dir_to_csv=(os.path.join(os.getcwd(), 'results', 's
                         'gan_model_separate_features+resnet101_': 'sf R',
                         'resnet101': 'resnet101',
                         'simple_model_domain_input+resnet101_': 'smd R',
-                        'simple_model_domain_input+densenet121_': 'smd D'}
+                        'simple_model_domain_input+densenet121_': 'smd D',
+                        'simple_separation_model+resnet101_': 'ss R',
+                        'gan_model_separate_features_v2+resnet101_': 'sf R v2'}
 
     selected_models_basic = ['densenet121', 'resnet101']
     selected_models_joint = ['gan_model_separate_features+densenet121_',
@@ -131,7 +132,9 @@ def compute_metrics_boxplots(dir_to_csv=(os.path.join(os.getcwd(), 'results', 's
 
     selected_models_r = ['resnet101', 'densenet121',
                        'gan_model_separate_features+resnet101_',
-                       'gan_model_multi_joint_features+resnet101_',]
+                       'gan_model_multi_joint_features+resnet101_',
+                         'simple_separation_model+resnet101_',
+                         'gan_model_separate_features_v2+resnet101_']
                        #'gan_model_joint_features_and_domain+resnet101_',]
                          #'simple_model_domain_input+resnet101_']
 
@@ -156,7 +159,7 @@ def compute_metrics_boxplots(dir_to_csv=(os.path.join(os.getcwd(), 'results', 's
     chosen_trained_data = ['WLI']
 
     # 'Accuracy', 'Precision', 'Recall', 'F-1'
-    metric_analysis = 'F-1'
+    metric_analysis = 'Accuracy'
     metrics_box = ['ALL', 'WLI', 'NBI']
     metrics_box = [''.join([metric_analysis, ' ', m]) for m in metrics_box]
 
@@ -183,10 +186,10 @@ def compute_metrics_boxplots(dir_to_csv=(os.path.join(os.getcwd(), 'results', 's
     columns.append('training_data_used')
     df_analysis = pd.DataFrame(zipped, columns=columns)
     title_plot = 'Comparion base models'#name_model.replace('_', ' ')
-    #daa.boxplot_seaborn(df_analysis, columns, title_plot=title_plot)
+    daa.boxplot_seaborn(df_analysis, columns, title_plot=title_plot)
     title_fig = ''.join([metric_analysis, ' ', 'trained using ', chosen_trained_data[0]])
-    daa.box_plot_matplotlib(df_analysis, metrics=metrics_box, title=title_fig, y_label=metric_analysis,
-                            analysis_type='by_model')
+    #daa.box_plot_matplotlib(df_analysis, metrics=metrics_box, title=title_fig, y_label=metric_analysis,
+    #                        analysis_type='by_model')
 
 
 def prepare_data(dir_dataset, destination_directory=os.path.join(os.getcwd(), 'datasets', 'bladder_tissue_classification_k_folds')):

@@ -3,11 +3,12 @@ import pandas as pd
 from matplotlib import pyplot as plt
 import numpy as np
 import tqdm
-from sklearn.metrics import average_precision_score
 from sklearn.metrics import recall_score
 from sklearn.metrics import accuracy_score
 from sklearn.metrics import precision_score
 from sklearn.metrics import confusion_matrix
+from sklearn.metrics import cohen_kappa_score
+from sklearn.metrics import matthews_corrcoef
 from sklearn.metrics import f1_score
 import pandas as pd
 import seaborn as sns
@@ -186,7 +187,16 @@ def compute_confusion_matrix(gt_data, predicted_data, plot_figure=False, dir_sav
     return conf_matrix
 
 
-def analyze_multiclass_experiment(gt_data_file, predictions_data_dir, plot_figure=False, dir_save_figs=None,
+def group_data_tumor():
+
+    pass
+
+
+def group_data_lesion():
+    pass
+
+
+def analyze_multiclass_experiment(gt_data_file, predictions_data_dir, plot_figure=True, dir_save_figs=None,
                                   analyze_training_history=False, k_folds=None):
     """
     Analyze the results of a multi-class classification experiment
@@ -227,6 +237,8 @@ def analyze_multiclass_experiment(gt_data_file, predictions_data_dir, plot_figur
 
     gt_names = df_ground_truth['image_name'].tolist()
     gt_vals = df_ground_truth['tissue type'].tolist()
+    unique_classes = np.unique(gt_vals)
+
     imaging_type = df_ground_truth['imaging type'].tolist()
 
     existing_gt_vals = list()
@@ -260,18 +272,35 @@ def analyze_multiclass_experiment(gt_data_file, predictions_data_dir, plot_figur
     macro_prec_all = precision_score(existing_gt_vals, ordered_predictiosn, average='macro', zero_division=1)
     macro_prec_wli = precision_score(wli_tissue_types, predictions_wli, average='macro', zero_division=1)
     marco_prec_nbi = precision_score(nbi_tissue_types, predictions_nbi, average='macro', zero_division=1)
+    per_class_precision_all = precision_score(existing_gt_vals, ordered_predictiosn, average=None, zero_division=1)
+    precisions_per_class = {f'PREC {unique_classes[j]}': float(metric_result) for j, metric_result in enumerate(per_class_precision_all)}
 
     macro_rec_all = recall_score(existing_gt_vals, ordered_predictiosn, average='macro', zero_division=1)
     macro_rec_wli = recall_score(wli_tissue_types, predictions_wli, average='macro', zero_division=1)
     macro_rec_nbi = recall_score(nbi_tissue_types, predictions_nbi, average='macro', zero_division=1)
+    per_class_recall_all = recall_score(existing_gt_vals, ordered_predictiosn, average=None, zero_division=1)
+    recall_per_class = {f'REC {unique_classes[j]}': float(metric_result) for j, metric_result in enumerate(per_class_recall_all)}
 
     macro_f1_all = f1_score(existing_gt_vals, ordered_predictiosn, average='macro', zero_division=1)
     macro_f1_wli = f1_score(wli_tissue_types, predictions_wli, average='macro', zero_division=1)
     macro_f1_nbi = f1_score(nbi_tissue_types, predictions_nbi, average='macro', zero_division=1)
+    per_class_f1_all = f1_score(existing_gt_vals, ordered_predictiosn, average=None, zero_division=1)
+    f1_per_class = {f'F-1 {unique_classes[j]}': float(metric_result) for j, metric_result in enumerate(per_class_f1_all)}
+
+
+
+    cohen_kappa_score_all = cohen_kappa_score(existing_gt_vals, ordered_predictiosn)
+    matthews_corrcoef_all = matthews_corrcoef(existing_gt_vals, ordered_predictiosn)
+    matthews_corrcoef_wli = matthews_corrcoef(wli_tissue_types, predictions_wli)
+    matthews_corrcoef_nbi = matthews_corrcoef(nbi_tissue_types, predictions_nbi)
 
     performance_resume = {'Accuracy ALL': float(acc_all),
                           'Accuracy WLI': float(acc_wli),
                           'Accuracy NBI': float(acc_nbi),
+                          'Cohen Kappa': float(cohen_kappa_score_all),
+                          'Matthews CC ALL': float(matthews_corrcoef_all),
+                          'Matthews CC WLI': float(matthews_corrcoef_wli),
+                          'Matthews CC NBI': float(matthews_corrcoef_nbi),
                           'Precision ALL': float(macro_prec_all),
                           'Precision WLI': float(macro_prec_wli),
                           'Precision NBI': float(marco_prec_nbi),
@@ -282,6 +311,10 @@ def analyze_multiclass_experiment(gt_data_file, predictions_data_dir, plot_figur
                           'F-1 WLI': float(macro_f1_wli),
                           'F-1 NBI': float(macro_f1_nbi),
                           }
+
+    performance_resume = {**performance_resume, **precisions_per_class}
+    performance_resume = {**performance_resume, **recall_per_class}
+    performance_resume = {**performance_resume, **f1_per_class}
 
     if k_folds:
         yaml_file_name = ''.join(['performance_analysis_', k_folds, '.yaml'])
@@ -300,29 +333,30 @@ def analyze_multiclass_experiment(gt_data_file, predictions_data_dir, plot_figur
     dir_save_hist = os.path.join(dir_save_fig, save_hist_fig_name)
     fam.save_yaml(dir_data_yaml, performance_resume)
 
-    # Confusion Matrices
+    if plot_figure:
+        # Confusion Matrices
 
-    compute_confusion_matrix(existing_gt_vals, ordered_predictiosn, plot_figure=False,
-                             dir_save_fig=dir_save_fig + name_fig_1)
+        compute_confusion_matrix(existing_gt_vals, ordered_predictiosn, plot_figure=False,
+                                 dir_save_fig=dir_save_fig + name_fig_1)
 
-    compute_confusion_matrix(wli_tissue_types, predictions_wli,
-                             dir_save_fig=dir_save_fig + name_fig_2)
+        compute_confusion_matrix(wli_tissue_types, predictions_wli,
+                                 dir_save_fig=dir_save_fig + name_fig_2)
 
-    compute_confusion_matrix(nbi_tissue_types, predictions_nbi,
-                             dir_save_fig=dir_save_fig + name_fig_3)
+        compute_confusion_matrix(nbi_tissue_types, predictions_nbi,
+                                 dir_save_fig=dir_save_fig + name_fig_3)
 
-    gt_values = []
-    for name in predictions_names:
-        if name in gt_names:
-            index = gt_names.index(name)
-            gt_values.append(gt_vals[index])
+        gt_values = []
+        for name in predictions_names:
+            if name in gt_names:
+                index = gt_names.index(name)
+                gt_values.append(gt_vals[index])
 
-    new_df = df_preditc_data.copy()
-    data_top = list(new_df.columns)
-    new_df.insert(len(data_top), "real values", gt_values, allow_duplicates=True)
-    name_data_save = path_file_predictions
-    new_df.to_csv(name_data_save, index=False)
-    print(f'results saved at {name_data_save}')
+        new_df = df_preditc_data.copy()
+        data_top = list(new_df.columns)
+        new_df.insert(len(data_top), "real values", gt_values, allow_duplicates=True)
+        name_data_save = path_file_predictions
+        new_df.to_csv(name_data_save, index=False)
+        print(f'results saved at {name_data_save}')
 
     # analyze the history
     if analyze_training_history is True:
@@ -386,7 +420,7 @@ def Mann_Whitney_U_test(metrics_models, metrics, unique_models=None, analysis_ty
         pass
 
 
-def generate_dctionary_metrics_results(dataframe, metrics, domain_type='WLI'):
+def generate_dctionary_metrics_results(dataframe, metrics, domain_type='ALL'):
     list_models = dataframe['name model'].tolist()
     unique_models = list(np.unique(list_models))
     metrics_models = {m: {metric: list() for metric in metrics[:]} for m in unique_models}
@@ -432,7 +466,7 @@ def box_plot_matplotlib(dataframe, title='', y_label='', computer_stat_sig=True,
         if computer_stat_sig:
             Mann_Whitney_U_test(metrics_models, metrics, unique_models, analysis_type=analysis_type)
 
-        labels = ['' for x in range(len(data))]
+        labels = ['' for _ in range(len(data))]
         for i, label in enumerate(labels):
             if i % 3 == 0:
                 labels[i + 1] = unique_models[int(i/3)]
@@ -449,7 +483,6 @@ def box_plot_matplotlib(dataframe, title='', y_label='', computer_stat_sig=True,
             data = data + generate_data_list_plot(metrics_models, metrics)
             metrics_models = {**metrics_models, **metric}
             unique_models = unique_models + uniques
-
         print(metrics_models)
         if computer_stat_sig:
             Mann_Whitney_U_test(metrics_models, metrics, unique_models, analysis_type=analysis_type)
@@ -552,22 +585,37 @@ def boxplot_seaborn(data_frame, columns_header, title_plot=''):
     fig1.canvas.set_window_title(title_plot)
     fig1.suptitle(title_plot, fontsize=14)
     ax1 = fig1.add_subplot(131)
-    ax1 = sns.boxplot(x=columns_header[0], y=columns_header[1], data=data_frame)
+    ax1 = sns.boxplot(x=columns_header[0], y=columns_header[1], data=data_frame, showmeans=True,
+                      meanprops={"marker": "*",
+                                 "markerfacecolor": "white",
+                                 "markeredgecolor": "black",
+                                 "markersize": "10"}
+                      )
     ax1 = sns.swarmplot(x=columns_header[0], y=columns_header[1], data=data_frame, color=".25")
     ax1.set_ylim([0, 1.0])
     ax1.title.set_text('ALL')
 
     ax2 = fig1.add_subplot(132)
-    ax2 = sns.boxplot(x=columns_header[0], y=columns_header[2], data=data_frame)
+    ax2 = sns.boxplot(x=columns_header[0], y=columns_header[2], data=data_frame, showmeans=True,
+                      meanprops={"marker": "*",
+                                 "markerfacecolor": "white",
+                                 "markeredgecolor": "black",
+                                 "markersize": "10"}
+                      )
     ax2 = sns.swarmplot(x=columns_header[0], y=columns_header[2], data=data_frame, color=".25")
     ax2.set_ylim([0, 1.0])
-    ax2.title.set_text('NBI')
+    ax2.title.set_text('WLI')
 
     ax3 = fig1.add_subplot(133)
-    ax3 = sns.boxplot(x=columns_header[0], y=columns_header[3], data=data_frame)
+    ax3 = sns.boxplot(x=columns_header[0], y=columns_header[3], data=data_frame, showmeans=True,
+                      meanprops={"marker": "*",
+                                 "markerfacecolor": "white",
+                                 "markeredgecolor": "black",
+                                 "markersize": "10"}
+                      )
     ax3 = sns.swarmplot(x=columns_header[0], y=columns_header[3], data=data_frame, color=".25")
     ax3.set_ylim([0, 1.0])
-    ax3.title.set_text('WLI')
+    ax3.title.set_text('NBI')
 
     plt.show()
 
