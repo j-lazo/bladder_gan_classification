@@ -29,6 +29,7 @@ class Checkpoint:
 
     def restore(self, save_path=None):
         save_path = self.manager.latest_checkpoint if save_path is None else save_path
+        print(f'GAN Checkpoints restored from: {save_path}')
         return self.checkpoint.restore(save_path)
 
     def save(self, file_prefix_or_checkpoint_number=None, session=None):
