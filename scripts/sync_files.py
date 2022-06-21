@@ -25,14 +25,14 @@ def main(_argv):
     dir_to_analyze = FLAGS.dir_to_analyze
 
     if mode == 'prepare_files':
-        compressed_results = os.path.join(os.getcwd(), 'results', 'bladder_tissue_classification_v2_compressed')
+        compressed_results = os.path.join(os.getcwd(), 'results', 'bladder_tissue_classification_v3_compressed')
         if not folder_results:
-            folder_results = os.path.join(os.getcwd(), 'results', 'bladder_tissue_classification_v2')
+            folder_results = os.path.join(os.getcwd(), 'results', 'bladder_tissue_classification_v3')
         else:
             print(os.path.isdir(folder_results))
 
         if not transfer_results:
-            transfer_results = os.path.join(os.getcwd(), 'results', 'bladder_tissue_classification_v2_transfer')
+            transfer_results = os.path.join(os.getcwd(), 'results', 'bladder_tissue_classification_v3_transfer')
         else:
             print(os.path.isdir(transfer_results))
 
@@ -67,9 +67,9 @@ def main(_argv):
     elif mode == 'update_experiment_list':
 
         if base_path:
-            directory_path = os.path.join(base_path, 'results', 'bladder_tissue_classification_v2')
+            directory_path = os.path.join(base_path, 'results', 'bladder_tissue_classification_v3')
         else:
-            directory_path = os.path.join(os.getcwd(), 'results', 'bladder_tissue_classification_v2')
+            directory_path = os.path.join(os.getcwd(), 'results', 'bladder_tissue_classification_v3')
 
         list_files = [f for f in os.listdir(directory_path)
                       if os.path.isdir(os.path.join(directory_path, f)) or f.endswith('.zip')]
@@ -92,8 +92,8 @@ def main(_argv):
     elif mode == 'unizp':
 
         # unzip the files that haven't been unzip
-        dir_zipped_files = os.path.join(os.getcwd(), 'results', 'bladder_tissue_classification_v2_transfer')
-        dir_unzipped_files = os.path.join(os.getcwd(), 'results', 'bladder_tissue_classification_v2')
+        dir_zipped_files = os.path.join(os.getcwd(), 'results', 'bladder_tissue_classification_v3_transfer')
+        dir_unzipped_files = os.path.join(os.getcwd(), 'results', 'bladder_tissue_classification_v3')
 
         list_transfered_files = [f for f in os.listdir(dir_zipped_files) if f.endswith('.zip')]
         list_unzipped_files = [f for f in os.listdir(dir_unzipped_files) if os.path.isdir(os.path.join(dir_unzipped_files, f))]
@@ -111,7 +111,7 @@ def main(_argv):
 
         # analyze the yamls files
         if not dir_to_analyze:
-            dir_unzipped_files = os.path.join(os.getcwd(), 'results', 'bladder_tissue_classification_v2')
+            dir_unzipped_files = os.path.join(os.getcwd(), 'results', 'bladder_tissue_classification_v3')
         name_experiment = list()
         date_experiment = list()
         name_models = list()
@@ -161,7 +161,7 @@ def main(_argv):
                     else:
                         data_used_in_train = 'ALL'
 
-                    dataset_training = 'bladder_tissue_classification_v2'
+                    dataset_training = 'bladder_tissue_classification_v3'
                     backbone_gan = 'checkpoint_charlie'
                     name_experiment.append(experiment_folder)
                     date_experiment.append(date)
@@ -175,54 +175,20 @@ def main(_argv):
                         backbones.append('')
 
                 path_yaml_performance = os.path.join(dir_unzipped_files, experiment_folder, performance_yaml_file)
-
                 results = dam.read_yaml_file(path_yaml_performance)
-
-                acc_all = float(results['Accuracy ALL'])
-                acc_nbi = float(results['Accuracy NBI'])
-                acc_wli = float(results['Accuracy WLI'])
-
-                prec_all = float(results['Precision ALL'])
-                prec_nbi = float(results['Precision NBI'])
-                prec_wli = float(results['Precision WLI'])
-
-                rec_all = float(results['Recall ALL'])
-                rec_nbi = float(results['Recall NBI'])
-                rec_wli = float(results['Recall WLI'])
-
-                f1_all = float(results['F-1 ALL'])
-                f1_nbi = float(results['F-1 NBI'])
-                f1_wli = float(results['F-1 WLI'])
-
-            else:
-                acc_all = None
-                acc_nbi = None
-                acc_wli = None
-                prec_all = None
-                prec_nbi = None
-                prec_wli = None
-                rec_all = None
-                rec_nbi = None
-                rec_wli = None
-                f1_all = None
-                f1_nbi = None
-                f1_wli = None
 
             if data_used_in_train == '':
                 data_used_in_train = 'ALL'
+
             information_experiment = {'experiment_folder': experiment_folder, 'date': date, 'name_model': name_model,
                                       'backbones': backbone_name, 'batch_size': batch_size,
                                       'learning_rate': learning_rate, 'dataset': dataset_training,
-                                      'backbone GAN': backbone_gan, 'training_data_used': data_used_in_train,
-                                      'Accuracy ALL': acc_all, 'Accuracy WLI': acc_wli, 'Accuracy NBI': acc_nbi,
-                                      'Precision ALL': prec_all, 'Precision WLI': prec_nbi, 'Precision NBI': prec_wli,
-                                      'Recall ALL': rec_all, 'Recall WLI': rec_nbi, 'Recall NBI': rec_wli,
-                                      'F-1 ALL': f1_all, 'F-1 WLI': f1_nbi, 'F-1 NBI': f1_wli,
+                                      'backbone GAN': backbone_gan, 'training_data_used': data_used_in_train
                                       }
+            information_experiment = {**information_experiment, **results}
 
             dictionary_experiments.update({experiment_folder: information_experiment})
 
-        print(np.unique(name_models))
         list_acc_all = [dictionary_experiments[experiment]['Accuracy ALL'] for experiment in dictionary_experiments]
         list_acc_nbi = [dictionary_experiments[experiment]['Accuracy NBI'] for experiment in dictionary_experiments]
         list_acc_wli = [dictionary_experiments[experiment]['Accuracy WLI'] for experiment in dictionary_experiments]
