@@ -9,7 +9,7 @@ input_sizes_models = {'vgg16': (224, 224), 'vgg19': (224, 224), 'inception_v3': 
                       'simple_residual_model': (256, 256)}
 
 
-def simple_residual_model(input_size=256, num_filters=[32, 64, 128, 256, 512]):
+def simple_residual_model(input_size=256, num_filters=[32, 64, 128, 256 ]):
     input_layer = Input((input_size, input_size, 3))
     x = input_layer
     for f in num_filters[:-1]:
