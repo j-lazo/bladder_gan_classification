@@ -95,11 +95,11 @@ def compute_metrics_boxplots(dir_to_csv=(os.path.join(os.getcwd(), 'results', 's
     print(f'unique models: {unique_models}')
     alternative_name = {'gan_model_joint_features_and_domain+densenet121_': 'jf+d D',
                         'gan_model_multi_joint_features+densenet121_': 'jf D',
-                        'gan_model_joint_features_and_domain+resnet101_': 'jf+d-R',
+                        'gan_model_multi_joint_features': 'jf+d-R',
                         'gan_model_multi_joint_features+resnet101_': 'jf R',
                         'densenet121': 'densenet',
                         'gan_model_separate_features+densenet121_': 'sf D',
-                        'gan_model_separate_features+resnet101_': 'sf R',
+                        'gan_model_separate_features': 'sf R',
                         'resnet101': 'resnet101',
                         'simple_model_domain_input+resnet101_': 'smd R',
                         'simple_model_domain_input+densenet121_': 'smd D',
@@ -113,14 +113,14 @@ def compute_metrics_boxplots(dir_to_csv=(os.path.join(os.getcwd(), 'results', 's
                        'gan_model_multi_joint_features+densenet121_']
 
     selected_models_d = ['densenet121', 'resnet101',
-                       'gan_model_separate_features+densenet121_',
-                        'gan_model_multi_joint_features+densenet121_',]
+                       'gan_model_separate_features',
+                        'gan_model_multi_joint_features',]
                        #'gan_model_joint_features_and_domain+densenet121_',]
                          #'simple_model_domain_input+densenet121_']
 
     selected_models_r = ['resnet101', 'densenet121',
-                       'gan_model_separate_features+resnet101_',
-                       'gan_model_multi_joint_features+resnet101_',
+                       'gan_model_separate_features',
+                       'gan_model_multi_joint_features',
                          'simple_separation_model+resnet101_',
                          'gan_model_separate_features_v2+resnet101_']
                        #'gan_model_joint_features_and_domain+resnet101_',]
@@ -134,8 +134,9 @@ def compute_metrics_boxplots(dir_to_csv=(os.path.join(os.getcwd(), 'results', 's
                          'gan_model_joint_features_and_domain+resnet101_'
                          ]
     selected_res = ['resnet101']
-
-    selected_models = selected_models_r
+    selected_models_a = ['resnet101', 'densenet121', 'gan_model_separate_features', 'gan_model_multi_joint_features']
+    #selected_models_a = ['gan_model_multi_joint_features']
+    selected_models = selected_models_a
 
     list_x = list()
     list_y1 = list()
@@ -144,12 +145,14 @@ def compute_metrics_boxplots(dir_to_csv=(os.path.join(os.getcwd(), 'results', 's
     list_domain = list()
     chosen_learning_rates = [0.00001]
     chosen_batch_sizes = [32]
-    chosen_dataset = ['bladder_tissue_classification_v2',
-                      'bladder_tissue_classification_v2_augmented',
-                      'bladder_tissue_classification_gan']
-    chosen_trained_data = ['ALL']
-    chosen_gan_backbones = ['checkpoint_charlie',]
-                            #'not_complete_wli2nbi']
+    chosen_dataset = ['bladder_tissue_classification_v3',
+                      'bladder_tissue_classification_v3_augmented',
+                      'bladder_tissue_classification_gan_v3',]
+
+    chosen_trained_data = ['WLI', 'ALL']
+
+    chosen_gan_backbones = ['not_complete_wli2nbi', '', '', 'NaN', np.nan]
+                            #'not_complete_wli2nbi', 'checkpoint_charlie', 'general_wli2nbi']
     dictionary_selection = {'name_model': selected_models, 'learning_rate': chosen_learning_rates,
                             'batch_size': chosen_batch_sizes, 'dataset': chosen_dataset,
                             'backbone GAN': chosen_gan_backbones, 'training_data_used': chosen_trained_data}
@@ -185,7 +188,7 @@ def compute_metrics_boxplots(dir_to_csv=(os.path.join(os.getcwd(), 'results', 's
     print(columns)
     df_analysis = pd.DataFrame(zipped, columns=columns)
     title_plot = 'Comparison base models'#name_model.replace('_', ' ')
-    daa.boxplot_seaborn(selection, x_axis, y_axis, title_plot=title_plot, hue='dataset')
+    daa.boxplot_seaborn(selection, x_axis, y_axis, title_plot=title_plot, hue='training_data_used')
     title_fig = ''.join([metric_analysis, ' ', 'trained using ', chosen_trained_data[0]])
     #daa.box_plot_matplotlib(df_analysis, metrics=metrics_box, title=title_fig, y_label=metric_analysis,
     #                        analysis_type='by_model')
