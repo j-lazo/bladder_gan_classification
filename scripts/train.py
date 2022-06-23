@@ -105,7 +105,7 @@ def call_models(name_model, path_dataset, mode='fit', backbones=['resnet101'], g
     multi_input_models = ['gan_model_multi_joint_features', 'gan_model_separate_features',
                           'gan_model_joint_features_and_domain', 'simple_model_domain_input',
                           'gan_model_separate_features_v2', 'simple_separation_model',
-                          'gan_model_separate_features_v3']
+                          'gan_model_separate_features_v3', 'simple_model_with_backbones']
 
     if name_model not in multi_input_models:
         multioutput = False
@@ -247,6 +247,8 @@ def call_models(name_model, path_dataset, mode='fit', backbones=['resnet101'], g
                                                                  gan_weights=gan_pretrained_weights)
                 elif name_model == 'simple_separation_model':
                     model = build_simple_separation_model(num_classes, backbones=backbones)
+                elif name_model == 'simple_model_with_backbones':
+                    model = build_simple_separation_with_backbones(num_classes, backbones=backbones)
                 else:
                     model = build_pretrained_model(num_classes, name_model)
 
@@ -274,6 +276,8 @@ def call_models(name_model, path_dataset, mode='fit', backbones=['resnet101'], g
                                                              gan_weights=gan_pretrained_weights)
             elif name_model == 'simple_separation_model':
                 model = build_simple_separation_model(num_classes, backbones=backbones)
+            elif name_model == 'simple_model_with_backbones':
+                model = build_simple_separation_with_backbones(num_classes, backbones=backbones)
             else:
                 model = build_pretrained_model(name_model)
 

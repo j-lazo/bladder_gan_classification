@@ -90,16 +90,19 @@ def build_simple_separation_model(num_classes, backbones):
 
 
 def build_simple_separation_with_backbones(num_classes, backbones):
+    if len(backbones) < 2:
+        backbones = backbones * 2
     # inputs
     name_model = backbones[0]
     input_image = keras.Input(shape=(256, 256, 3), name="image")
     t_input = keras.Input(shape=(1,), name="img_domain")
 
-    x1 = tf.image.resize(input_image, input_sizes_models[name_model], method='bilinear')
-    x1 = get_preprocess_input_backbone(name_model, x1)
-    base_model = load_pretrained_backbones(name_model)
+    x1 = tf.image.resize(input_image, input_sizes_models[backbones[0]], method='bilinear')
+    x1 = get_preprocess_input_backbone(backbones[0], x1)
+    base_model = load_pretrained_backbones(backbones[0])
     for layer in base_model.layers:
         layer.trainable = False
+    base_model._name = 'backbone_1'
 
     x1 = base_model(x1)
     x1 = GlobalAveragePooling2D()(x1)
@@ -111,10 +114,12 @@ def build_simple_separation_with_backbones(num_classes, backbones):
     x1 = Flatten()(x1)
     x1 = Dense(num_classes, activation='softmax')(x1)
 
-    x2 = tf.image.resize(input_image, input_sizes_models['simple_residual_model'], method='bilinear')/255.
-    base_model_2 = load_pretrained_backbones(name_model)
+    x2 = tf.image.resize(input_image, input_sizes_models[backbones[1]], method='bilinear')
+    x2 = get_preprocess_input_backbone(backbones[0], x2)
+    base_model_2 = load_pretrained_backbones(backbones[1])
     for layer in base_model_2.layers:
         layer.trainable = False
+    base_model_2._name = 'backbone_2'
 
     x2 = base_model_2(x2)
     x2 = GlobalAveragePooling2D()(x2)
