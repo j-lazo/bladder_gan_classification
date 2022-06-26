@@ -109,7 +109,9 @@ def compute_metrics_boxplots(dir_to_csv=(os.path.join(os.getcwd(), 'results', 's
                         'gan_model_separate_features_v3': 'sf v3',
                         'simple_model_domain_input': 'smdi',
                         'simple_separation_model': 'ssm',
-                        'simple_model_with_backbones': 'smwb'}
+                        'simple_model_with_backbones': 'smwb',
+                        'only_gan_separate_features': 'ogsf',
+                        'only_gan_model_joint_features_and_domain': 'ogjfd'}
 
     selected_models_basic = ['densenet121', 'resnet101']
     selected_models_joint = ['gan_model_separate_features+densenet121_',
@@ -143,7 +145,9 @@ def compute_metrics_boxplots(dir_to_csv=(os.path.join(os.getcwd(), 'results', 's
     selected_models_a = ['resnet101', 'gan_model_separate_features', 'gan_model_multi_joint_features',
                           'gan_model_joint_features_and_domain',
                           'simple_model_domain_input',
-                         'simple_model_with_backbones', 'simple_separation_model']
+                         'simple_model_with_backbones', 'simple_separation_model',
+                         'only_gan_separate_features',
+                         'only_gan_model_joint_features_and_domain']
     select_b = ['resnet101']
     #selected_models_a = ['gan_model_multi_joint_features']
     selected_models = selected_models_a
