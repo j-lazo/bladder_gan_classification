@@ -141,11 +141,12 @@ def compute_metrics_boxplots(dir_to_csv=(os.path.join(os.getcwd(), 'results', 's
     selected_res = ['gan_model_separate_features', 'resnet101', 'simple_separation_model', 'simple_model_with_backbones',
                     'simple_model_domain_input']
     selected_models_a = ['resnet101', 'gan_model_separate_features', 'gan_model_multi_joint_features',
-                         'gan_model_separate_features_v2', 'gan_model_joint_features_and_domain',
-                         'gan_model_separate_features_v3', 'simple_model_domain_input']
+                          'gan_model_joint_features_and_domain',
+                          'simple_model_domain_input',
+                         'simple_model_with_backbones', 'simple_separation_model']
     select_b = ['resnet101']
     #selected_models_a = ['gan_model_multi_joint_features']
-    selected_models = select_b
+    selected_models = selected_models_a
 
     list_x = list()
     list_y1 = list()
@@ -154,9 +155,9 @@ def compute_metrics_boxplots(dir_to_csv=(os.path.join(os.getcwd(), 'results', 's
     list_domain = list()
     chosen_learning_rates = [0.00001]
     chosen_batch_sizes = [32]
-    chosen_dataset = ['bladder_tissue_classification_v3',
-                      'bladder_tissue_classification_v3_augmented',
-                      'bladder_tissue_classification_v3_gan_new',]
+    chosen_dataset = ['bladder_tissue_classification_v3']
+                      #'bladder_tissue_classification_v3_augmented',
+                      #'bladder_tissue_classification_v3_gan_new',]
 
     chosen_trained_data = ['ALL', 'WLI']
 
@@ -168,7 +169,7 @@ def compute_metrics_boxplots(dir_to_csv=(os.path.join(os.getcwd(), 'results', 's
     selection = select_specific_cases(df, dictionary_selection)
 
     # 'Accuracy', 'Precision', 'Recall', 'F-1'
-    metric_analysis = 'Accuracy'
+    metric_analysis = 'F-1'
     metrics_box = ['ALL', 'WLI', 'NBI']
     metrics_box = [''.join([metric_analysis, ' ', m]) for m in metrics_box]
 
@@ -191,7 +192,7 @@ def compute_metrics_boxplots(dir_to_csv=(os.path.join(os.getcwd(), 'results', 's
 
     zipped = list(zip(list_x, list_y1, list_y2, list_y3, list_domain))
     columns = ['name_model'] + metrics_box
-    x_axis = 'dataset'
+    x_axis = 'name_model'
     y_axis = metrics_box
     columns.append('training_data_used')
     print(columns)
