@@ -294,19 +294,10 @@ def build_only_gan_model_joint_features_and_domain(num_classes, backbones=['resn
     #input_backbone_3 = r
 
     # load the backbones
-    backbone_model_1 = load_pretrained_backbones(backbones[0])
-    backbone_model_1._name = 'backbone_1'
-    for layer in backbone_model_1.layers:
-        layer.trainable = False
     backbone_model_2 = load_pretrained_backbones(backbones[1])
     backbone_model_2._name = 'backbone_2'
     for layer in backbone_model_2.layers:
         layer.trainable = False
-
-    # branch 1 takes the original image
-    b1 = tf.image.resize(input_image, input_sizes_models[backbones[0]], method='bilinear')
-    b1 = get_preprocess_input_backbone(backbones[0], b1)
-    b1 = backbone_model_1(b1)
 
     # branch 2 takes the image created by the first generator
     b2 = tf.image.resize(input_backbone_2, input_sizes_models[backbones[1]], method='bilinear')
@@ -323,11 +314,11 @@ def build_only_gan_model_joint_features_and_domain(num_classes, backbones=['resn
             layer.trainable = False
         b3 = backbone_model_3(b3)
         # concatenate the feature maps from the 3 backbones
-        x = Concatenate()([b1, b2, b3])
+        x = Concatenate()([b2, b3])
 
     else:
         # concatenate the feature maps from the backbones
-        x = Concatenate()([b1, b2])
+        x = b2
 
     if after_concat == 'globalpooling':
         x = GlobalAveragePooling2D()(x)
