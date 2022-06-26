@@ -591,8 +591,19 @@ def boxplot_seaborn(data_frame, x_axis, y_axis, title_plot='', hue=None):
     fig1.suptitle(title_plot, fontsize=14)
     ax1 = fig1.add_subplot(131)
     if hue:
+        ax1 = sns.stripplot(x=x_axis, y=y_axis[0], hue=hue,
+                      data=data_frame, jitter=True,
+                      split=True, linewidth=0.3, size=3)
         ax1 = sns.boxplot(x=x_axis, y=y_axis[0], data=data_frame, showmeans=True,
                           hue=hue, meanprops=meanprops)
+        # Get the handles and labels. For this example it'll be 2 tuples
+        # of length 4 each.
+        handles, labels = ax1.get_legend_handles_labels()
+
+        # When creating the legend, only use the first two elements
+        # to effectively remove the last two.
+        l = plt.legend(handles[-2:], labels[-2:], bbox_to_anchor=(0.99, 0.95))
+
     else:
         ax1 = sns.boxplot(x=x_axis, y=y_axis[0], data=data_frame, showmeans=True,
                           meanprops=meanprops)
@@ -602,23 +613,46 @@ def boxplot_seaborn(data_frame, x_axis, y_axis, title_plot='', hue=None):
 
     ax2 = fig1.add_subplot(132)
     if hue:
+        ax2 = sns.stripplot(x=x_axis, y=y_axis[1], hue=hue,
+                            data=data_frame, jitter=True,
+                            split=True, linewidth=0.3, size=3)
         ax2 = sns.boxplot(x=x_axis, y=y_axis[1], data=data_frame, showmeans=True,
                           hue=hue, meanprops=meanprops)
+        # Get the handles and labels. For this example it'll be 2 tuples
+        # of length 4 each.
+        handles, labels = ax2.get_legend_handles_labels()
+
+        # When creating the legend, only use the first two elements
+        # to effectively remove the last two.
+        l = plt.legend(handles[-2:], labels[-2:])
     else:
         ax2 = sns.boxplot(x=x_axis, y=y_axis[1], data=data_frame, showmeans=True,
                           meanprops=meanprops)
         ax2 = sns.swarmplot(x=x_axis, y=y_axis[1], data=data_frame, color=".25")
+
+
     ax2.set_ylim([0, 1.05])
     ax2.title.set_text('WLI')
 
     ax3 = fig1.add_subplot(133)
     if hue:
+        ax3 = sns.stripplot(x=x_axis, y=y_axis[2], hue=hue,
+                            data=data_frame, jitter=True,
+                            split=True, linewidth=0.3, size=3)
         ax3 = sns.boxplot(x=x_axis, y=y_axis[2], data=data_frame, showmeans=True,
                           hue=hue, meanprops=meanprops)
+        # Get the handles and labels. For this example it'll be 2 tuples
+        # of length 4 each.
+        handles, labels = ax3.get_legend_handles_labels()
+
+        # When creating the legend, only use the first two elements
+        # to effectively remove the last two.
+        l = plt.legend(handles[-2:], labels[-2:])
     else:
         ax3 = sns.boxplot(x=x_axis, y=y_axis[2], data=data_frame, showmeans=True,
                           hue=hue)
         ax3 = sns.swarmplot(x=x_axis, y=y_axis[2], data=data_frame, color=".25")
+
 
     ax3.set_ylim([0, 1.05])
     ax3.title.set_text('NBI')
