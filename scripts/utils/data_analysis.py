@@ -597,7 +597,7 @@ def boxplot_seaborn(data_frame, x_axis, y_axis, title_plot='', hue=None):
         ax1 = sns.boxplot(x=x_axis, y=y_axis[0], data=data_frame, showmeans=True,
                           meanprops=meanprops)
         ax1 = sns.swarmplot(x=x_axis, y=y_axis[0], data=data_frame, color=".25")
-    ax1.set_ylim([0, 1.0])
+    ax1.set_ylim([0, 1.05])
     ax1.title.set_text('ALL')
 
     ax2 = fig1.add_subplot(132)
@@ -608,7 +608,7 @@ def boxplot_seaborn(data_frame, x_axis, y_axis, title_plot='', hue=None):
         ax2 = sns.boxplot(x=x_axis, y=y_axis[1], data=data_frame, showmeans=True,
                           meanprops=meanprops)
         ax2 = sns.swarmplot(x=x_axis, y=y_axis[1], data=data_frame, color=".25")
-    ax2.set_ylim([0, 1.0])
+    ax2.set_ylim([0, 1.05])
     ax2.title.set_text('WLI')
 
     ax3 = fig1.add_subplot(133)
@@ -620,7 +620,7 @@ def boxplot_seaborn(data_frame, x_axis, y_axis, title_plot='', hue=None):
                           hue=hue)
         ax3 = sns.swarmplot(x=x_axis, y=y_axis[2], data=data_frame, color=".25")
 
-    ax3.set_ylim([0, 1.0])
+    ax3.set_ylim([0, 1.05])
     ax3.title.set_text('NBI')
 
     plt.show()

@@ -104,7 +104,12 @@ def compute_metrics_boxplots(dir_to_csv=(os.path.join(os.getcwd(), 'results', 's
                         'simple_model_domain_input+resnet101_': 'smd R',
                         'simple_model_domain_input+densenet121_': 'smd D',
                         'simple_separation_model+resnet101_': 'ss R',
-                        'gan_model_separate_features_v2+resnet101_': 'sf R v2'}
+                        'gan_model_separate_features_v2+resnet101_': 'sf R v2', 'gan_model_separate_features_v2': 'sf2',
+                        'gan_model_joint_features_and_domain': 'g-mjf-d',
+                        'gan_model_separate_features_v3': 'sf v3',
+                        'simple_model_domain_input': 'smdi',
+                        'simple_separation_model': 'ssm',
+                        'simple_model_with_backbones': 'smwb'}
 
     selected_models_basic = ['densenet121', 'resnet101']
     selected_models_joint = ['gan_model_separate_features+densenet121_',
@@ -133,10 +138,14 @@ def compute_metrics_boxplots(dir_to_csv=(os.path.join(os.getcwd(), 'results', 's
                          'gan_model_multi_joint_features+resnet101_',
                          'gan_model_joint_features_and_domain+resnet101_'
                          ]
-    selected_res = ['resnet101']
-    selected_models_a = ['resnet101', 'densenet121', 'gan_model_separate_features', 'gan_model_multi_joint_features']
+    selected_res = ['gan_model_separate_features', 'resnet101', 'simple_separation_model', 'simple_model_with_backbones',
+                    'simple_model_domain_input']
+    selected_models_a = ['resnet101', 'gan_model_separate_features', 'gan_model_multi_joint_features',
+                         'gan_model_separate_features_v2', 'gan_model_joint_features_and_domain',
+                         'gan_model_separate_features_v3', 'simple_model_domain_input']
+    select_b = ['resnet101']
     #selected_models_a = ['gan_model_multi_joint_features']
-    selected_models = selected_models_a
+    selected_models = select_b
 
     list_x = list()
     list_y1 = list()
@@ -147,11 +156,11 @@ def compute_metrics_boxplots(dir_to_csv=(os.path.join(os.getcwd(), 'results', 's
     chosen_batch_sizes = [32]
     chosen_dataset = ['bladder_tissue_classification_v3',
                       'bladder_tissue_classification_v3_augmented',
-                      'bladder_tissue_classification_gan_v3',]
+                      'bladder_tissue_classification_v3_gan_new',]
 
-    chosen_trained_data = ['WLI', 'ALL']
+    chosen_trained_data = ['ALL', 'WLI']
 
-    chosen_gan_backbones = ['not_complete_wli2nbi', '', '', 'NaN', np.nan]
+    chosen_gan_backbones = ['not_complete_wli2nbi', '', '', 'NaN', np.nan,]
                             #'not_complete_wli2nbi', 'checkpoint_charlie', 'general_wli2nbi']
     dictionary_selection = {'name_model': selected_models, 'learning_rate': chosen_learning_rates,
                             'batch_size': chosen_batch_sizes, 'dataset': chosen_dataset,
@@ -182,7 +191,7 @@ def compute_metrics_boxplots(dir_to_csv=(os.path.join(os.getcwd(), 'results', 's
 
     zipped = list(zip(list_x, list_y1, list_y2, list_y3, list_domain))
     columns = ['name_model'] + metrics_box
-    x_axis = 'name_model'
+    x_axis = 'dataset'
     y_axis = metrics_box
     columns.append('training_data_used')
     print(columns)
