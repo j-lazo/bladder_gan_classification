@@ -106,7 +106,8 @@ def call_models(name_model, path_dataset, mode='fit', backbones=['resnet101'], g
                           'gan_model_joint_features_and_domain', 'simple_model_domain_input',
                           'gan_model_separate_features_v2', 'simple_separation_model',
                           'gan_model_separate_features_v3', 'simple_model_with_backbones',
-                          'only_gan_separate_features', 'only_gan_model_joint_features_and_domain']
+                          'only_gan_separate_features', 'only_gan_model_joint_features_and_domain',
+                          'gan_separate_features_and_domain_v1', 'gan_separate_features_and_domain_v2']
 
     if name_model not in multi_input_models:
         multioutput = False
@@ -246,6 +247,12 @@ def call_models(name_model, path_dataset, mode='fit', backbones=['resnet101'], g
                 elif name_model == 'gan_model_separate_features_v3':
                     model = build_gan_model_separate_features_v2(num_classes, backbones=backbones,
                                                                  gan_weights=gan_pretrained_weights)
+                elif name_model == 'gan_separate_features_and_domain_v1':
+                    model = build_gan_model_separate_features_and_domain_v1(num_classes, backbones=backbones,
+                                                                 gan_weights=gan_pretrained_weights)
+                elif name_model == 'gan_separate_features_and_domain_v2':
+                    model = build_gan_model_separate_features_and_domain_v2(num_classes, backbones=backbones,
+                                                                 gan_weights=gan_pretrained_weights)
                 elif name_model == 'only_gan_separate_features':
                     model = build_only_gan_model_separate_features(num_classes, backbones=backbones,
                                                                  gan_weights=gan_pretrained_weights)
@@ -281,6 +288,12 @@ def call_models(name_model, path_dataset, mode='fit', backbones=['resnet101'], g
             elif name_model == 'gan_model_separate_features_v3':
                 model = build_gan_model_separate_features_v2(num_classes, backbones=backbones,
                                                              gan_weights=gan_pretrained_weights)
+            elif name_model == 'gan_separate_features_and_domain_v1':
+                model = build_gan_model_separate_features_and_domain_v1(num_classes, backbones=backbones,
+                                                                        gan_weights=gan_pretrained_weights)
+            elif name_model == 'gan_separate_features_and_domain_v2':
+                model = build_gan_model_separate_features_and_domain_v2(num_classes, backbones=backbones,
+                                                                        gan_weights=gan_pretrained_weights)
             elif name_model == 'only_gan_separate_features':
                 model = build_only_gan_model_separate_features(num_classes, backbones=backbones,
                                                                gan_weights=gan_pretrained_weights)
