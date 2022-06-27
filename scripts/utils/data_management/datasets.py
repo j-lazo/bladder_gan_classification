@@ -7,7 +7,7 @@ import numpy as np
 import datetime
 import tensorflow_addons as tfa
 from utils import image as img_fun
-
+import copy
 
 def generate_experiment_ID(name_model='', learning_rate='na', batch_size='na', backbone_model='',
                            prediction_model='', mode='', specific_domain=None):
@@ -187,6 +187,7 @@ def make_tf_dataset(list_files, dictionary_labels, batch_size, training=False, m
     if training:
         random.shuffle(list_files)
 
+
     for img_name in list_files:
       path_imgs.append(dictionary_labels[img_name]['path_file'])
       images_class.append(dictionary_labels[img_name]['img_class'])
@@ -194,11 +195,28 @@ def make_tf_dataset(list_files, dictionary_labels, batch_size, training=False, m
 
     path_imgs = [f for f in path_imgs if f.endswith('.png')]
     list_path_files = path_imgs
-
     unique_domains = list(np.unique(images_domains))
+    images_domains = [unique_domains.index(val) for val in images_domains]
+
+    # here you need to make a selection of the specific domains, but once both have been considered
+    if specific_domain:
+        new_path_imgs = list()
+        new_images_class = list()
+        new_images_domains = list()
+        for j, img in enumerate(path_imgs):
+            if unique_domains.index(specific_domain) == images_domains[j]:
+                new_path_imgs.append(path_imgs[j])
+                new_images_class.append(images_class[j])
+                new_images_domains.append(images_domains[j])
+
+        path_imgs = copy.copy(new_path_imgs)
+        images_class = copy.copy(new_images_class)
+        images_domains = copy.copy(new_images_domains)
+    #
+    #
+
     unique_classes = list(np.unique(images_class))
     num_classes = len(unique_classes)
-    images_domains = [unique_domains.index(val) for val in images_domains]
     labels = [unique_classes.index(val) for val in images_class]
     network_labels = list()
     for label in labels:
@@ -219,6 +237,7 @@ def make_tf_dataset(list_files, dictionary_labels, batch_size, training=False, m
     else:
         ds = ds.batch(batch_size)
 
+    print(f'TF dataset of {len(path_imgs)} elements')
     return ds
 
 
