@@ -580,8 +580,30 @@ def box_plot_matplotlib(dataframe, title='', y_label='', computer_stat_sig=True,
     plt.show()
 
 
-def boxplot_seaborn(data_frame, x_axis, y_axis, title_plot='', hue=None):
-    print(data_frame)
+def calculate_p_values(data_frame, selection, metrics, selected_values=None, base_model='resnet101', sub_selection=None):
+    print('selection', data_frame[selection].unique().tolist())
+    # selecting rows based on condition
+
+    base_model_df = data_frame.loc[data_frame[selection] == base_model]
+    base_metric_all = base_model_df[metrics[0]].tolist()
+    base_metric_wli = base_model_df[metrics[1]].tolist()
+    base_metric_nbi = base_model_df[metrics[2]].tolist()
+    base_metrics = [base_model_df[metrics[j]].tolist() for j in range(len(metrics))]
+
+    if selected_values:
+        for value in selected_values:
+            rslt_df = data_frame.loc[data_frame[selection] == value]
+            for j, metric in enumerate(metrics):
+                print(f'{value}: {metric}')
+                metric_vals = rslt_df[metric].tolist()
+                print(f'mean: {np.mean(metric_vals)}, median: {np.median(metric_vals)}, +- {np.std(metric_vals)}')
+                mu = scipy.stats.mannwhitneyu(base_metrics[j], metric_vals)
+                print(f'p-val {value} vs {base_model}', )
+                print(mu)
+    print('selection', selection)
+
+
+def boxplot_seaborn(data_frame, x_axis, y_axis, title_plot='', hue=None, order=None):
     meanprops = {"marker": "*",
                  "markerfacecolor": "white",
                  "markeredgecolor": "black",
@@ -593,9 +615,9 @@ def boxplot_seaborn(data_frame, x_axis, y_axis, title_plot='', hue=None):
     if hue:
         ax1 = sns.stripplot(x=x_axis, y=y_axis[0], hue=hue,
                       data=data_frame, jitter=True,
-                      split=True, linewidth=0.3, size=3)
+                      split=True, linewidth=0.3, size=3, order=order)
         ax1 = sns.boxplot(x=x_axis, y=y_axis[0], data=data_frame, showmeans=True,
-                          hue=hue, meanprops=meanprops)
+                          hue=hue, meanprops=meanprops, order=order)
         # Get the handles and labels. For this example it'll be 2 tuples
         # of length 4 each.
         handles, labels = ax1.get_legend_handles_labels()
@@ -606,8 +628,8 @@ def boxplot_seaborn(data_frame, x_axis, y_axis, title_plot='', hue=None):
 
     else:
         ax1 = sns.boxplot(x=x_axis, y=y_axis[0], data=data_frame, showmeans=True,
-                          meanprops=meanprops)
-        ax1 = sns.swarmplot(x=x_axis, y=y_axis[0], data=data_frame, color=".25")
+                          meanprops=meanprops, order=order)
+        ax1 = sns.swarmplot(x=x_axis, y=y_axis[0], data=data_frame, color=".25", order=order)
     ax1.set_ylim([0, 1.05])
     ax1.title.set_text('ALL')
 
@@ -615,9 +637,9 @@ def boxplot_seaborn(data_frame, x_axis, y_axis, title_plot='', hue=None):
     if hue:
         ax2 = sns.stripplot(x=x_axis, y=y_axis[1], hue=hue,
                             data=data_frame, jitter=True,
-                            split=True, linewidth=0.3, size=3)
+                            split=True, linewidth=0.3, size=3, order=order)
         ax2 = sns.boxplot(x=x_axis, y=y_axis[1], data=data_frame, showmeans=True,
-                          hue=hue, meanprops=meanprops)
+                          hue=hue, meanprops=meanprops, order=order)
         # Get the handles and labels. For this example it'll be 2 tuples
         # of length 4 each.
         handles, labels = ax2.get_legend_handles_labels()
@@ -627,8 +649,8 @@ def boxplot_seaborn(data_frame, x_axis, y_axis, title_plot='', hue=None):
         l = plt.legend(handles[-2:], labels[-2:])
     else:
         ax2 = sns.boxplot(x=x_axis, y=y_axis[1], data=data_frame, showmeans=True,
-                          meanprops=meanprops)
-        ax2 = sns.swarmplot(x=x_axis, y=y_axis[1], data=data_frame, color=".25")
+                          meanprops=meanprops, order=order)
+        ax2 = sns.swarmplot(x=x_axis, y=y_axis[1], data=data_frame, color=".25", order=order)
 
 
     ax2.set_ylim([0, 1.05])
@@ -638,9 +660,9 @@ def boxplot_seaborn(data_frame, x_axis, y_axis, title_plot='', hue=None):
     if hue:
         ax3 = sns.stripplot(x=x_axis, y=y_axis[2], hue=hue,
                             data=data_frame, jitter=True,
-                            split=True, linewidth=0.3, size=3)
+                            split=True, linewidth=0.3, size=3, order=order)
         ax3 = sns.boxplot(x=x_axis, y=y_axis[2], data=data_frame, showmeans=True,
-                          hue=hue, meanprops=meanprops)
+                          hue=hue, meanprops=meanprops, order=order)
         # Get the handles and labels. For this example it'll be 2 tuples
         # of length 4 each.
         handles, labels = ax3.get_legend_handles_labels()
@@ -650,8 +672,9 @@ def boxplot_seaborn(data_frame, x_axis, y_axis, title_plot='', hue=None):
         l = plt.legend(handles[-2:], labels[-2:])
     else:
         ax3 = sns.boxplot(x=x_axis, y=y_axis[2], data=data_frame, showmeans=True,
-                          hue=hue)
-        ax3 = sns.swarmplot(x=x_axis, y=y_axis[2], data=data_frame, color=".25")
+                          hue=hue, order=order)
+        ax3 = sns.swarmplot(x=x_axis, y=y_axis[2], data=data_frame, color=".25",
+                            order=order)
 
 
     ax3.set_ylim([0, 1.05])
