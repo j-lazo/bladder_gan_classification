@@ -174,9 +174,9 @@ def call_models(name_model, path_dataset, mode='fit', backbones=['resnet101'], g
             # pass
             train_dataset = dam.make_tf_dataset(train_x, dic_train, batch_size,
                                                 training=True, multi_output=multioutput,
-                                                specific_domain=specific_domain)
+                                                )
             val_dataset = dam.make_tf_dataset(val_x, dic_val, batch_size,
-                                              training=True, multi_output=multioutput, specific_domain=specific_domain)
+                                              training=True, multi_output=multioutput)
         else:
             if 'train' in list_subdirs_dataset:
                 path_train_dataset = os.path.join(path_dataset, 'train')
@@ -190,16 +190,18 @@ def call_models(name_model, path_dataset, mode='fit', backbones=['resnet101'], g
 
             csv_file_train = [f for f in os.listdir(path_train_dataset) if f.endswith('.csv')].pop()
             path_csv_file_train = os.path.join(path_train_dataset, csv_file_train)
-            train_x, dictionary_train = dam.load_data_from_directory(path_train_dataset, csv_annotations=path_csv_file_train)
-
+            train_x, dictionary_train = dam.load_data_from_directory(path_train_dataset, csv_annotations=path_csv_file_train,
+                                                                     specific_domain=specific_domain)
             train_dataset = dam.make_tf_dataset(train_x, dictionary_train, batch_size,
-                                                training=True, multi_output=multioutput, specific_domain=specific_domain)
+                                                training=True, multi_output=multioutput
+                                                )
 
             csv_file_val = [f for f in os.listdir(path_val_dataset) if f.endswith('.csv')].pop()
             path_csv_file_val = os.path.join(path_val_dataset, csv_file_val)
-            val_x, dictionary_val = dam.load_data_from_directory(path_val_dataset, csv_annotations=path_csv_file_val,)
+            val_x, dictionary_val = dam.load_data_from_directory(path_val_dataset, csv_annotations=path_csv_file_val,
+                                                                 specific_domain=specific_domain)
             val_dataset = dam.make_tf_dataset(val_x, dictionary_val, batch_size,
-                                              training=True, multi_output=multioutput, specific_domain=specific_domain)
+                                              training=True, multi_output=multioutput)
 
         train_steps = len(train_x) // batch_size
         val_steps = len(val_x) // batch_size
