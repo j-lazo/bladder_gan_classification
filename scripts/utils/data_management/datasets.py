@@ -199,7 +199,7 @@ def make_tf_dataset(list_files, dictionary_labels, batch_size, training=False, m
     images_domains = [unique_domains.index(val) for val in images_domains]
 
     # here you need to make a selection of the specific domains, but once both have been considered
-    if specific_domain:
+    """if specific_domain:
         new_path_imgs = list()
         new_images_class = list()
         new_images_domains = list()
@@ -211,7 +211,7 @@ def make_tf_dataset(list_files, dictionary_labels, batch_size, training=False, m
 
         path_imgs = copy.copy(new_path_imgs)
         images_class = copy.copy(new_images_class)
-        images_domains = copy.copy(new_images_domains)
+        images_domains = copy.copy(new_images_domains)"""
     #
     #
 
