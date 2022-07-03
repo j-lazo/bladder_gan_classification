@@ -83,7 +83,6 @@ def compute_metrics_batch_experiments(dir_experiment_files, dir_output_csv_file_
 def compute_metrics_boxplots(dir_to_csv=(os.path.join(os.getcwd(), 'results', 'sorted_experiments_information.csv')),
                              metrics='all', exclusion_criteria=None):
 
-    metrics = ['Accuracy', 'Precision', 'Recall', 'F-1']
     df = pd.read_csv(dir_to_csv)
     name_models = df['name_model'].tolist()
     batch_sizes = df['batch_size'].tolist()
@@ -118,38 +117,7 @@ def compute_metrics_boxplots(dir_to_csv=(os.path.join(os.getcwd(), 'results', 's
                         'gan_separate_features_and_domain_v5': 'gsfadv5',
                         'gan_separate_features_and_domain_v4': 'gsfadv4'}
 
-    selected_models_basic = ['densenet121', 'resnet101']
-    selected_models_joint = ['gan_model_separate_features+densenet121_',
-                       'gan_model_separate_features+resnet101_',
-                       'gan_model_multi_joint_features+resnet101_',
-                       'gan_model_multi_joint_features+densenet121_']
-
-    selected_models_d = ['densenet121', 'resnet101',
-                       'gan_model_separate_features',
-                        'gan_model_multi_joint_features',]
-                       #'gan_model_joint_features_and_domain+densenet121_',]
-                         #'simple_model_domain_input+densenet121_']
-
-    selected_models_r = ['resnet101', 'densenet121',
-                       'gan_model_separate_features',
-                       'gan_model_multi_joint_features',
-                         'simple_separation_model+resnet101_',
-                         'gan_model_separate_features_v2+resnet101_']
-                       #'gan_model_joint_features_and_domain+resnet101_',]
-                         #'simple_model_domain_input+resnet101_']
-
-    selected_models_c = ['gan_model_separate_features+densenet121_',
-                         'gan_model_multi_joint_features+densenet121_',
-                         'gan_model_joint_features_and_domain+densenet121_'
-                         'gan_model_separate_features+resnet101_',
-                         'gan_model_multi_joint_features+resnet101_',
-                         'gan_model_joint_features_and_domain+resnet101_'
-                         ]
-    selected_res = ['gan_model_separate_features', 'resnet101', 'simple_separation_model', 'simple_model_with_backbones',
-                    'simple_model_domain_input']
-    selected_models_a = ['densenet121', 'resnet101', 'gan_model_separate_features']
-    select_b = ['gan_model_separate_features']
-    #selected_models_a = ['gan_model_multi_joint_features']
+    selected_models_a = ['gan_model_separate_features']
     selected_models = selected_models_a
 
     list_x = list()
@@ -163,16 +131,29 @@ def compute_metrics_boxplots(dir_to_csv=(os.path.join(os.getcwd(), 'results', 's
                       #'bladder_tissue_classification_v3_augmented',
                       #'bladder_tissue_classification_v3_gan_new',]
 
-    chosen_trained_data = ['WLI']
+    chosen_trained_data = ['WLI', 'ALL']
+    dates_selection = ['21-06-2022', '22-06-2022']
 
     chosen_gan_backbones = ['not_complete_wli2nbi', '', '', 'NaN', np.nan,]
                             #'not_complete_wli2nbi', 'checkpoint_charlie', 'general_wli2nbi',
                             #'temp_not_complete_wli2nbi_ssim']
-    dictionary_selection = {'name_model': selected_models, 'learning_rate': chosen_learning_rates,
-                            'batch_size': chosen_batch_sizes, 'dataset': chosen_dataset,
-                            'backbone GAN': chosen_gan_backbones, 'training_data_used': chosen_trained_data}
-    selection = select_specific_cases(df, dictionary_selection)
 
+    dictionary_selection = {'name_model': ['resnet101'], 'learning_rate': chosen_learning_rates,
+                            'batch_size': chosen_batch_sizes, 'dataset': chosen_dataset,
+                            'backbone GAN': chosen_gan_backbones, 'training_data_used': chosen_trained_data,
+                            }
+    selection_resnet = select_specific_cases(df, dictionary_selection)
+
+    dictionary_selection = {'name_model': ['gan_model_separate_features'], 'learning_rate': chosen_learning_rates,
+                            'batch_size': chosen_batch_sizes, 'dataset': chosen_dataset,
+                            'backbone GAN': chosen_gan_backbones, 'training_data_used': chosen_trained_data,
+                            'date': dates_selection}
+    selection_proposed = select_specific_cases(df, dictionary_selection)
+
+    selection = pd.concat([selection_resnet, selection_proposed])
+    print(selection.keys().tolist())
+    print('SELCTION')
+    print(selection)
     # 'Accuracy', 'Precision', 'Recall', 'F-1' 'Matthews CC'
     metric_analysis = 'Accuracy'
     metrics_box = ['ALL', 'WLI', 'NBI']
@@ -199,8 +180,8 @@ def compute_metrics_boxplots(dir_to_csv=(os.path.join(os.getcwd(), 'results', 's
     x_axis = 'name_model'
     y_axis = metrics_box
     title_plot = 'Comparison base models'#name_model.replace('_', ' ')
-    daa.calculate_p_values(selection, x_axis, y_axis, selected_models)
-    daa.boxplot_seaborn(selection, x_axis, y_axis, title_plot=title_plot, hue='training_data_used', order=selected_models)
+    #daa.calculate_p_values(selection, x_axis, y_axis, selected_models)
+    daa.boxplot_seaborn(selection, x_axis, y_axis, title_plot=title_plot, hue='training_data_used')
     title_fig = ''.join([metric_analysis, ' ', 'trained using ', chosen_trained_data[0]])
     #daa.box_plot_matplotlib(df_analysis, metrics=metrics_box, title=title_fig, y_label=metric_analysis,
     #                        analysis_type='by_model')
@@ -217,15 +198,21 @@ def select_specific_cases(data_frame, dictionary_selection):
     :return:
     :rtype:
     """
-
-    print(data_frame)
     keys_df = data_frame.keys().tolist()
     new_dict = {k: dictionary_selection[k] for k in dictionary_selection if k in keys_df}
     result_df = data_frame.copy()
-    print(result_df)
+    if 'date' in new_dict:
+        date_values = new_dict['date']
+        result_df = pd.DataFrame()
+        for dates in date_values:
+            temp_df = data_frame[data_frame['date'].str.contains(dates)]
+            result_df = pd.concat([temp_df, result_df])
+        del new_dict['date']
     for k in new_dict:
         result_df = result_df[result_df[k].isin(new_dict[k])]
 
+    print('RESULT')
+    print(result_df)
     return result_df
 
 
@@ -274,7 +261,7 @@ def prepare_data(dir_dataset, destination_directory=os.path.join(os.getcwd(), 'd
                     index_image = list_images.index(image)
                     origin_dir = os.path.join(sub_dirs_case, image)
                     destination_dir = os.path.join(destination_directory, list_tissues[index_image], image)
-                    shutil.copyfile(origin_dir, destination_dir)
+                    shutil.copyfile(origisen_dir, destination_dir)
 
     # merge df
     resulting_df = pd.concat(list_df)
