@@ -582,6 +582,7 @@ def box_plot_matplotlib(dataframe, title='', y_label='', computer_stat_sig=True,
 
 def calculate_p_values(data_frame, selection, metrics, selected_values=None, base_model='resnet101', sub_selection=None):
     print('selection', data_frame[selection].unique().tolist())
+    print('sub_selection:', sub_selection)
     # selecting rows based on condition
 
     base_model_df = data_frame.loc[data_frame[selection] == base_model]
@@ -589,10 +590,24 @@ def calculate_p_values(data_frame, selection, metrics, selected_values=None, bas
     base_metric_wli = base_model_df[metrics[1]].tolist()
     base_metric_nbi = base_model_df[metrics[2]].tolist()
     base_metrics = [base_model_df[metrics[j]].tolist() for j in range(len(metrics))]
-
+    options_sub_selection = data_frame[sub_selection].unique().tolist()
     if selected_values:
         for value in selected_values:
-            rslt_df = data_frame.loc[data_frame[selection] == value]
+
+            if sub_selection:
+                for condition in options_sub_selection:
+                    rslt_df = data_frame[(data_frame[selection] == value) & (data_frame[sub_selection] == condition)]
+                    for j, metric in enumerate(metrics):
+                        print(f'{value}: {metric} in {condition} data')
+                        metric_vals = rslt_df[metric].tolist()
+                        print(f'mean: {np.mean(metric_vals)}, median: {np.median(metric_vals)}, '
+                              f'+- {np.std(metric_vals)}')
+                        mu = scipy.stats.mannwhitneyu(base_metrics[j], metric_vals)
+                        print(f'p-val {value} vs {base_model}', )
+                        print(mu)
+            else:
+                rslt_df = data_frame.loc[data_frame[selection] == value]
+
             for j, metric in enumerate(metrics):
                 print(f'{value}: {metric}')
                 metric_vals = rslt_df[metric].tolist()
