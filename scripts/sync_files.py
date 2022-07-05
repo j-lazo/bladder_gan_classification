@@ -218,6 +218,8 @@ def main(_argv):
         output_csv_file_dir2 = os.path.join(os.getcwd(), 'results', 'sorted_experiments_information.csv')
         sorted_df.to_csv(output_csv_file_dir2, index=False)
 
+
+
         sorted_df_nbi = pd.DataFrame.from_dict(srted_nbi, orient='index')
         output_csv_file_dir3 = os.path.join(os.getcwd(), 'results', 'sorted_nbi_experiments_information.csv')
         sorted_df_nbi.to_csv(output_csv_file_dir3, index=False)
@@ -225,6 +227,12 @@ def main(_argv):
         sorted_df_wli = pd.DataFrame.from_dict(sorted_wli, orient='index')
         output_csv_file_dir4 = os.path.join(os.getcwd(), 'results', 'sorted_wli_experiments_information.csv')
         sorted_df_wli.to_csv(output_csv_file_dir4, index=False)
+
+        dict_items = sorted_dict.keys()
+        f = open(os.path.join(os.getcwd(), 'results', 'list_top_results.txt'), 'w')
+        for i, experiment_file in enumerate(list(dict_items)[:10]):
+            f.write(''.join([experiment_file, "\r\n"]))
+        f.close()
 
         #daa.analyze_individual_cases(output_csv_file_dir)
 
@@ -242,6 +250,33 @@ def main(_argv):
         for i, missing_file in enumerate(tqdm.tqdm(list_missing, desc='Preparing files')):
             print(f'Coping {missing_file} to local')
             dam.transfer_files(local)
+
+    elif mode == 'free_memory':
+        dir_list_top_models = (os.path.join(os.getcwd(), 'results', 'list_top_results.txt'))
+
+        compressed_results = os.path.join(os.getcwd(), 'results', 'bladder_tissue_classification_v3_compressed')
+        top_models_dir = os.path.join(os.getcwd(), 'results', 'top_models')
+        if not folder_results:
+            folder_results = os.path.join(os.getcwd(), 'results', 'bladder_tissue_classification_v3')
+
+        with open(dir_list_top_models, 'r') as f:
+            lines = f.readlines()
+        list_top_models = [f.replace('\n', '') for f in lines]
+        list_zipped_folders = [f.replace('.zip', '') for f in os.listdir(compressed_results) if f.endswith('.zip')]
+        list_experiments = [f for f in os.listdir(folder_results) if os.path.isdir(os.path.join(folder_results, f))]
+
+        for i, experiment_id in enumerate(tqdm.tqdm(list_experiments, desc='Preparing files')):
+            zip_file_id = experiment_id + '.zip'
+            zip_file_id_dir = os.path.join(compressed_results, zip_file_id)
+            if experiment_id in list_top_models:
+                destination_dir = os.path.join(top_models_dir, zip_file_id)
+                shutil.move(zip_file_id_dir, destination_dir)
+            else:
+                if experiment_id in list_zipped_folders:
+                    os.remove(zip_file_id_dir)
+            if experiment_id in list_zipped_folders:
+                experiment_id_dir = os.path.join(folder_results, experiment_id)
+                shutil.rmtree(experiment_id_dir, ignore_errors=True)
 
 
 if __name__ == '__main__':
