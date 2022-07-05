@@ -13,6 +13,7 @@ from models.simple_models import *
 import shutil
 import random
 
+
 def compile_model(name_model, strategy, optimizer, loss, metrics,
                   backbones=None, gan_weights=None):
 
@@ -162,7 +163,7 @@ def call_models(name_model, path_dataset, mode='fit', backbones=['resnet101'], g
             list_test_cases = [''.join(['case_', str(num_case).zfill(3)]) for num_case in k_folds[fold]]
             x_input, dictionary_files = dam.load_data_from_directory(path_dataset,
                                                                      csv_annotations=path_csv_file,
-                                                                     specific_domain=specific_domain)
+                                                                     )
             # option 1 randomly divide the dataset into train/val
             random.shuffle(x_input)
             val_x = [f for f in x_input if random.random() <= val_division]
@@ -174,9 +175,10 @@ def call_models(name_model, path_dataset, mode='fit', backbones=['resnet101'], g
             # pass
             train_dataset = dam.make_tf_dataset(train_x, dic_train, batch_size,
                                                 training=True, multi_output=multioutput,
-                                                )
+                                                specific_domain=specific_domain)
             val_dataset = dam.make_tf_dataset(val_x, dic_val, batch_size,
-                                              training=True, multi_output=multioutput)
+                                              training=True, multi_output=multioutput,
+                                              specific_domain=specific_domain)
         else:
             if 'train' in list_subdirs_dataset:
                 path_train_dataset = os.path.join(path_dataset, 'train')
@@ -190,18 +192,19 @@ def call_models(name_model, path_dataset, mode='fit', backbones=['resnet101'], g
 
             csv_file_train = [f for f in os.listdir(path_train_dataset) if f.endswith('.csv')].pop()
             path_csv_file_train = os.path.join(path_train_dataset, csv_file_train)
-            train_x, dictionary_train = dam.load_data_from_directory(path_train_dataset, csv_annotations=path_csv_file_train,
-                                                                     specific_domain=specific_domain)
+            train_x, dictionary_train = dam.load_data_from_directory(path_train_dataset,
+                                                                     csv_annotations=path_csv_file_train,)
             train_dataset = dam.make_tf_dataset(train_x, dictionary_train, batch_size,
-                                                training=True, multi_output=multioutput
-                                                )
+                                                training=True, multi_output=multioutput,
+                                                specific_domain=specific_domain)
 
             csv_file_val = [f for f in os.listdir(path_val_dataset) if f.endswith('.csv')].pop()
             path_csv_file_val = os.path.join(path_val_dataset, csv_file_val)
-            val_x, dictionary_val = dam.load_data_from_directory(path_val_dataset, csv_annotations=path_csv_file_val,
-                                                                 specific_domain=specific_domain)
+            val_x, dictionary_val = dam.load_data_from_directory(path_val_dataset,
+                                                                 csv_annotations=path_csv_file_val,)
             val_dataset = dam.make_tf_dataset(val_x, dictionary_val, batch_size,
-                                              training=True, multi_output=multioutput)
+                                              training=True, multi_output=multioutput,
+                                              specific_domain=specific_domain)
 
         train_steps = len(train_x) // batch_size
         val_steps = len(val_x) // batch_size
@@ -312,7 +315,7 @@ def call_models(name_model, path_dataset, mode='fit', backbones=['resnet101'], g
             elif name_model == 'simple_model_with_backbones':
                 model = build_simple_separation_with_backbones(num_classes, backbones=backbones)
             else:
-                model = build_pretrained_model(name_model)
+                model = build_pretrained_model(num_classes, name_model)
 
             model.summary()
             # compile model

@@ -187,19 +187,17 @@ def make_tf_dataset(list_files, dictionary_labels, batch_size, training=False, m
     if training:
         random.shuffle(list_files)
 
-
     for img_name in list_files:
       path_imgs.append(dictionary_labels[img_name]['path_file'])
       images_class.append(dictionary_labels[img_name]['img_class'])
       images_domains.append(dictionary_labels[img_name]['img_domain'])
 
     path_imgs = [f for f in path_imgs if f.endswith('.png')]
-    list_path_files = path_imgs
     unique_domains = list(np.unique(images_domains))
     images_domains = [unique_domains.index(val) for val in images_domains]
 
     # here you need to make a selection of the specific domains, but once both have been considered
-    """if specific_domain:
+    if specific_domain:
         new_path_imgs = list()
         new_images_class = list()
         new_images_domains = list()
@@ -211,20 +209,20 @@ def make_tf_dataset(list_files, dictionary_labels, batch_size, training=False, m
 
         path_imgs = copy.copy(new_path_imgs)
         images_class = copy.copy(new_images_class)
-        images_domains = copy.copy(new_images_domains)"""
-    #
-    #
+        images_domains = copy.copy(new_images_domains)
 
     unique_classes = list(np.unique(images_class))
     num_classes = len(unique_classes)
     labels = [unique_classes.index(val) for val in images_class]
     network_labels = list()
+
+    # create a vector according to the label where 1 is the position corresponding to the value
     for label in labels:
         l = np.zeros(num_classes)
         l[label] = 1.0
         network_labels.append(l)
 
-    filenames_ds = tf.data.Dataset.from_tensor_slices(list_path_files)
+    filenames_ds = tf.data.Dataset.from_tensor_slices(path_imgs)
     images_ds = filenames_ds.map(parse_image, num_parallel_calls=tf.data.experimental.AUTOTUNE)
     labels_ds = tf.data.Dataset.from_tensor_slices(network_labels)
     if multi_output:
