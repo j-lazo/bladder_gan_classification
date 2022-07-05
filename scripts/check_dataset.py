@@ -4,14 +4,14 @@ import pandas as pd
 from matplotlib import pyplot as plt
 import tensorflow as tf
 import os
-import datasets as ds
+from utils.data_management import datasets as ds
 import numpy as np
 import tqdm
 
 
 def main(_argv):
     print(tf.__version__)
-    path_dataset = FLAGS.path_dataset
+    path_dataset = os.path.normpath(FLAGS.path_dataset)
     batch_size = FLAGS.batch_size
     img_width = FLAGS.img_width
     img_height = FLAGS.img_height
@@ -24,7 +24,7 @@ def main(_argv):
     csv_files = [f for f in os.listdir(path_dataset) if f.endswith('.csv')]
     if csv_files:
         csv_file = csv_files.pop()
-        csv_file_dir = path_dataset + csv_file
+        csv_file_dir = os.path.join(path_dataset, csv_file)
         df = pd.read_csv(csv_file_dir)
 
     dataset = ds.make_tf_dataset(path_dataset, batch_size, training=training)
