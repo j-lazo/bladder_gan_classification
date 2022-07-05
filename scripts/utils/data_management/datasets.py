@@ -9,6 +9,7 @@ import tensorflow_addons as tfa
 from utils import image as img_fun
 import copy
 
+
 def generate_experiment_ID(name_model='', learning_rate='na', batch_size='na', backbone_model='',
                            prediction_model='', mode='', specific_domain=None):
     """
@@ -50,7 +51,49 @@ def generate_experiment_ID(name_model='', learning_rate='na', batch_size='na', b
     return id_name
 
 
-def load_data_from_directory(path_data, csv_annotations=None, specific_domain=None, case_specific=None):
+def select_gan_specific(list_files, input_dictionary, gan_selection):
+    output_list_files = list()
+    output_dict = {}
+
+    gan_inclusion_dict = {'converted': '_converted',
+                'reconverted': '_reconverted',
+                'generated': 'converted'}
+
+    gan_exclusion_dict = {'all+converted': '_reconverted',
+                          'all+reconverted': '_converted',
+                          'all+converted_NBI': '_reconverted'}
+    if 'NBI' in gan_selection:
+        specific_domain = 'NBI'
+    else:
+        specific_domain = None
+
+    for file in list_files:
+        index_file = list_files.index(file)
+        if gan_selection in gan_inclusion_dict:
+            if gan_inclusion_dict[gan_selection] in file:
+                output_list_files.append(file)
+                output_dict[file] = input_dictionary[file]
+
+        if gan_selection in gan_exclusion_dict:
+            if gan_exclusion_dict[gan_selection] not in file:
+                if specific_domain:
+                    if '_converted' in file and input_dictionary[file] == specific_domain:
+                        output_list_files.append(file)
+                        output_dict[file] = input_dictionary[file]
+                    else:
+                        output_list_files.append(file)
+                        output_dict[file] = input_dictionary[file]
+                else:
+                    output_list_files.append(file)
+                    output_dict[file] = input_dictionary[file]
+
+    print(output_list_files)
+    print(output_dict)
+    return output_list_files, output_dict
+
+
+def load_data_from_directory(path_data, csv_annotations=None, specific_domain=None, case_specific=None,
+                             gan_selection=None):
     """
         Give a path, creates two lists with the
         Parameters
@@ -63,9 +106,6 @@ def load_data_from_directory(path_data, csv_annotations=None, specific_domain=No
         """
 
     dictionary_labels = {}
-    list_classes = list()
-    list_domain = list()
-    list_imgs = list()
     list_files = list()
     list_path_files = list()
 
@@ -102,6 +142,9 @@ def load_data_from_directory(path_data, csv_annotations=None, specific_domain=No
     list_path_files = [f for f in list_path_files if f.endswith('.png')]
     output_list_files = list()
 
+    print(f'Found {len(list_path_files)} images corresponding to {len(list_unique_classes)} classes and '
+          f'{len(list_unique_domains)} domains at: {path_data}')
+
     for j, file in enumerate(list_files):
         if file in list_imgs:
             # find the index first
@@ -113,6 +156,7 @@ def load_data_from_directory(path_data, csv_annotations=None, specific_domain=No
                                                     'img_domain': list_domain[index_file]}}
                     output_list_files.append(file)
                     dictionary_labels = {**dictionary_labels, **new_dictionary_labels}
+
             else:
                 new_dictionary_labels = {file: {'image_name': file, 'path_file': list_path_files[j],
                                                 'img_class': list_classes[index_file],
@@ -122,8 +166,8 @@ def load_data_from_directory(path_data, csv_annotations=None, specific_domain=No
         else:
             list_files.remove(file)
 
-    print(f'Found {len(list_path_files)} images corresponding to {len(list_unique_classes)} classes and '
-          f'{len(list_unique_domains)} domains at: {path_data}')
+    if gan_selection:
+        output_list_files, dictionary_labels = select_gan_specific(output_list_files, dictionary_labels, gan_selection)
 
     if specific_domain:
         print(f'Only images from domain {specific_domain} selected, in total {len(output_list_files)} images '

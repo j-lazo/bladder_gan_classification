@@ -30,9 +30,10 @@ def main(_argv):
         df = pd.read_csv(csv_file_dir)
 
     list_data, dictionary_data = dam.load_data_from_directory(path_dataset, csv_annotations=csv_file_dir,
-                                                             specific_domain=specific_domain)
+                                                             specific_domain=specific_domain,
+                                                              gan_selection='all+converted')
     dataset = dam.make_tf_dataset(list_data, dictionary_data, batch_size, training=True, multi_output=True,
-                                  specific_domain='NBI')
+                                  specific_domain=None)
 
     plt.figure()
     ncols = int(batch_size / 2)
