@@ -103,7 +103,7 @@ def compare_gans_boxplots(dir_to_csv=(os.path.join(os.getcwd(), 'results', 'sort
     base_selection_dictionary = {'name_model': ['gan_model_separate_features'], 'learning_rate': chosen_learning_rates,
                             'batch_size': chosen_batch_sizes, 'dataset': chosen_dataset,
                             'backbone GAN': ['not_complete_wli2nbi'], 'training_data_used': chosen_trained_data,
-                            'date':['06-07-2022', '05-07-2022']
+                            'date':['21-06-2022', '22-06-2022', '06-07-2022', '05-07-2022']
                                  }
     base_selection = select_specific_cases(df, base_selection_dictionary)
 
@@ -189,7 +189,7 @@ def compare_models_boxplots(dir_to_csv=(os.path.join(os.getcwd(), 'results', 'so
     dictionary_selection_prop = {'name_model': ['gan_model_separate_features'], 'learning_rate': chosen_learning_rates,
                             'batch_size': chosen_batch_sizes, 'dataset': chosen_dataset,
                             'backbone GAN': ['not_complete_wli2nbi'], 'training_data_used': chosen_trained_data,
-                            'date':['21-06-2022', '22-06-2022', '06-07-2022', '05-07-2022']
+                            'date':['21-06-2022', '22-06-2022', '06-07-2022'], #'06-07-2022', '05-07-2022']
                                  }
     selection_proposed = select_specific_cases(df, dictionary_selection_prop)
 
