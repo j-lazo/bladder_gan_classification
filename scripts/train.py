@@ -101,7 +101,8 @@ def fit_model(model, callbacks, train_dataset, epochs, batch_size, val_dataset, 
 def call_models(name_model, path_dataset, mode='fit', backbones=['resnet101'], gan_model='checkpoint_charlie', epochs=2,
                 batch_size=1, learning_rate=0.001, val_data=None, test_data=None, eval_val_set=False, eval_train_set=False,
                 results_dir=os.path.join(os.getcwd(), 'results'), gpus_available=None, analyze_data=False,
-                specific_domain=None, prepare_finished_experiment=False, k_folds={None}, val_division=0.2):
+                specific_domain=None, prepare_finished_experiment=False, k_folds={None}, val_division=0.2,
+                gan_selection=None):
 
     multi_input_models = ['gan_model_multi_joint_features', 'gan_model_separate_features',
                           'gan_model_joint_features_and_domain', 'simple_model_domain_input',
@@ -128,7 +129,13 @@ def call_models(name_model, path_dataset, mode='fit', backbones=['resnet101'], g
                                                 mode=mode, specific_domain=specific_domain)
 
     training_date_time = datetime.datetime.now()
+    list_datasets = os.listdir(os.path.join(os.getcwd(), 'datasets'))
+    if path_dataset in list_datasets:
+        path_dataset = os.path.join(os.getcwd(), 'datasets', path_dataset)
+
     dataset_name = os.path.split(os.path.normpath(path_dataset))[-1]
+    if gan_selection:
+        dataset_name = ''.join([dataset_name, '_', gan_selection])
     information_experiment = {'experiment folder': new_results_id,
                               'date': training_date_time.strftime("%d-%m-%Y %H:%M"),
                               'name model': name_model,
@@ -431,6 +438,7 @@ def main(_argv):
     prepare_finished_experiment = FLAGS.prepare_finished_experiment
     k_folds = FLAGS.k_folds
     gan_weights = FLAGS.gan_weights
+    gan_selection = FLAGS.gan_selection
 
     if k_folds:
         folds_dict = {'fold_1': [26, 14, 25, 12, 18, 17, 16, 32],
@@ -441,13 +449,15 @@ def main(_argv):
         call_models(name_model, path_dataset, batch_size=batch_size, gpus_available=physical_devices,
                 epochs=epochs, results_dir=results_dir, learning_rate=learning_rate, analyze_data=analyze_data,
                 backbones=backbones, specific_domain=specific_domain, gan_model=gan_weights,
-                prepare_finished_experiment=prepare_finished_experiment, k_folds=folds_dict)
+                prepare_finished_experiment=prepare_finished_experiment, k_folds=folds_dict,
+                gan_selection=gan_selection)
 
     else:
         call_models(name_model, path_dataset, batch_size=batch_size, gpus_available=physical_devices,
                     epochs=epochs, results_dir=results_dir, learning_rate=learning_rate, analyze_data=analyze_data,
                     backbones=backbones, specific_domain=specific_domain, gan_model=gan_weights,
-                    prepare_finished_experiment=prepare_finished_experiment)
+                    prepare_finished_experiment=prepare_finished_experiment,
+                    gan_selection=gan_selection)
 
 
 if __name__ == '__main__':
@@ -467,6 +477,9 @@ if __name__ == '__main__':
     flags.DEFINE_boolean('prepare_finished_experiment', False, 'either compress the files and move them to the transfer folder or not')
     flags.DEFINE_boolean('k_folds', False, 'in case k-folds cross validation is taking palce')
     flags.DEFINE_string('gan_weights', 'checkpoint_charlie', 'weights for the generator')
+    flags.DEFINE_string('gan_selection', None,
+                        'In case you are using a GAN generated dataset, the options are:'
+                        '[converted, reconverted, generated, all+converted, all+reconverted, all+converted_NBI]')
 
     try:
         app.run(main)
