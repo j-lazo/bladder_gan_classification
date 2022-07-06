@@ -340,7 +340,6 @@ def build_only_gan_model_joint_features_and_domain(num_classes, backbones=['resn
 def build_gan_model_separate_features(num_classes, backbones=['resnet101', 'resnet101', 'resnet101'], gan_weights=None,
                              after_concat='globalpooling'):
 
-
     if len(backbones) <= 2:
         backbones = backbones * 3
 
@@ -833,7 +832,7 @@ def build_gan_model_separate_features_and_domain_v3(num_classes, backbones=['res
 
     output_layer = tf.keras.backend.switch(t_input, x2, x1)
 
-    return Model(inputs=[input_image, t_input], outputs=output_layer, name='gan_separate_features_and_domain_v2')
+    return Model(inputs=[input_image, t_input], outputs=output_layer, name='gan_separate_features_and_domain_v3')
 
 
 def build_only_gan_model_separate_features(num_classes, backbones=['resnet101', 'resnet101', 'resnet101'], gan_weights=None,
