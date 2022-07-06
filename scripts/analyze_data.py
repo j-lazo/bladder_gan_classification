@@ -82,7 +82,10 @@ def compute_metrics_batch_experiments(dir_experiment_files, dir_output_csv_file_
 
 def compare_gans_boxplots(dir_to_csv=(os.path.join(os.getcwd(), 'results', 'sorted_experiments_information.csv')),
                              metrics='all', exclusion_criteria=None):
+    # 'Accuracy', 'Precision', 'Recall', 'F-1' 'Matthews CC'
+    metric_analysis = 'Accuracy'
     df = pd.read_csv(dir_to_csv)
+
     # chosen criteria
     chosen_learning_rates = [0.00001]
     chosen_batch_sizes = [32]
@@ -100,7 +103,8 @@ def compare_gans_boxplots(dir_to_csv=(os.path.join(os.getcwd(), 'results', 'sort
     base_selection_dictionary = {'name_model': ['gan_model_separate_features'], 'learning_rate': chosen_learning_rates,
                             'batch_size': chosen_batch_sizes, 'dataset': chosen_dataset,
                             'backbone GAN': ['not_complete_wli2nbi'], 'training_data_used': chosen_trained_data,
-                            'date': dates_selection}
+                            'date':['21-06-2022', '22-06-2022',] #'06-07-2022', '05-07-2022']
+                                 }
     base_selection = select_specific_cases(df, base_selection_dictionary)
 
     charlie_selection_dict = {'name_model': ['gan_model_separate_features'], 'learning_rate': chosen_learning_rates,
@@ -118,31 +122,29 @@ def compare_gans_boxplots(dir_to_csv=(os.path.join(os.getcwd(), 'results', 'sort
     general_ssim_selection_dict = {'name_model': ['gan_model_separate_features'], 'learning_rate': chosen_learning_rates,
                               'batch_size': chosen_batch_sizes, 'dataset': chosen_dataset,
                               'backbone GAN': ['general_wli2nbi_ssim'], 'training_data_used': chosen_trained_data,
-                              'date': ['02-07-2022', '01-07-2022']}
+                              }
     general_ssim_selection = select_specific_cases(df, general_ssim_selection_dict)
 
     not_complete_ssim_selection_dict = {'name_model': ['gan_model_separate_features'], 'learning_rate': chosen_learning_rates,
                               'batch_size': chosen_batch_sizes, 'dataset': chosen_dataset,
                               'backbone GAN': ['not_complete_wli2nbi_ssim'], 'training_data_used': chosen_trained_data,
-                              'date': ['02-07-2022', '01-07-2022']}
+                              }
     not_complete_ssim_selection = select_specific_cases(df, not_complete_ssim_selection_dict)
     not_complete_ssim_selection_dict_2 = {'name_model': ['gan_model_separate_features'], 'learning_rate': chosen_learning_rates,
                               'batch_size': chosen_batch_sizes, 'dataset': chosen_dataset,
                               'backbone GAN': ['not_complete_wli2nbi_ssim_2'], 'training_data_used': chosen_trained_data,
-                              'date': ['02-07-2022', '01-07-2022']}
+                              }
     not_complete_ssim_selection_2 = select_specific_cases(df, not_complete_ssim_selection_dict_2)
     temp_not_complete_ssim_selection_dict = {'name_model': ['gan_model_separate_features'], 'learning_rate': chosen_learning_rates,
                               'batch_size': chosen_batch_sizes, 'dataset': chosen_dataset,
                               'backbone GAN': ['temp_not_complete_wli2nbi_ssim'], 'training_data_used': chosen_trained_data,
-                              'date': ['02-07-2022', '01-07-2022']}
+                              }
     temp_not_complete_ssim_selection = select_specific_cases(df, temp_not_complete_ssim_selection_dict)
 
     selection = pd.concat([base_selection, charlie_selection, general_selection, general_ssim_selection,
                            not_complete_ssim_selection, not_complete_ssim_selection_2,
                            temp_not_complete_ssim_selection])
 
-    # 'Accuracy', 'Precision', 'Recall', 'F-1' 'Matthews CC'
-    metric_analysis = 'Matthews CC'
     metrics_box = ['ALL', 'WLI', 'NBI']
     metrics_box = [''.join([metric_analysis, ' ', m]) for m in metrics_box]
 
@@ -155,6 +157,8 @@ def compare_gans_boxplots(dir_to_csv=(os.path.join(os.getcwd(), 'results', 'sort
 
 def compare_models_boxplots(dir_to_csv=(os.path.join(os.getcwd(), 'results', 'sorted_experiments_information.csv')),
                              metrics='all', exclusion_criteria=None):
+    # 'Accuracy', 'Precision', 'Recall', 'F-1' 'Matthews CC'
+    metric_analysis = 'Accuracy'
     df = pd.read_csv(dir_to_csv)
     # chosen criteria
     chosen_learning_rates = [0.00001]
@@ -184,8 +188,9 @@ def compare_models_boxplots(dir_to_csv=(os.path.join(os.getcwd(), 'results', 'so
 
     dictionary_selection_prop = {'name_model': ['gan_model_separate_features'], 'learning_rate': chosen_learning_rates,
                             'batch_size': chosen_batch_sizes, 'dataset': chosen_dataset,
-                            'backbone GAN': chosen_gan_backbones, 'training_data_used': chosen_trained_data,
-                            'date': dates_selection}
+                            'backbone GAN': ['not_complete_wli2nbi'], 'training_data_used': chosen_trained_data,
+                            'date':['21-06-2022', '22-06-2022', '06-07-2022', '05-07-2022']
+                                 }
     selection_proposed = select_specific_cases(df, dictionary_selection_prop)
 
     temp_not_complete_ssim_selection_dict = {'name_model': ['gan_model_separate_features'],
@@ -193,14 +198,22 @@ def compare_models_boxplots(dir_to_csv=(os.path.join(os.getcwd(), 'results', 'so
                                              'batch_size': chosen_batch_sizes, 'dataset': chosen_dataset,
                                              'backbone GAN': ['temp_not_complete_wli2nbi_ssim'],
                                              'training_data_used': chosen_trained_data,
-                                             'date': ['02-07-2022', '01-07-2022']}
+                                             }
     temp_not_complete_ssim_selection = select_specific_cases(df, temp_not_complete_ssim_selection_dict)
-    temp_not_complete_ssim_selection.loc[temp_not_complete_ssim_selection['name_model'] == 'gan_model_separate_features', 'name_model'] = 'temp_gan_model_separate_features'
+    #temp_not_complete_ssim_selection.loc[temp_not_complete_ssim_selection['name_model'] == 'gan_model_separate_features',
+    #                                     'name_model'] = 'temp_gan_model_separate_features'
+    dictionary_selection_joint1 = {'name_model': ['gan_model_multi_joint_features'],
+                                             'learning_rate': chosen_learning_rates,
+                                             'batch_size': chosen_batch_sizes, 'dataset': chosen_dataset,
+                                             'backbone GAN': ['general_wli2nbi'],
+                                             'training_data_used': chosen_trained_data,
+                                   }
+    selection_proposed_joint1 = select_specific_cases(df, dictionary_selection_joint1)
 
-    selection = pd.concat([selection_densenet, selection_resnet, selection_proposed, temp_not_complete_ssim_selection])
+    selection = pd.concat([selection_densenet, selection_resnet, selection_proposed,
+                           selection_proposed_joint1])
 
-    # 'Accuracy', 'Precision', 'Recall', 'F-1' 'Matthews CC'
-    metric_analysis = 'Matthews CC'
+
     metrics_box = ['ALL', 'WLI', 'NBI']
     metrics_box = [''.join([metric_analysis, ' ', m]) for m in metrics_box]
 
@@ -289,7 +302,7 @@ def compute_metrics_boxplots(dir_to_csv=(os.path.join(os.getcwd(), 'results', 's
 
     selection = pd.concat([selection_densenet, selection_resnet, selection_proposed])
     print(selection.keys().tolist())
-    print('SELCTION')
+    print('SELECTION')
     print(selection)
     # 'Accuracy', 'Precision', 'Recall', 'F-1' 'Matthews CC'
     metric_analysis = 'Accuracy'
