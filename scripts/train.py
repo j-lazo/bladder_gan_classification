@@ -256,7 +256,7 @@ def call_models(name_model, path_dataset, mode='fit', backbones=['resnet101'], g
                     model = build_gan_model_separate_features_v2(num_classes, backbones=backbones,
                                                                  gan_weights=gan_pretrained_weights)
                 elif name_model == 'gan_model_separate_features_v3':
-                    model = build_gan_model_separate_features_v2(num_classes, backbones=backbones,
+                    model = build_gan_model_separate_features_v3(num_classes, backbones=backbones,
                                                                  gan_weights=gan_pretrained_weights)
                 elif name_model == 'gan_separate_features_and_domain_v4':
                     model = build_gan_model_separate_features_and_domain_v1(num_classes, backbones=backbones,

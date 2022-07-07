@@ -1174,6 +1174,7 @@ def build_gan_model_separate_features_v3(num_classes, backbones=['resnet101', 'r
     x = Flatten()(x)
     x = Concatenate()([x, t_input])
     x = Dense(512, activation='relu')(x)
+    x = Dense(256, activation='relu')(x)
     output_layer = Dense(num_classes, activation='softmax')(x)
 
     return Model(inputs=[input_image, t_input], outputs=output_layer, name='gan_separate_features_v3')
