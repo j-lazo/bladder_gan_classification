@@ -99,6 +99,17 @@ def compare_gans_boxplots(dir_to_csv=(os.path.join(os.getcwd(), 'results', 'sort
                             'not_complete_wli2nbi', 'checkpoint_charlie', 'general_wli2nbi',
                             'temp_not_complete_wli2nbi_ssim']
 
+    dictionary_selection_resnet = {'name_model': ['resnet101'], 'learning_rate': chosen_learning_rates,
+                                   'batch_size': chosen_batch_sizes, 'dataset': chosen_dataset,
+                                   'backbone GAN': chosen_gan_backbones, 'training_data_used': chosen_trained_data,
+                                   }
+    selection_resnet = select_specific_cases(df, dictionary_selection_resnet)
+    dict_replace = {x: 'base model' for x in np.unique(selection_resnet['backbone GAN'].tolist())}
+    print(dict_replace)
+    dict_replace[np.nan] = 'base model'
+    selection_resnet['backbone GAN'] = selection_resnet['backbone GAN'].map(dict_replace, na_action=None)
+    print('GAn TADA')
+    print(selection_resnet["backbone GAN"])
 
     base_selection_dictionary = {'name_model': ['gan_model_separate_features'], 'learning_rate': chosen_learning_rates,
                             'batch_size': chosen_batch_sizes, 'dataset': chosen_dataset,
@@ -141,7 +152,7 @@ def compare_gans_boxplots(dir_to_csv=(os.path.join(os.getcwd(), 'results', 'sort
                               }
     temp_not_complete_ssim_selection = select_specific_cases(df, temp_not_complete_ssim_selection_dict)
 
-    selection = pd.concat([base_selection, charlie_selection, general_selection, general_ssim_selection,
+    selection = pd.concat([selection_resnet, base_selection, charlie_selection, general_selection, general_ssim_selection,
                            not_complete_ssim_selection, not_complete_ssim_selection_2,
                            temp_not_complete_ssim_selection])
 
@@ -149,6 +160,84 @@ def compare_gans_boxplots(dir_to_csv=(os.path.join(os.getcwd(), 'results', 'sort
     metrics_box = [''.join([metric_analysis, ' ', m]) for m in metrics_box]
 
     x_axis = 'backbone GAN'
+    y_axis = metrics_box
+    title_plot = 'Comparison base models'  # name_model.replace('_', ' ')
+    # daa.calculate_p_values(selection, x_axis, y_axis, selected_models)
+    daa.boxplot_seaborn(selection, x_axis, y_axis, title_plot=title_plot, hue='training_data_used')
+
+
+def compare_dataset_boxplots(dir_to_csv=(os.path.join(os.getcwd(), 'results', 'sorted_experiments_information.csv', )),
+                             metrics='all', exclusion_criteria=None, metric_analysis = 'Accuracy'):
+    # 'Accuracy', 'Precision', 'Recall', 'F-1' 'Matthews CC'
+    df = pd.read_csv(dir_to_csv)
+
+    # chosen criteria
+    chosen_learning_rates = [0.00001]
+    chosen_batch_sizes = [32]
+
+    chosen_trained_data = ['WLI', 'ALL']
+    dictionary_selection_resnet = {'name_model': ['resnet101'], 'learning_rate': chosen_learning_rates,
+                                   'batch_size': chosen_batch_sizes, 'dataset': ['bladder_tissue_classification_v3'],
+                                   'training_data_used': chosen_trained_data,
+                                   }
+    selection_resnet = select_specific_cases(df, dictionary_selection_resnet)
+
+    dict_gan_not_complete_all_converted_NBI = {'name_model': ['resnet101'], 'learning_rate': chosen_learning_rates,
+                                   'batch_size': chosen_batch_sizes,
+                                    'dataset': ['bladder_tissue_classification_v3_gan_not_complete_all+converted_NBI'],
+                                    'training_data_used': chosen_trained_data,
+                                               }
+    selection_not_complete_all_converted_NBI = select_specific_cases(df, dict_gan_not_complete_all_converted_NBI)
+
+    dict_temp_not_complete_ssim_all_converted_NBI= {'name_model': ['resnet101'], 'learning_rate': chosen_learning_rates,
+                                               'batch_size': chosen_batch_sizes,
+                                               'dataset': ['bladder_tissue_classification_v3_gan_temp_not_complete_ssim_all+converted_NBI'],
+                                               'training_data_used': chosen_trained_data,
+                                               }
+    selection_temp_not_complete_ssim_all_converted_NBI = select_specific_cases(df, dict_temp_not_complete_ssim_all_converted_NBI)
+    dict_gan_not_complete_ssim_2_all_converted_NBI = {'name_model': ['resnet101'], 'learning_rate': chosen_learning_rates,
+                                               'batch_size': chosen_batch_sizes,
+                                               'dataset': ['bladder_tissue_classification_v3_gan_not_complete_ssim_2_all+converted_NBI'],
+                                               'training_data_used': chosen_trained_data,
+                                               }
+    selection_temp_not_complete_ssim_2_all_converted_NBI = select_specific_cases(df, dict_gan_not_complete_ssim_2_all_converted_NBI)
+    dict_gan_temp_not_complete_ssim = {'name_model': ['resnet101'], 'learning_rate': chosen_learning_rates,
+                                               'batch_size': chosen_batch_sizes,
+                                               'dataset': ['bladder_tissue_classification_v3_gan_temp_not_complete_ssim'],
+                                               'training_data_used': chosen_trained_data,
+                                               }
+    selection_temp_not_complete_ssim = select_specific_cases(df, dict_gan_temp_not_complete_ssim)
+    dict_gan_not_complete_ssim = {'name_model': ['resnet101'], 'learning_rate': chosen_learning_rates,
+                                               'batch_size': chosen_batch_sizes,
+                                               'dataset': ['bladder_tissue_classification_v3_gan_not_complete_ssim'],
+                                               'training_data_used': chosen_trained_data,
+                                               }
+    selection_gan_not_complet_ssim = select_specific_cases(df, dict_gan_not_complete_ssim)
+    dict_gan_general = {'name_model': ['resnet101'], 'learning_rate': chosen_learning_rates,
+                                               'batch_size': chosen_batch_sizes,
+                                               'dataset': ['bladder_tissue_classification_v3_gan_general'],
+                                               'training_data_used': chosen_trained_data,
+                                               }
+    selection_gan_general = select_specific_cases(df, dict_gan_general)
+    dict_gan_general_ssim = {'name_model': ['resnet101'], 'learning_rate': chosen_learning_rates,
+                                               'batch_size': chosen_batch_sizes,
+                                               'dataset': ['bladder_tissue_classification_v3_gan_general_ssim'],
+                                               'training_data_used': chosen_trained_data,
+                                               }
+    selecton_an_general_ssim = select_specific_cases(df, dict_gan_general_ssim)
+
+    selection = pd.concat([selection_resnet, selection_not_complete_all_converted_NBI,
+                           selection_temp_not_complete_ssim_all_converted_NBI,
+                           selection_temp_not_complete_ssim_2_all_converted_NBI,
+                           selection_temp_not_complete_ssim,
+                           selection_gan_not_complet_ssim,
+                           selection_gan_general,
+                           selecton_an_general_ssim])
+
+    metrics_box = ['ALL', 'WLI', 'NBI']
+    metrics_box = [''.join([metric_analysis, ' ', m]) for m in metrics_box]
+
+    x_axis = 'dataset'
     y_axis = metrics_box
     title_plot = 'Comparison base models'  # name_model.replace('_', ' ')
     # daa.calculate_p_values(selection, x_axis, y_axis, selected_models)
@@ -196,22 +285,71 @@ def compare_models_boxplots(dir_to_csv=(os.path.join(os.getcwd(), 'results', 'so
     temp_not_complete_ssim_selection_dict = {'name_model': ['gan_model_separate_features'],
                                              'learning_rate': chosen_learning_rates,
                                              'batch_size': chosen_batch_sizes, 'dataset': chosen_dataset,
-                                             'backbone GAN': ['temp_not_complete_wli2nbi_ssim'],
+                                             'backbone GAN': ['not_complete_wli2nbi_ssim_2'],
                                              'training_data_used': chosen_trained_data,
                                              }
     temp_not_complete_ssim_selection = select_specific_cases(df, temp_not_complete_ssim_selection_dict)
-    #temp_not_complete_ssim_selection.loc[temp_not_complete_ssim_selection['name_model'] == 'gan_model_separate_features',
-    #                                     'name_model'] = 'temp_gan_model_separate_features'
+    # here we need to rename 'name_model' so it will appear in the boxplots
+    temp_not_complete_ssim_selection.loc[temp_not_complete_ssim_selection['name_model'] == 'gan_model_separate_features', 'name_model'] = 'ssim2'
+
     dictionary_selection_joint1 = {'name_model': ['gan_model_multi_joint_features'],
                                              'learning_rate': chosen_learning_rates,
                                              'batch_size': chosen_batch_sizes, 'dataset': chosen_dataset,
-                                             'backbone GAN': ['general_wli2nbi'],
+                                             'backbone GAN': ['not_complete_wli2nbi'],
                                              'training_data_used': chosen_trained_data,
                                    }
     selection_proposed_joint1 = select_specific_cases(df, dictionary_selection_joint1)
+    dictionary_selection_joint2 = {'name_model': ['gan_model_joint_features_and_domain'],
+                                             'learning_rate': chosen_learning_rates,
+                                             'batch_size': chosen_batch_sizes, 'dataset': chosen_dataset,
+                                             'backbone GAN': ['not_complete_wli2nbi'],
+                                             'training_data_used': chosen_trained_data,
+                                   }
+    selection_proposed_joint2 = select_specific_cases(df, dictionary_selection_joint2)
+    dictionary_simple_backbone_model = {'name_model': ['simple_model_with_backbones'],
+                                       'learning_rate': chosen_learning_rates,
+                                       'batch_size': chosen_batch_sizes, 'dataset': chosen_dataset,
+                                       'training_data_used': chosen_trained_data,
+                                       }
+    selection_simple_backbone_model = select_specific_cases(df, dictionary_simple_backbone_model)
 
+    dictionary_simple_separation_model = {'name_model': ['simple_separation_model'],
+                                        'learning_rate': chosen_learning_rates,
+                                        'batch_size': chosen_batch_sizes, 'dataset': chosen_dataset,
+                                        'training_data_used': chosen_trained_data,
+                                        }
+    selection_simple_separation_model = select_specific_cases(df, dictionary_simple_separation_model)
+
+    dictionary_selection_separat_v3 = {'name_model': ['gan_model_separate_features_v3'],
+                                       'learning_rate': chosen_learning_rates,
+                                       'batch_size': chosen_batch_sizes, 'dataset': chosen_dataset,
+                                       'backbone GAN': ['not_complete_wli2nbi'],
+                                       'training_data_used': chosen_trained_data,
+                                       }
+    selection_separat_v3 = select_specific_cases(df, dictionary_selection_separat_v3)
+
+    dictionary_selection_separat_v4 = {'name_model': ['gan_separate_features_and_domain_v4'],
+                                       'learning_rate': chosen_learning_rates,
+                                       'batch_size': chosen_batch_sizes, 'dataset': chosen_dataset,
+                                       'backbone GAN': ['not_complete_wli2nbi'],
+                                       'training_data_used': chosen_trained_data,
+                                       }
+
+    selection_separat_v4 = select_specific_cases(df, dictionary_selection_separat_v4)
+    dictionary_selection_separat_v4 = {'name_model': ['gan_separate_features_and_domain_v5'],
+                                       'learning_rate': chosen_learning_rates,
+                                       'batch_size': chosen_batch_sizes, 'dataset': chosen_dataset,
+                                       'backbone GAN': ['not_complete_wli2nbi'],
+                                       'training_data_used': chosen_trained_data,
+                                       }
+    selection_separat_v5 = select_specific_cases(df, dictionary_selection_separat_v4)
     selection = pd.concat([selection_densenet, selection_resnet, selection_proposed,
-                           selection_proposed_joint1])
+                           temp_not_complete_ssim_selection,
+                           selection_simple_backbone_model,
+                           selection_simple_separation_model,
+                           selection_separat_v3,
+                           selection_separat_v4,
+                           selection_separat_v5])
 
 
     metrics_box = ['ALL', 'WLI', 'NBI']
@@ -487,6 +625,8 @@ def main(_argv):
             compare_models_boxplots()
         elif type_of_analysis == 'compare_gans_boxplots':
             compare_gans_boxplots()
+        elif type_of_analysis == 'compare_dataset_boxplots':
+            compare_dataset_boxplots()
         elif type_of_analysis == 'prepare_data':
             prepare_data(directory_to_analyze)
 
