@@ -112,7 +112,8 @@ def call_models(name_model, path_dataset, mode='fit', backbones=['resnet101'], g
                           'gan_separate_features_and_domain_v1', 'gan_separate_features_and_domain_v2',
                           'gan_separate_features_and_domain_v3', 'gan_separate_features_and_domain_v4',
                           'gan_separate_features_and_domain_v5', 'simple_separation_gan',
-                          'simple_separation_gan_v1', 'simple_separation_gan_v2']
+                          'simple_separation_gan_v1', 'simple_separation_gan_v2',
+                          'simple_separation_gan_v3']
 
     if name_model not in multi_input_models:
         multioutput = False
@@ -282,6 +283,9 @@ def call_models(name_model, path_dataset, mode='fit', backbones=['resnet101'], g
                 elif name_model == 'simple_separation_gan_v2':
                     model = build_simple_separation_gan_v2(num_classes, backbones=backbones,
                                                                            gan_weights=gan_pretrained_weights)
+                elif name_model == 'simple_separation_gan_v3':
+                    model = build_simple_separation_gan_v3(num_classes, backbones=backbones,
+                                                                           gan_weights=gan_pretrained_weights)
 
                 elif name_model == 'simple_separation_model':
                     model = build_simple_separation_model(num_classes, backbones=backbones)
@@ -335,6 +339,9 @@ def call_models(name_model, path_dataset, mode='fit', backbones=['resnet101'], g
                                                        gan_weights=gan_pretrained_weights)
             elif name_model == 'simple_separation_gan_v2':
                 model = build_simple_separation_gan_v2(num_classes, backbones=backbones,
+                                                       gan_weights=gan_pretrained_weights)
+            elif name_model == 'simple_separation_gan_v3':
+                model = build_simple_separation_gan_v3(num_classes, backbones=backbones,
                                                        gan_weights=gan_pretrained_weights)
             elif name_model == 'simple_separation_model':
                 model = build_simple_separation_model(num_classes, backbones=backbones)

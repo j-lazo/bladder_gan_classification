@@ -104,12 +104,9 @@ def compare_gans_boxplots(dir_to_csv=(os.path.join(os.getcwd(), 'results', 'sort
                                    'backbone GAN': chosen_gan_backbones, 'training_data_used': chosen_trained_data,
                                    }
     selection_resnet = select_specific_cases(df, dictionary_selection_resnet)
-    dict_replace = {x: 'base model' for x in np.unique(selection_resnet['backbone GAN'].tolist())}
-    print(dict_replace)
-    dict_replace[np.nan] = 'base model'
+    dict_replace = {x: 'A' for x in np.unique(selection_resnet['backbone GAN'].tolist())}
+    dict_replace[np.nan] = 'A'
     selection_resnet['backbone GAN'] = selection_resnet['backbone GAN'].map(dict_replace, na_action=None)
-    print('GAn TADA')
-    print(selection_resnet["backbone GAN"])
 
     base_selection_dictionary = {'name_model': ['gan_model_separate_features'], 'learning_rate': chosen_learning_rates,
                             'batch_size': chosen_batch_sizes, 'dataset': chosen_dataset,
@@ -117,12 +114,6 @@ def compare_gans_boxplots(dir_to_csv=(os.path.join(os.getcwd(), 'results', 'sort
                             'date':['21-06-2022', '22-06-2022', '06-07-2022', '05-07-2022']
                                  }
     base_selection = select_specific_cases(df, base_selection_dictionary)
-
-    charlie_selection_dict = {'name_model': ['gan_model_separate_features'], 'learning_rate': chosen_learning_rates,
-                            'batch_size': chosen_batch_sizes, 'dataset': chosen_dataset,
-                            'backbone GAN': ['checkpoint_charlie'], 'training_data_used': chosen_trained_data,
-                            }
-    charlie_selection = select_specific_cases(df, charlie_selection_dict)
 
     general_selection_dict = {'name_model': ['gan_model_separate_features'], 'learning_rate': chosen_learning_rates,
                             'batch_size': chosen_batch_sizes, 'dataset': chosen_dataset,
@@ -152,16 +143,40 @@ def compare_gans_boxplots(dir_to_csv=(os.path.join(os.getcwd(), 'results', 'sort
                               }
     temp_not_complete_ssim_selection = select_specific_cases(df, temp_not_complete_ssim_selection_dict)
 
-    selection = pd.concat([selection_resnet, base_selection, charlie_selection, general_selection, general_ssim_selection,
-                           not_complete_ssim_selection, not_complete_ssim_selection_2,
-                           temp_not_complete_ssim_selection])
+    dict_selection_wli2nbi = {'name_model': ['gan_model_separate_features'], 'learning_rate': chosen_learning_rates,
+                              'batch_size': chosen_batch_sizes, 'dataset': chosen_dataset,
+                              'backbone GAN': ['wli2nbi'], 'training_data_used': chosen_trained_data,
+                             }
+
+    selection_wli2nbi = select_specific_cases(df, dict_selection_wli2nbi)
+
+    dict_selection_wli2nbi_ssim = {'name_model': ['gan_model_separate_features'], 'learning_rate': chosen_learning_rates,
+                              'batch_size': chosen_batch_sizes, 'dataset': chosen_dataset,
+                              'backbone GAN': ['wli2nbi_ssim'], 'training_data_used': chosen_trained_data,
+                             }
+    selection_wli2nbi_ssim = select_specific_cases(df, dict_selection_wli2nbi_ssim)
+    selection_wli2nbi.loc[selection_wli2nbi["backbone GAN"] == "wli2nbi", "backbone GAN"] = 'B'
+    base_selection.loc[base_selection["backbone GAN"] == "not_complete_wli2nbi", "backbone GAN"] = 'C'
+    general_selection.loc[general_selection["backbone GAN"] == "general_wli2nbi", "backbone GAN"] = 'D'
+    selection_wli2nbi_ssim.loc[selection_wli2nbi_ssim["backbone GAN"] == "wli2nbi_ssim", "backbone GAN"] = 'E'
+    not_complete_ssim_selection_2.loc[not_complete_ssim_selection_2["backbone GAN"] == "not_complete_wli2nbi_ssim_2", "backbone GAN"] = 'F'
+    general_ssim_selection.loc[general_ssim_selection["backbone GAN"] == "general_wli2nbi_ssim", "backbone GAN"] = 'G'
+
+    selection = pd.concat([selection_resnet,
+                           selection_wli2nbi,
+                           base_selection,
+                           general_selection,
+                           selection_wli2nbi_ssim,
+                           not_complete_ssim_selection_2,
+                           general_ssim_selection,
+                           ])
 
     metrics_box = ['ALL', 'WLI', 'NBI']
     metrics_box = [''.join([metric_analysis, ' ', m]) for m in metrics_box]
 
     x_axis = 'backbone GAN'
     y_axis = metrics_box
-    title_plot = 'Comparison base models'  # name_model.replace('_', ' ')
+    title_plot = 'Comparison GANs'  # name_model.replace('_', ' ')
     # daa.calculate_p_values(selection, x_axis, y_axis, selected_models)
     daa.boxplot_seaborn(selection, x_axis, y_axis, title_plot=title_plot, hue='training_data_used')
 
@@ -334,22 +349,54 @@ def compare_models_boxplots(dir_to_csv=(os.path.join(os.getcwd(), 'results', 'so
                                        'backbone GAN': ['not_complete_wli2nbi'],
                                        'training_data_used': chosen_trained_data,
                                        }
-
     selection_separat_v4 = select_specific_cases(df, dictionary_selection_separat_v4)
-    dictionary_selection_separat_v4 = {'name_model': ['gan_separate_features_and_domain_v5'],
+    dictionary_selection_separat_v5 = {'name_model': ['gan_separate_features_and_domain_v5'],
                                        'learning_rate': chosen_learning_rates,
                                        'batch_size': chosen_batch_sizes, 'dataset': chosen_dataset,
                                        'backbone GAN': ['not_complete_wli2nbi'],
                                        'training_data_used': chosen_trained_data,
                                        }
-    selection_separat_v5 = select_specific_cases(df, dictionary_selection_separat_v4)
-    selection = pd.concat([selection_densenet, selection_resnet, selection_proposed,
-                           temp_not_complete_ssim_selection,
+    selection_separat_v5 = select_specific_cases(df, dictionary_selection_separat_v5)
+
+    dict_only_gan_separate_features = {'name_model': ['only_gan_separate_features'],
+                                       'learning_rate': chosen_learning_rates,
+                                       'batch_size': chosen_batch_sizes, 'dataset': chosen_dataset,
+                                       'backbone GAN': ['not_complete_wli2nbi'],
+                                       'training_data_used': chosen_trained_data,
+                                       }
+    selection_only_gan_separate_features = select_specific_cases(df, dict_only_gan_separate_features)
+
+    dict_only_gan_model_and_domain = {'name_model': ['only_gan_model_joint_features_and_domain'],
+                                       'learning_rate': chosen_learning_rates,
+                                       'batch_size': chosen_batch_sizes, 'dataset': chosen_dataset,
+                                       'backbone GAN': ['not_complete_wli2nbi'],
+                                       'training_data_used': chosen_trained_data,
+                                       }
+    select_only_gan_and_domain = select_specific_cases(df, dict_only_gan_model_and_domain)
+
+    selection_densenet.loc[selection_densenet["name_model"] == "densenet121", "name_model"] = 'A'
+    selection_resnet.loc[selection_resnet["name_model"] == "resnet101", "name_model"] = 'B'
+    selection_proposed.loc[selection_proposed["name_model"] == "gan_model_separate_features", "name_model"] = 'C'
+    selection_simple_backbone_model.loc[selection_simple_backbone_model["name_model"] == "simple_model_with_backbones", "name_model"] = 'D'
+    selection_simple_separation_model.loc[selection_simple_separation_model["name_model"] == "simple_separation_model", "name_model"] = 'E'
+    selection_separat_v3.loc[selection_separat_v3["name_model"] == "gan_model_separate_features_v3", "name_model"] = 'F'
+    selection_separat_v4.loc[selection_separat_v4["name_model"] == "gan_separate_features_and_domain_v4", "name_model"] = 'G'
+    selection_separat_v5.loc[selection_separat_v5["name_model"] == "gan_separate_features_and_domain_v5", "name_model"] = 'H'
+    selection_only_gan_separate_features.loc[selection_only_gan_separate_features["name_model"] == "only_gan_separate_features", "name_model"] = 'I'
+    select_only_gan_and_domain.loc[select_only_gan_and_domain["name_model"] == "only_gan_model_joint_features_and_domain", "name_model"] = 'J'
+
+
+    selection = pd.concat([selection_densenet,
+                           selection_resnet,
+                           selection_proposed,
                            selection_simple_backbone_model,
                            selection_simple_separation_model,
                            selection_separat_v3,
                            selection_separat_v4,
-                           selection_separat_v5])
+                           selection_separat_v5,
+                           selection_only_gan_separate_features,
+                           select_only_gan_and_domain,
+                           ])
 
 
     metrics_box = ['ALL', 'WLI', 'NBI']

@@ -1489,3 +1489,57 @@ def build_simple_separation_gan_v2(num_classes, backbones=['resnet101', 'resnet1
     output_layer = Dense(num_classes, activation='softmax')(x)
 
     return Model(inputs=[input_image, t_input], outputs=output_layer, name='simple_separation_gan_v2')
+
+
+def build_simple_separation_gan_v3(num_classes, backbones=['resnet101', 'resnet101', 'resnet101'], gan_weights=None,
+                             after_concat='globalpooling'):
+
+    if len(backbones) <= 2:
+        backbones = backbones * 3
+
+    # inputs
+    input_image = keras.Input(shape=(256, 256, 3), name="image")
+    t_input = keras.Input(shape=(1,), name="img_domain")
+
+    # Generator Models
+    G_A2B = ResnetGenerator(input_shape=(256, 256, 3))
+    G_B2A = ResnetGenerator(input_shape=(256, 256, 3))
+
+    if gan_weights:
+        Checkpoint(dict(G_A2B=G_A2B, G_B2A=G_B2A), gan_weights).restore()
+
+    for layer in G_A2B.layers:
+        layer.trainable = False
+
+    for layer in G_B2A.layers:
+        layer.trainable = False
+
+    # load the backbones
+
+    backbone_model = load_pretrained_backbones(backbones[0])
+    backbone_model._name = 'backbone'
+    for layer in backbone_model.layers:
+        layer.trainable = False
+
+    # branch 2 if target domain is WLI
+    x1 = input_image
+    x2 = G_B2A(input_image)
+    # if you want to have a classifiers evaluating the results produced by each Generator separate use bellow
+    x2 = tf.math.scalar_mul(255., tf.math.divide(tf.math.subtract(x2, tf.reduce_min(x2)),
+                                                               tf.math.subtract(tf.reduce_max(x2),
+                                                                                tf.math.reduce_min(x2))))
+    x2 = tf.cast(x2, tf.float32)
+
+    x = tf.keras.backend.switch(t_input, x1, x2)
+    x = tf.image.resize(x, input_sizes_models[backbones[0]], method='bilinear')
+    x = get_preprocess_input_backbone(backbones[0], x)
+    x = backbone_model(x)
+    x = GlobalAveragePooling2D()(x)
+    x = Dense(1024, activation='relu')(x)
+    x = Dropout(0.5)(x)
+    x = Dense(1024, activation='relu')(x)
+    x = Dropout(0.5)(x)
+    x = Dense(512, activation='relu')(x)
+    output_layer = Dense(num_classes, activation='softmax')(x)
+
+    return Model(inputs=[input_image, t_input], outputs=output_layer, name='simple_separation_gan_v3')
