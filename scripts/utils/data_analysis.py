@@ -77,38 +77,73 @@ def plot_training_history(list_csv_files, save_dir=''):
     else:
         fine_tune_lim = 0
         train_history = pd.read_csv(list_csv_files[0])
+        header = train_history.columns.values.tolist()
 
     fig = plt.figure(1, figsize=(12, 9))
+    if 'accuracy' in header:
 
-    ax1 = fig.add_subplot(221)
-    ax1.title.set_text('$ACC$')
-    ax1.plot(train_history['accuracy'].tolist(), label='train')
-    ax1.plot(train_history['val_accuracy'].tolist(), label='val')
-    ax1.fill_between((0, fine_tune_lim), 0, 1, facecolor='orange', alpha=0.4)
+        ax1 = fig.add_subplot(221)
+        ax1.title.set_text('$ACC$')
+        ax1.plot(train_history['accuracy'].tolist(), label='train')
+        ax1.plot(train_history['val_accuracy'].tolist(), label='val')
+        ax1.fill_between((0, fine_tune_lim), 0, 1, facecolor='orange', alpha=0.4)
 
-    plt.legend(loc='best')
+        plt.legend(loc='best')
 
-    ax2 = fig.add_subplot(222)
-    ax2.title.set_text('PREC')
-    ax2.plot(train_history['precision'].tolist(), label='train')
-    ax2.plot(train_history['val_precision'].tolist(), label='val')
-    ax2.fill_between((0, fine_tune_lim), 0, 1, facecolor='orange', alpha=0.4)
-    plt.legend(loc='best')
+        ax2 = fig.add_subplot(222)
+        ax2.title.set_text('PREC')
+        ax2.plot(train_history['precision'].tolist(), label='train')
+        ax2.plot(train_history['val_precision'].tolist(), label='val')
+        ax2.fill_between((0, fine_tune_lim), 0, 1, facecolor='orange', alpha=0.4)
+        plt.legend(loc='best')
 
-    ax3 = fig.add_subplot(223)
-    ax3.title.set_text('$LOSS$')
-    ax3.plot(train_history['loss'].tolist(), label='train')
-    ax3.plot(train_history['val_loss'].tolist(), label='val')
-    max_xval = np.amax([train_history['loss'].tolist(), train_history['val_loss'].tolist()])
-    ax3.fill_between((0, fine_tune_lim), 0, max_xval, facecolor='orange', alpha=0.4)
-    plt.legend(loc='best')
+        ax3 = fig.add_subplot(223)
+        ax3.title.set_text('$LOSS$')
+        ax3.plot(train_history['loss'].tolist(), label='train')
+        ax3.plot(train_history['val_loss'].tolist(), label='val')
+        max_xval = np.amax([train_history['loss'].tolist(), train_history['val_loss'].tolist()])
+        ax3.fill_between((0, fine_tune_lim), 0, max_xval, facecolor='orange', alpha=0.4)
+        plt.legend(loc='best')
 
-    ax4 = fig.add_subplot(224)
-    ax4.title.set_text('$REC$')
-    ax4.plot(train_history['recall'].tolist(), label='train')
-    ax4.plot(train_history['val_recall'].tolist(), label='val')
-    ax4.fill_between((0, fine_tune_lim), 0, 1, facecolor='orange', alpha=0.4)
-    plt.legend(loc='best')
+        ax4 = fig.add_subplot(224)
+        ax4.title.set_text('$REC$')
+        ax4.plot(train_history['recall'].tolist(), label='train')
+        ax4.plot(train_history['val_recall'].tolist(), label='val')
+        ax4.fill_between((0, fine_tune_lim), 0, 1, facecolor='orange', alpha=0.4)
+        plt.legend(loc='best')
+
+    elif 'final_output_accuracy' in header:
+        fig = plt.figure(1, figsize=(12, 9))
+
+        ax1 = fig.add_subplot(221)
+        ax1.title.set_text('$ACC$')
+        ax1.plot(train_history['final_output_accuracy'].tolist(), label='train')
+        ax1.plot(train_history['val_final_output_accuracy'].tolist(), label='val')
+        ax1.fill_between((0, fine_tune_lim), 0, 1, facecolor='orange', alpha=0.4)
+
+        plt.legend(loc='best')
+
+        ax2 = fig.add_subplot(222)
+        ax2.title.set_text('PREC')
+        ax2.plot(train_history['final_output_precision'].tolist(), label='train')
+        ax2.plot(train_history['val_final_output_precision'].tolist(), label='val')
+        ax2.fill_between((0, fine_tune_lim), 0, 1, facecolor='orange', alpha=0.4)
+        plt.legend(loc='best')
+
+        ax3 = fig.add_subplot(223)
+        ax3.title.set_text('$LOSS$')
+        ax3.plot(train_history['final_output_loss'].tolist(), label='train')
+        ax3.plot(train_history['val_final_output_loss'].tolist(), label='val')
+        max_xval = np.amax([train_history['loss'].tolist(), train_history['val_loss'].tolist()])
+        ax3.fill_between((0, fine_tune_lim), 0, max_xval, facecolor='orange', alpha=0.4)
+        plt.legend(loc='best')
+
+        ax4 = fig.add_subplot(224)
+        ax4.title.set_text('$REC$')
+        ax4.plot(train_history['final_output_recall'].tolist(), label='train')
+        ax4.plot(train_history['val_final_output_recall'].tolist(), label='val')
+        ax4.fill_between((0, fine_tune_lim), 0, 1, facecolor='orange', alpha=0.4)
+        plt.legend(loc='best')
 
     if save_dir == '':
         dir_save_figure = os.getcwd() + '/training_history.png'

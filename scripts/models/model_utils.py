@@ -192,13 +192,15 @@ def evaluate_and_predict(model, directory_to_evaluate, results_directory,
             prediction_outputs.append(y_pred[-1][0])
         else:
             prediction_outputs.append(y_pred[0])
-            inference_times.append(time.time() - init_time)
+        inference_times.append(time.time() - init_time)
         real_values.append(dataset_dictionary[name_file]['img_class'])
         image_domains.append((dataset_dictionary[name_file]['img_domain']))
 
         # determine the top-1 prediction class
         prediction_id = np.argmax(y_pred[0])
 
+    print(prediction_outputs)
+    print(inference_times)
     print('Prediction time analysis')
     print(f' min t: {np.min(inference_times)}, mean t: {np.mean(inference_times)}, '
           f'max t: {np.max(inference_times)}')
@@ -208,12 +210,10 @@ def evaluate_and_predict(model, directory_to_evaluate, results_directory,
 
     x_pred = [[] for _ in range(len(unique_values))]
     for x in prediction_outputs:
-        print(x)
         for i in range(len(x)):
-            print(x[i])
             x_pred[i].append(x[i])
 
-    header_column = ['class_' + str(i+1) for i in range(5)]
+    header_column = ['class_' + str(i+1) for i in range(len(unique_values))]
     header_column.insert(0, 'fname')
     header_column.append('img_domain')
     header_column.append('over all')
