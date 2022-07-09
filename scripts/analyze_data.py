@@ -293,7 +293,7 @@ def compare_models_boxplots(dir_to_csv=(os.path.join(os.getcwd(), 'results', 'so
     dictionary_selection_prop = {'name_model': ['gan_model_separate_features'], 'learning_rate': chosen_learning_rates,
                             'batch_size': chosen_batch_sizes, 'dataset': chosen_dataset,
                             'backbone GAN': ['not_complete_wli2nbi'], 'training_data_used': chosen_trained_data,
-                            'date':['21-06-2022', '22-06-2022', '06-07-2022'], #'06-07-2022', '05-07-2022']
+                            #'date':['21-06-2022', '22-06-2022'],#['06-07-2022', '05-07-2022', '08-07-2022'], # '21-06-2022', '22-06-2022']
                                  }
     selection_proposed = select_specific_cases(df, dictionary_selection_prop)
 
@@ -373,6 +373,13 @@ def compare_models_boxplots(dir_to_csv=(os.path.join(os.getcwd(), 'results', 'so
                                        'training_data_used': chosen_trained_data,
                                        }
     select_only_gan_and_domain = select_specific_cases(df, dict_only_gan_model_and_domain)
+    dict_simple_separation_gan_v3 = {'name_model': ['simple_separation_gan_v3'],
+                                       'learning_rate': chosen_learning_rates,
+                                       'batch_size': chosen_batch_sizes, 'dataset': chosen_dataset,
+                                       'backbone GAN': ['not_complete_wli2nbi'],
+                                       'training_data_used': chosen_trained_data,
+                                       }
+    select_simple_separation_gan_v3 = select_specific_cases(df, dict_simple_separation_gan_v3)
 
     selection_densenet.loc[selection_densenet["name_model"] == "densenet121", "name_model"] = 'A'
     selection_resnet.loc[selection_resnet["name_model"] == "resnet101", "name_model"] = 'B'
@@ -384,19 +391,21 @@ def compare_models_boxplots(dir_to_csv=(os.path.join(os.getcwd(), 'results', 'so
     selection_separat_v5.loc[selection_separat_v5["name_model"] == "gan_separate_features_and_domain_v5", "name_model"] = 'H'
     selection_only_gan_separate_features.loc[selection_only_gan_separate_features["name_model"] == "only_gan_separate_features", "name_model"] = 'I'
     select_only_gan_and_domain.loc[select_only_gan_and_domain["name_model"] == "only_gan_model_joint_features_and_domain", "name_model"] = 'J'
+    select_simple_separation_gan_v3.loc[select_simple_separation_gan_v3["name_model"] == "simple_separation_gan_v3", "name_model"] = 'X'
 
 
-    selection = pd.concat([selection_densenet,
+    selection = pd.concat([#selection_densenet,
                            selection_resnet,
                            selection_proposed,
-                           selection_simple_backbone_model,
-                           selection_simple_separation_model,
-                           selection_separat_v3,
-                           selection_separat_v4,
-                           selection_separat_v5,
-                           selection_only_gan_separate_features,
-                           select_only_gan_and_domain,
-                           ])
+                           select_simple_separation_gan_v3,])
+                           #selection_simple_backbone_model,
+                           #selection_simple_separation_model,
+                           #selection_separat_v3,
+                           #selection_separat_v4,
+                           #selection_separat_v5,
+                           #selection_only_gan_separate_features,
+                           #select_only_gan_and_domain,
+                           #])
 
 
     metrics_box = ['ALL', 'WLI', 'NBI']

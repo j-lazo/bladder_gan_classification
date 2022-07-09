@@ -188,8 +188,11 @@ def evaluate_and_predict(model, directory_to_evaluate, results_directory,
         #prediction_names.append(os.path.split(x)[-1])
         init_time = time.time()
         y_pred = model.predict(inputs_model)
-        prediction_outputs.append(y_pred[0])
-        inference_times.append(time.time() - init_time)
+        if len(y_pred) > 1:
+            prediction_outputs.append(y_pred[-1][0])
+        else:
+            prediction_outputs.append(y_pred[0])
+            inference_times.append(time.time() - init_time)
         real_values.append(dataset_dictionary[name_file]['img_class'])
         image_domains.append((dataset_dictionary[name_file]['img_domain']))
 
@@ -197,15 +200,17 @@ def evaluate_and_predict(model, directory_to_evaluate, results_directory,
         prediction_id = np.argmax(y_pred[0])
 
     print('Prediction time analysis')
-    print(f' min t: {np.min(prediction_outputs)}, mean t: {np.mean(prediction_outputs)}, '
-          f'max t: {np.max(prediction_outputs)}')
+    print(f' min t: {np.min(inference_times)}, mean t: {np.mean(inference_times)}, '
+          f'max t: {np.max(inference_times)}')
 
     unique_values = np.unique(real_values)
     label_index = [unique_values[np.argmax(pred)] for pred in prediction_outputs]
 
     x_pred = [[] for _ in range(len(unique_values))]
     for x in prediction_outputs:
+        print(x)
         for i in range(len(x)):
+            print(x[i])
             x_pred[i].append(x[i])
 
     header_column = ['class_' + str(i+1) for i in range(5)]
