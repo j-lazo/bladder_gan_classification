@@ -199,8 +199,6 @@ def evaluate_and_predict(model, directory_to_evaluate, results_directory,
         # determine the top-1 prediction class
         prediction_id = np.argmax(y_pred[0])
 
-    print(prediction_outputs)
-    print(inference_times)
     print('Prediction time analysis')
     print(f' min t: {np.min(inference_times)}, mean t: {np.mean(inference_times)}, '
           f'max t: {np.max(inference_times)}')
