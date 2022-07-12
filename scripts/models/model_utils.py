@@ -14,7 +14,8 @@ from tensorflow.keras.models import Model
 
 input_sizes_models = {'vgg16': (224, 224), 'vgg19': (224, 224), 'inception_v3': (299, 299),
                       'resnet50': (224, 224), 'resnet101': (224, 244), 'mobilenet': (224, 224),
-                      'densenet121': (224, 224), 'xception': (299, 299)}
+                      'densenet121': (224, 224), 'xception': (299, 299),
+                      'resnet152': (224, 224), 'densenet201': (224, 224)}
 
 class Checkpoint:
     """Enhanced "tf.train.Checkpoint"."""
@@ -57,9 +58,16 @@ def get_preprocess_input_backbone(name_backbone, x):
         preprocess_input = tf.keras.applications.densenet.preprocess_input(x)
     elif name_backbone == 'vgg19':
         preprocess_input = tf.keras.applications.vgg19.preprocess_input(x)
+    elif name_backbone == 'vgg16':
+        preprocess_input = tf.keras.applications.vgg19.preprocess_input(x)
     elif name_backbone == 'inception_v3':
         preprocess_input = tf.keras.applications.inception_v3.preprocess_input(x)
-
+    elif name_backbone == 'resnet152':
+        preprocess_input = tf.keras.applications.resnet.preprocess_input(x)
+    elif name_backbone == 'densenet201':
+        preprocess_input = tf.keras.applications.densenet.preprocess_input(x)
+    else:
+        raise ValueError(f'Preprocess input {name_backbone} not avialable')
     return preprocess_input
 
 
@@ -74,7 +82,8 @@ def load_pretrained_backbones(name_model, weights='imagenet', include_top=False,
 
     input_sizes_models = {'vgg16': (224, 224), 'vgg19': (224, 224), 'inception_v3': (299, 299),
                           'resnet50': (224, 224), 'resnet101': (224, 244), 'mobilenet': (224, 224),
-                          'densenet121': (224, 224), 'xception': (299, 299)}
+                          'densenet121': (224, 224), 'xception': (299, 299),
+                          'resnet152': (224, 224), 'densenet201': (224, 224)}
 
     base_dir_weights = ''.join([os.getcwd(), '/scripts/models/weights_pretrained_backbones/'])
     if name_model == 'vgg16':
@@ -116,6 +125,17 @@ def load_pretrained_backbones(name_model, weights='imagenet', include_top=False,
         weights_dir = base_dir_weights + 'xception/xception_weights_tf_dim_ordering_tf_kernels_notop.h5'
         base_model = applications.xception.Xception(include_top=include_top, weights=weights_dir)
         base_model.trainable = trainable
+
+    elif name_model == 'resnet152':
+        weights_dir = base_dir_weights + 'resnet152/resnet152_weights_tf_dim_ordering_tf_kernels_notop.h5'
+        base_model = applications.resnet.ResNet152(include_top=include_top, weights=weights_dir)
+        base_model.trainable = trainable
+
+    elif name_model == 'densenet201':
+        weights_dir = base_dir_weights + 'desenet201/densenet201_weights_tf_dim_ordering_tf_kernels_notop.h5'
+        base_model = applications.densenet.DenseNet201(include_top=include_top, weights=weights_dir)
+        base_model.trainable = trainable
+
 
     else:
         raise ValueError(f' MODEL: {name_model} not found')
