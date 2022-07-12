@@ -60,6 +60,10 @@ def get_preprocess_input_backbone(name_backbone, x):
         preprocess_input = tf.keras.applications.vgg19.preprocess_input(x)
     elif name_backbone == 'vgg16':
         preprocess_input = tf.keras.applications.vgg19.preprocess_input(x)
+    elif name_backbone == 'mobilenet':
+        preprocess_input = tf.keras.applications.mobilenet.preprocess_input(x)
+    elif name_backbone == 'xception':
+        preprocess_input = tf.keras.applications.xception.preprocess_input(x)
     elif name_backbone == 'inception_v3':
         preprocess_input = tf.keras.applications.inception_v3.preprocess_input(x)
     elif name_backbone == 'resnet152':
