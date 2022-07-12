@@ -147,7 +147,6 @@ def call_models(name_model, path_dataset, mode='fit', backbones=['resnet101'], g
                               'learning rate': float(learning_rate),
                               'backbone gan': gan_model,
                               'dataset': dataset_name}
-    num_classes = 4
     results_directory = ''.join([results_dir, '/', new_results_id, '/'])
     # if results experiment doesn't exists create it
     if not os.path.isdir(results_directory):
@@ -182,10 +181,10 @@ def call_models(name_model, path_dataset, mode='fit', backbones=['resnet101'], g
 
             # option 2, select case_specific folds as train / val
             # pass
-            train_dataset = dam.make_tf_dataset(train_x, dic_train, batch_size,
+            train_dataset, num_classes = dam.make_tf_dataset(train_x, dic_train, batch_size,
                                                 training=True, multi_output=multioutput,
                                                 specific_domain=specific_domain)
-            val_dataset = dam.make_tf_dataset(val_x, dic_val, batch_size,
+            val_dataset, _ = dam.make_tf_dataset(val_x, dic_val, batch_size,
                                               training=True, multi_output=multioutput,
                                               specific_domain=specific_domain)
         else:
@@ -203,7 +202,7 @@ def call_models(name_model, path_dataset, mode='fit', backbones=['resnet101'], g
             path_csv_file_train = os.path.join(path_train_dataset, csv_file_train)
             train_x, dictionary_train = dam.load_data_from_directory(path_train_dataset,
                                                                      csv_annotations=path_csv_file_train,)
-            train_dataset = dam.make_tf_dataset(train_x, dictionary_train, batch_size,
+            train_dataset, num_classes = dam.make_tf_dataset(train_x, dictionary_train, batch_size,
                                                 training=True, multi_output=multioutput,
                                                 specific_domain=specific_domain)
 
@@ -211,7 +210,7 @@ def call_models(name_model, path_dataset, mode='fit', backbones=['resnet101'], g
             path_csv_file_val = os.path.join(path_val_dataset, csv_file_val)
             val_x, dictionary_val = dam.load_data_from_directory(path_val_dataset,
                                                                  csv_annotations=path_csv_file_val,)
-            val_dataset = dam.make_tf_dataset(val_x, dictionary_val, batch_size,
+            val_dataset, _ = dam.make_tf_dataset(val_x, dictionary_val, batch_size,
                                               training=True, multi_output=multioutput,
                                               specific_domain=specific_domain)
 

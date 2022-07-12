@@ -280,7 +280,7 @@ def make_tf_dataset(list_files, dictionary_labels, batch_size, training=False, m
         ds = ds.batch(batch_size)
 
     print(f'TF dataset of {len(path_imgs)} elements')
-    return ds
+    return ds, num_classes
 
 
 def read_image_and_domain(dictionary_info, crop_size=256):
