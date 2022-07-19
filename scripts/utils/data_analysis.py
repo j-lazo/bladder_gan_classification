@@ -409,6 +409,24 @@ def analyze_multiclass_experiment(gt_data_file, predictions_data_dir, plot_figur
     return performance_resume
 
 
+def compute_Mann_Whitney_U_test(data_model_1, data_model_2, metric_list=None):
+    name_1 = list(np.unique(data_model_1['name_model'].tolist()))[-1]
+    name_2 = list(np.unique(data_model_2['name_model'].tolist()))[-1]
+    training_data_used = list(np.unique(data_model_1['training_data_used'].tolist()))
+    print(f'{name_1} vs {name_2}')
+    for metric in metric_list:
+        for training_data in training_data_used:
+            print(f'{metric} trained with {training_data}')
+            df1 = data_model_1.loc[data_model_1['training_data_used'] == training_data]
+            df2 = data_model_2.loc[data_model_2['training_data_used'] == training_data]
+            list_metric_model_1 = df1[metric].tolist()
+            list_metric_model_2 = df2[metric].tolist()
+            result_mwu_test = scipy.stats.mannwhitneyu(list_metric_model_1, list_metric_model_2)
+            print(f'{name_1} : {np.median(list_metric_model_1)} +- {np.std(list_metric_model_1)}')
+            print(f'{name_2} : {np.median(list_metric_model_2)} +- {np.std(list_metric_model_2)}')
+            print(f'stat-significance: {result_mwu_test}')
+
+
 def Mann_Whitney_U_test(metrics_models, metrics, unique_models=None, analysis_type='by_model'):
     if analysis_type == 'by_model':
 
@@ -732,7 +750,7 @@ def boxplot_seaborn(data_frame, x_axis, y_axis, title_plot='', hue=None, order=N
                  "markerfacecolor": "white",
                  "markeredgecolor": "black",
                  "markersize": "10"}
-    fig1 = plt.figure(1, figsize=(15, 9))
+    fig1 = plt.figure(1, figsize=(11, 7))
     fig1.canvas.set_window_title(title_plot)
     fig1.suptitle(title_plot, fontsize=14)
     ax1 = fig1.add_subplot(131)
@@ -748,12 +766,17 @@ def boxplot_seaborn(data_frame, x_axis, y_axis, title_plot='', hue=None, order=N
 
         # When creating the legend, only use the first two elements
         # to effectively remove the last two.
-        l = plt.legend(handles[-2:], labels[-2:], bbox_to_anchor=(0.99, 0.95))
+        ax1.get_legend().remove()
+
+        #l = plt.legend(handles[-2:], labels[-2:], title="Training data used",)
 
     else:
         ax1 = sns.boxplot(x=x_axis, y=y_axis[0], data=data_frame, showmeans=True,
                           meanprops=meanprops, order=order)
         ax1 = sns.swarmplot(x=x_axis, y=y_axis[0], data=data_frame, color=".25", order=order)
+
+    metric = y_axis[0].split(' ')
+    ax1.set_ylabel(metric[0])
     ax1.set_ylim([0, 1.05])
     ax1.title.set_text('ALL')
 
@@ -770,15 +793,16 @@ def boxplot_seaborn(data_frame, x_axis, y_axis, title_plot='', hue=None, order=N
 
         # When creating the legend, only use the first two elements
         # to effectively remove the last two.
-        l = plt.legend(handles[-2:], labels[-2:])
+        #l = plt.legend(handles[-2:], labels[-2:], title="Training data used",)
+        ax2.get_legend().remove()
     else:
         ax2 = sns.boxplot(x=x_axis, y=y_axis[1], data=data_frame, showmeans=True,
                           meanprops=meanprops, order=order)
         ax2 = sns.swarmplot(x=x_axis, y=y_axis[1], data=data_frame, color=".25", order=order)
 
-
     ax2.set_ylim([0, 1.05])
     ax2.title.set_text('WLI')
+    ax2.axes.get_yaxis().set_visible(False)
 
     ax3 = fig1.add_subplot(133)
     if hue:
@@ -793,7 +817,7 @@ def boxplot_seaborn(data_frame, x_axis, y_axis, title_plot='', hue=None, order=N
 
         # When creating the legend, only use the first two elements
         # to effectively remove the last two.
-        l = plt.legend(handles[-2:], labels[-2:])
+        l = plt.legend(handles[-2:], labels[-2:], title="Training data used")
     else:
         ax3 = sns.boxplot(x=x_axis, y=y_axis[2], data=data_frame, showmeans=True,
                           hue=hue, order=order)
@@ -803,7 +827,8 @@ def boxplot_seaborn(data_frame, x_axis, y_axis, title_plot='', hue=None, order=N
 
     ax3.set_ylim([0, 1.05])
     ax3.title.set_text('NBI')
-
+    ax3.axes.get_yaxis().set_visible(False)
+    plt.subplots_adjust(wspace=0, hspace=0)
     plt.show()
 
 

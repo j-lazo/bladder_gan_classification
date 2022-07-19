@@ -520,20 +520,28 @@ def compare_base_models(dir_to_csv=(os.path.join(os.getcwd(), 'results', 'sorted
                                      'backbone GAN': chosen_gan_backbones, 'training_data_used': chosen_trained_data,
                                      }
     test_selection_2 = select_specific_cases(df, dict_test_selection_dict_2)
-    print('TEST 2', test_selection_2)
 
-    selection_densenet.loc[selection_densenet["name_model"] == "densenet121", "name_model"] = 'D121'
-    selection_resnet.loc[selection_resnet["name_model"] == "resnet101", "name_model"] = 'R101'
-    selection_resnet50.loc[selection_resnet50["name_model"] == "resnet50", "name_model"] = 'R50'
-    selection_vgg19.loc[selection_vgg19["name_model"] == "vgg19", "name_model"] = 'VG19'
-    selection_inceptionv3.loc[selection_inceptionv3["name_model"] == "inception_v3", "name_model"] = 'IV3'
-    selection_vgg16.loc[selection_vgg16["name_model"] == "vgg16", "name_model"] = 'VG16'
-    selection_xception.loc[selection_xception["name_model"] == "xception", "name_model"] = 'XC'
-    selection_mobilenet.loc[selection_mobilenet["name_model"] == "mobilenet", "name_model"] = 'MN'
+    selection_vgg19.loc[selection_vgg19["name_model"] == "vgg19", "name_model"] = 'A'
+    selection_vgg16.loc[selection_vgg16["name_model"] == "vgg16", "name_model"] = 'B'
+    selection_inceptionv3.loc[selection_inceptionv3["name_model"] == "inception_v3", "name_model"] = 'C'
+    selection_xception.loc[selection_xception["name_model"] == "xception", "name_model"] = 'DX'
+    selection_mobilenet.loc[selection_mobilenet["name_model"] == "mobilenet", "name_model"] = 'D'
+    selection_densenet.loc[selection_densenet["name_model"] == "densenet121", "name_model"] = 'E'
+    selection_resnet.loc[selection_resnet["name_model"] == "resnet101", "name_model"] = 'F'
+    selection_resnet50.loc[selection_resnet50["name_model"] == "resnet50", "name_model"] = 'G'
+    selection_proposed.loc[selection_proposed["name_model"] == "gan_model_separate_features", "name_model"] = 'H'
+
+    test_selection_2.loc[test_selection_2["name_model"] == "gan_model_separate_features", "name_model"] = 'K'
+
+
     test_selection.loc[test_selection["name_model"] == "gan_model_separate_features", "name_model"] = 'R50+'
-    selection_proposed.loc[selection_proposed["name_model"] == "gan_model_separate_features", "name_model"] = 'R101+'
-    test_selection_2.loc[test_selection_2["name_model"] == "gan_model_separate_features", "name_model"] = 'MN+'
 
+    metrics_box = ['ALL', 'WLI', 'NBI']
+    metrics_box = [''.join([metric_analysis, ' ', m]) for m in metrics_box]
+
+    daa.compute_Mann_Whitney_U_test(selection_resnet, selection_proposed, metric_list=metrics_box)
+    daa.compute_Mann_Whitney_U_test(selection_resnet50, test_selection, metric_list=metrics_box)
+    daa.compute_Mann_Whitney_U_test(selection_resnet, test_selection, metric_list=metrics_box)
 
     selection = pd.concat([selection_vgg19,
                            selection_vgg16,
@@ -542,12 +550,10 @@ def compare_base_models(dir_to_csv=(os.path.join(os.getcwd(), 'results', 'sorted
                            selection_densenet,
                            selection_resnet50,
                            selection_resnet,
-                           test_selection,
                            selection_proposed,
                            ])
 
-    metrics_box = ['ALL', 'WLI', 'NBI']
-    metrics_box = [''.join([metric_analysis, ' ', m]) for m in metrics_box]
+
 
     x_axis = 'name_model'
     y_axis = metrics_box
@@ -637,7 +643,7 @@ def compute_metrics_boxplots(dir_to_csv=(os.path.join(os.getcwd(), 'results', 's
     print('SELECTION')
     print(selection)
     # 'Accuracy', 'Precision', 'Recall', 'F-1' 'Matthews CC'
-    metric_analysis = 'Accuracy'
+    metric_analysis = 'Matthews CC'
     metrics_box = ['ALL', 'WLI', 'NBI']
     metrics_box = [''.join([metric_analysis, ' ', m]) for m in metrics_box]
 
