@@ -485,7 +485,6 @@ def box_plot_matplotlib(dataframe, title='', y_label='', computer_stat_sig=True,
                         analysis_type='by_model'):
     # Generate some random indices that we'll use to resample the original data
     # arrays. For code brevity, just use the same random indices for each array
-    print(dataframe)
 
     if not metrics:
         metrics = list(dataframe.columns.values)
@@ -612,6 +611,81 @@ def box_plot_matplotlib(dataframe, title='', y_label='', computer_stat_sig=True,
              weight='roman', size='large')
     fig.text(0.115, 0.05, 'Average Value', color='black', weight='roman',
              size='large')
+    plt.show()
+
+
+def boxplot_users_experiment(data_dictionary):
+    data = [data_dictionary[x] for x in data_dictionary]
+    labels = data_dictionary.keys()
+    fig, ax1 = plt.subplots(figsize=(15, 9))
+    fig.canvas.set_window_title('Boxplot Comparison')
+    fig.subplots_adjust(left=0.075, right=0.95, top=0.85, bottom=0.25)
+
+    bp = ax1.boxplot(data, notch=0, sym='+', vert=1, whis=1.5)
+    plt.setp(bp['boxes'], color='black')
+    plt.setp(bp['whiskers'], color='black')
+    plt.setp(bp['fliers'], color='red', marker='+')
+
+    # Add a horizontal grid to the plot, but make it very light in color
+    # so we can use it for reading data values but not be distracting
+    ax1.yaxis.grid(True, linestyle='-', which='major', color='lightgrey',
+                   alpha=0.5)
+    # Hide these grid behind plot objects
+    ax1.set_axisbelow(True)
+    # ax1.set_title(Title)
+    # ax1.set_xlabel('Model')
+    y_label = ''
+    ax1.set_ylabel(y_label, fontsize=15)
+
+    # Now fill the boxes with desired colors
+    # box_colors = ['darkkhaki', 'royalblue']
+    box_colors = ['royalblue', 'darkorange']
+    num_boxes = len(data)
+    medians = np.empty(num_boxes)
+    averages = np.empty(num_boxes)
+    for i in range(num_boxes):
+        box = bp['boxes'][i]
+        boxX = []
+        boxY = []
+        for j in range(5):
+            boxX.append(box.get_xdata()[j])
+            boxY.append(box.get_ydata()[j])
+        box_coords = np.column_stack([boxX, boxY])
+        # Alternate between Dark Khaki and Royal Blue
+        ax1.add_patch(Polygon(box_coords, facecolor=box_colors[i % 2]))
+        # Now draw the median lines back over what we just filled in
+        med = bp['medians'][i]
+        medianX = []
+        medianY = []
+        for j in range(2):
+            medianX.append(med.get_xdata()[j])
+            medianY.append(med.get_ydata()[j])
+            ax1.plot(medianX, medianY, 'k')
+        medians[i] = medianY[0]
+        averages[i] = np.average(data[i])
+        # Finally, overplot the sample averages, with horizontal alignment
+        # in the center of each box
+        ax1.plot(np.average(med.get_xdata()), np.average(data[i]),
+                 color='w', marker='*', markeredgecolor='k')
+
+    # Set the axes ranges and axes labels
+    ax1.set_xlim(0.5, num_boxes + 0.5)
+    top = 1.1
+    bottom = -0.1
+    ax1.set_ylim(bottom, top)
+
+    ax1.set_xticklabels(labels, fontsize=15, weight='bold')
+
+    pos = np.arange(num_boxes) + 1
+    upper_labels = [str(round(s, 2)) for s in medians]
+    weights = ['bold', 'semibold', 'semibold']
+    for tick, label in zip(range(num_boxes), ax1.get_xticklabels()):
+        k = tick % 2
+        ax1.text(pos[tick], 0.95, upper_labels[tick],
+                 transform=ax1.get_xaxis_transform(),
+                 horizontalalignment='center', size='large',
+                 weight=weights[k], color=box_colors[k])
+
     plt.show()
 
 

@@ -1,5 +1,4 @@
 import shutil
-
 from absl import app, flags
 from absl.flags import FLAGS
 import os
@@ -8,6 +7,17 @@ import numpy as np
 import pandas as pd
 from utils import data_analysis as daa
 from utils.data_management import file_management as fam
+from matplotlib import pyplot as plt
+from sklearn.metrics import recall_score
+from sklearn.metrics import accuracy_score
+from sklearn.metrics import precision_score
+from sklearn.metrics import confusion_matrix
+from sklearn.metrics import cohen_kappa_score
+from sklearn.metrics import matthews_corrcoef
+from sklearn.metrics import f1_score
+from sklearn.metrics import roc_auc_score
+from sklearn.metrics import roc_curve
+import scipy
 
 
 def compute_metrics_batch_experiments(dir_experiment_files, dir_output_csv_file_dir = os.getcwd(),
@@ -290,6 +300,12 @@ def compare_models_boxplots(dir_to_csv=(os.path.join(os.getcwd(), 'results', 'so
                                    }
     selection_densenet = select_specific_cases(df, dictionary_selection_densenet)
 
+    dictionary_selection_resnet50 = {'name_model': ['resnet50'], 'learning_rate': chosen_learning_rates,
+                                     'batch_size': chosen_batch_sizes, 'dataset': chosen_dataset,
+                                     'backbone GAN': chosen_gan_backbones, 'training_data_used': chosen_trained_data,
+                                     }
+    selection_resnet50 = select_specific_cases(df, dictionary_selection_resnet50)
+
     dictionary_selection_prop = {'name_model': ['gan_model_separate_features'], 'learning_rate': chosen_learning_rates,
                             'batch_size': chosen_batch_sizes, 'dataset': chosen_dataset,
                             'backbone GAN': ['not_complete_wli2nbi'], 'training_data_used': chosen_trained_data,
@@ -392,9 +408,10 @@ def compare_models_boxplots(dir_to_csv=(os.path.join(os.getcwd(), 'results', 'so
     selection_only_gan_separate_features.loc[selection_only_gan_separate_features["name_model"] == "only_gan_separate_features", "name_model"] = 'I'
     select_only_gan_and_domain.loc[select_only_gan_and_domain["name_model"] == "only_gan_model_joint_features_and_domain", "name_model"] = 'J'
     select_simple_separation_gan_v3.loc[select_simple_separation_gan_v3["name_model"] == "simple_separation_gan_v3", "name_model"] = 'X'
+    selection_resnet50.loc[selection_resnet50["name_model"] == "resnet50", "name_model"] = '50'
 
-
-    selection = pd.concat([#selection_densenet,
+    selection = pd.concat([selection_densenet,
+                           selection_resnet50,
                            selection_resnet,
                            selection_proposed,
                            select_simple_separation_gan_v3,])
@@ -407,6 +424,127 @@ def compare_models_boxplots(dir_to_csv=(os.path.join(os.getcwd(), 'results', 'so
                            #select_only_gan_and_domain,
                            #])
 
+
+    metrics_box = ['ALL', 'WLI', 'NBI']
+    metrics_box = [''.join([metric_analysis, ' ', m]) for m in metrics_box]
+
+    x_axis = 'name_model'
+    y_axis = metrics_box
+    title_plot = 'Comparison base models'  # name_model.replace('_', ' ')
+    # daa.calculate_p_values(selection, x_axis, y_axis, selected_models)
+    daa.boxplot_seaborn(selection, x_axis, y_axis, title_plot=title_plot, hue='training_data_used')
+
+
+def compare_base_models(dir_to_csv=(os.path.join(os.getcwd(), 'results', 'sorted_experiments_information.csv')),
+                             metrics='all', exclusion_criteria=None):
+    # 'Accuracy', 'Precision', 'Recall', 'F-1' 'Matthews CC'
+    metric_analysis = 'Accuracy'
+    df = pd.read_csv(dir_to_csv)
+    # chosen criteria
+    chosen_learning_rates = [0.00001]
+    chosen_batch_sizes = [32]
+    chosen_dataset = ['bladder_tissue_classification_v3']
+                      #'bladder_tissue_classification_v3_augmented',
+                      #'bladder_tissue_classification_v3_gan_new',]
+
+    chosen_trained_data = ['WLI', 'ALL']
+    dates_selection = ['21-06-2022', '22-06-2022']
+
+    chosen_gan_backbones = ['not_complete_wli2nbi', '', '', 'NaN', np.nan,]
+                            #'not_complete_wli2nbi', 'checkpoint_charlie', 'general_wli2nbi',
+                            #'temp_not_complete_wli2nbi_ssim']
+
+    dictionary_selection_resnet = {'name_model': ['resnet101'], 'learning_rate': chosen_learning_rates,
+                            'batch_size': chosen_batch_sizes, 'dataset': chosen_dataset,
+                            'backbone GAN': chosen_gan_backbones, 'training_data_used': chosen_trained_data,
+                            'date': ['20-06-2022']}
+    selection_resnet = select_specific_cases(df, dictionary_selection_resnet)
+
+    dictionary_selection_densenet = {'name_model': ['densenet121'], 'learning_rate': chosen_learning_rates,
+                                   'batch_size': chosen_batch_sizes, 'dataset': chosen_dataset,
+                                   'backbone GAN': chosen_gan_backbones, 'training_data_used': chosen_trained_data,
+                                   }
+    selection_densenet = select_specific_cases(df, dictionary_selection_densenet)
+
+    dictionary_selection_resnet50 = {'name_model': ['resnet50'], 'learning_rate': chosen_learning_rates,
+                                     'batch_size': chosen_batch_sizes, 'dataset': chosen_dataset,
+                                     'backbone GAN': chosen_gan_backbones, 'training_data_used': chosen_trained_data,
+                                     }
+    selection_resnet50 = select_specific_cases(df, dictionary_selection_resnet50)
+
+    dictionary_selection_prop = {'name_model': ['gan_model_separate_features'], 'learning_rate': chosen_learning_rates,
+                            'batch_size': chosen_batch_sizes, 'dataset': chosen_dataset, 'backbones': ['resnet101_'],
+                            'backbone GAN': ['not_complete_wli2nbi'], 'training_data_used': chosen_trained_data,
+                            'date':['21-06-2022', '22-06-2022'],
+                            #'date':['06-07-2022', '05-07-2022', '08-07-2022'], # '21-06-2022', '22-06-2022']
+                                 }
+    selection_proposed = select_specific_cases(df, dictionary_selection_prop)
+
+    dictionary_selection_vgg19 = {'name_model': ['vgg19'], 'learning_rate': chosen_learning_rates,
+                                     'batch_size': chosen_batch_sizes, 'dataset': chosen_dataset,
+                                     'backbone GAN': chosen_gan_backbones, 'training_data_used': chosen_trained_data,
+                                     }
+    selection_vgg19 = select_specific_cases(df, dictionary_selection_vgg19)
+
+    dictionary_selection_vgg16 = {'name_model': ['vgg16'], 'learning_rate': chosen_learning_rates,
+                                  'batch_size': chosen_batch_sizes, 'dataset': chosen_dataset,
+                                  'backbone GAN': chosen_gan_backbones, 'training_data_used': chosen_trained_data,
+                                  }
+    selection_vgg16 = select_specific_cases(df, dictionary_selection_vgg16)
+
+    dictionary_selection_inceptionv3 = {'name_model': ['inception_v3'], 'learning_rate': chosen_learning_rates,
+                                  'batch_size': chosen_batch_sizes, 'dataset': chosen_dataset,
+                                  'backbone GAN': chosen_gan_backbones, 'training_data_used': chosen_trained_data,
+                                  }
+    selection_inceptionv3 = select_specific_cases(df, dictionary_selection_inceptionv3)
+
+    dictionary_selection_xception = {'name_model': ['xception'], 'learning_rate': chosen_learning_rates,
+                                        'batch_size': chosen_batch_sizes, 'dataset': chosen_dataset,
+                                        'backbone GAN': chosen_gan_backbones, 'training_data_used': chosen_trained_data,
+                                        }
+    selection_xception = select_specific_cases(df, dictionary_selection_xception)
+
+    dictionary_selection_mobilenet = {'name_model': ['mobilenet'], 'learning_rate': chosen_learning_rates,
+                                     'batch_size': chosen_batch_sizes, 'dataset': chosen_dataset,
+                                     'backbone GAN': chosen_gan_backbones, 'training_data_used': chosen_trained_data,
+                                     }
+    selection_mobilenet = select_specific_cases(df, dictionary_selection_mobilenet)
+    test_selection_dict = {'name_model': ['gan_model_separate_features'], 'learning_rate': chosen_learning_rates,
+                                     'batch_size': chosen_batch_sizes, 'dataset': chosen_dataset, 'backbones': ['resnet50_'],
+                                     'backbone GAN': chosen_gan_backbones, 'training_data_used': chosen_trained_data,
+                                     }
+    test_selection = select_specific_cases(df, test_selection_dict)
+
+    dict_test_selection_dict_2 = {'name_model': ['gan_model_separate_features'], 'learning_rate': chosen_learning_rates,
+                                     'batch_size': chosen_batch_sizes, 'dataset': chosen_dataset, 'backbones': ['mobilenet_'],
+                                     'backbone GAN': chosen_gan_backbones, 'training_data_used': chosen_trained_data,
+                                     }
+    test_selection_2 = select_specific_cases(df, dict_test_selection_dict_2)
+    print('TEST 2', test_selection_2)
+
+    selection_densenet.loc[selection_densenet["name_model"] == "densenet121", "name_model"] = 'D121'
+    selection_resnet.loc[selection_resnet["name_model"] == "resnet101", "name_model"] = 'R101'
+    selection_resnet50.loc[selection_resnet50["name_model"] == "resnet50", "name_model"] = 'R50'
+    selection_vgg19.loc[selection_vgg19["name_model"] == "vgg19", "name_model"] = 'VG19'
+    selection_inceptionv3.loc[selection_inceptionv3["name_model"] == "inception_v3", "name_model"] = 'IV3'
+    selection_vgg16.loc[selection_vgg16["name_model"] == "vgg16", "name_model"] = 'VG16'
+    selection_xception.loc[selection_xception["name_model"] == "xception", "name_model"] = 'XC'
+    selection_mobilenet.loc[selection_mobilenet["name_model"] == "mobilenet", "name_model"] = 'MN'
+    test_selection.loc[test_selection["name_model"] == "gan_model_separate_features", "name_model"] = 'R50+'
+    selection_proposed.loc[selection_proposed["name_model"] == "gan_model_separate_features", "name_model"] = 'R101+'
+    test_selection_2.loc[test_selection_2["name_model"] == "gan_model_separate_features", "name_model"] = 'MN+'
+
+
+    selection = pd.concat([selection_vgg19,
+                           selection_vgg16,
+                           selection_inceptionv3,
+                           selection_mobilenet,
+                           selection_densenet,
+                           selection_resnet50,
+                           selection_resnet,
+                           test_selection,
+                           selection_proposed,
+                           ])
 
     metrics_box = ['ALL', 'WLI', 'NBI']
     metrics_box = [''.join([metric_analysis, ' ', m]) for m in metrics_box]
@@ -605,7 +743,7 @@ def prepare_data(dir_dataset, destination_directory=os.path.join(os.getcwd(), 'd
                     index_image = list_images.index(image)
                     origin_dir = os.path.join(sub_dirs_case, image)
                     destination_dir = os.path.join(destination_directory, list_tissues[index_image], image)
-                    shutil.copyfile(origisen_dir, destination_dir)
+                    shutil.copyfile(origin_dir, destination_dir)
 
     # merge df
     resulting_df = pd.concat(list_df)
@@ -661,6 +799,202 @@ def analyze_composition_dataset(dir_dataset):
         print(domain_cases)
 
 
+def analyse_img_quality_experiment(df_real_vals, df_results, plot_rock=False):
+
+    real_vals = list()
+    acc_list = list()
+    prec_list = list()
+    rec_list = list()
+    auc_list = list()
+    question_num = df_real_vals['Question'].tolist()
+    type_class = df_real_vals['REAL CLASS'].tolist()
+    keys_of_interest = list(range(1, 20))
+
+    for j, num in enumerate(question_num):
+        if not np.isnan(num):
+            if int(num) in keys_of_interest:
+                real_vals.append(int(type_class[j]))
+
+    real_vals = [f - 1 for f in real_vals]
+    keys_of_interest = ['Q'+str(j)+'.' for j in keys_of_interest]
+
+    for j in range(len(df_results['Timestamp'].tolist())):
+        list_results = list()
+        case_dict = df_results.iloc[j].to_dict()
+        new_dict = {k.replace(' ', ''):v for k,v in case_dict.items()}
+        new_dict = {k.replace('Pleaseselecttheimagethatlooksmorerealistic', ''):v for k, v in new_dict.items()}
+        new_dict = {k.replace('Pleasechoosethecategorythattheimagescorrespondto.', ''): v for k, v in new_dict.items()}
+        for key in keys_of_interest:
+            list_results.append(int(new_dict[key].replace('Option ', '')))
+
+        list_results = [f - 1 for f in list_results]
+        acc = accuracy_score(real_vals, list_results)
+        prec = precision_score(real_vals, list_results)
+        rec = recall_score(real_vals, list_results)
+
+        fpr, tpr, _ = roc_curve(real_vals, list_results)
+        auc = roc_auc_score(real_vals, list_results)
+
+        acc_list.append(acc)
+        prec_list.append(prec)
+        rec_list.append(rec)
+        auc_list.append(auc)
+
+        print(f'acc: {acc}, prec: {prec}, rec:{rec}, AUC: {auc}')
+        if plot_rock is True:
+            plt.figure()
+            plt.plot(fpr, tpr, color="darkorange", label="ROC curve (area = %0.2f)" % auc,)
+            plt.plot([0, 1], [0, 1], color="navy",  linestyle="--")
+            plt.xlabel("False Positive Rate")
+            plt.ylabel("True Positive Rate")
+            plt.title("Receiver operating characteristic example")
+            plt.legend(loc='best')
+            plt.show()
+
+    print(f'Median Acc: {np.median(acc_list)} +- {np.std(acc_list)}')
+    print(f'Median Prec: {np.median(prec_list)} +- {np.std(prec_list)}')
+    print(f'Median Rec: {np.median(rec_list)} +- {np.std(rec_list)}')
+    print(f'Median AUC: {np.median(auc_list)} +- {np.std(auc_list)}')
+
+
+def analyze_diagnosis_experiment(df_real_vals, df_results):
+
+    dict_names = {'Low Grade': 'LGC',
+                  'Non-Tumor Lesion': 'NTL',
+                  'Non-Suspicious Tissue': 'HLT',
+                  'High Grade': 'HGC'}
+
+    list_acc_base = list()
+    list_prec_base = list()
+    list_rec_base = list()
+    list_f1_base = list()
+    list_mathews_base = list()
+    list_acc_prop = list()
+    list_prec_prop = list()
+    list_rec_prop = list()
+    list_f1_prop = list()
+    list_mathews_prop = list()
+
+    real_vals = list()
+    diagnosis_type = list()
+    keys_of_interest = list(range(21, 60))
+    question_num = df_real_vals['Question'].tolist()
+    type_class = df_real_vals['REAL CLASS'].tolist()
+    data_type = df_real_vals['Type'].tolist()
+
+    for j, num in enumerate(question_num):
+        if not np.isnan(num):
+            if int(num) in keys_of_interest:
+                real_vals.append(type_class[j])
+                diagnosis_type.append(data_type[j])
+
+    unique_vals = list(np.unique(real_vals))
+    real_vals = [unique_vals.index(x) for x in real_vals]
+    real_vals_prop = [x for j, x in enumerate(real_vals) if diagnosis_type[j] == 'mixed']
+    real_vals_base = [x for j, x in enumerate(real_vals) if diagnosis_type[j] == 'temporal frame']
+
+    keys_of_interest = ['Q'+str(j)+'.' for j in keys_of_interest]
+
+    for j in range(len(df_results['Timestamp'].tolist())):
+        list_results_base = list()
+        list_results_proposed = list()
+        case_dict = df_results.iloc[j].to_dict()
+        new_dict = {k.replace(' ', ''):v for k, v in case_dict.items()}
+        new_dict = {k.replace('Pleaseselecttheimagethatlooksmorerealistic', ''):v for k, v in new_dict.items()}
+        new_dict = {k.replace('Pleasechoosethecategorythattheimagescorrespondto.', ''): v for k, v in new_dict.items()}
+        new_dict = {k.replace('Pleasechoosethecategorythatyouthinktheimagesbelongsto.', ''): v for k, v in new_dict.items()}
+
+        for j, key in enumerate(keys_of_interest):
+            if diagnosis_type[j] == 'temporal frame':
+                list_results_base.append(dict_names[new_dict[key]])
+            elif diagnosis_type[j] == 'mixed':
+                list_results_proposed.append(dict_names[new_dict[key]])
+
+        list_results_base = [unique_vals.index(x) for x in list_results_base]
+        list_results_proposed = [unique_vals.index(x) for x in list_results_proposed]
+
+        acc_base = accuracy_score(list_results_base, real_vals_base)
+        acc_prop = accuracy_score(list_results_proposed, real_vals_prop)
+
+        prec_base = precision_score(list_results_base, real_vals_base, average='macro', zero_division=1)
+        prec_prop = precision_score(list_results_proposed, real_vals_prop, average='macro', zero_division=1)
+
+        rec_base = recall_score(list_results_base, real_vals_base, average='macro', zero_division=1)
+        rec_prop = recall_score(list_results_proposed, real_vals_prop, average='macro', zero_division=1)
+
+        f1_base = f1_score(list_results_base, real_vals_base, average='macro', zero_division=1)
+        f1_prop = f1_score(list_results_proposed, real_vals_prop, average='macro', zero_division=1)
+
+        mathews_base = matthews_corrcoef(list_results_base, real_vals_base)
+        mathews_prop = matthews_corrcoef(list_results_proposed, real_vals_prop)
+
+        print(f'acc base: {acc_base}, acc prop: {acc_prop}')
+        print(f'prec base: {prec_base}, prec prop: {prec_prop}')
+        print(f'rec base: {rec_base}, rec prop: {rec_prop}')
+        print(f'f1 base: {f1_base}, f1 prop: {f1_prop}')
+        print(f'Mathews CC base: {mathews_base}, Mathews CC prop: {mathews_prop}')
+
+        list_acc_base.append(acc_base)
+        list_prec_base.append(prec_base)
+        list_rec_base.append(rec_base)
+        list_f1_base.append(f1_base)
+        list_mathews_base.append(mathews_base)
+
+        list_acc_prop.append(acc_prop)
+        list_prec_prop.append(prec_prop)
+        list_rec_prop.append(rec_prop)
+        list_f1_prop.append(f1_prop)
+        list_mathews_prop.append(mathews_prop)
+
+    print(f'Median acc base: {np.median(list_acc_base)} +- {np.std(list_acc_base)}, '
+          f'median acc prop : {np.median(list_acc_prop)} +- {np.std(list_acc_prop)} '
+          f' Mann-Whitney U test{scipy.stats.mannwhitneyu(list_acc_base, list_acc_prop)}')
+
+    print(f'Median prec base: {np.median(list_prec_base)} +- {np.std(list_prec_base)}, '
+          f'median prec prop : {np.median(list_prec_prop)} +- {np.std(list_prec_prop)}'
+          f'Mann-Whitney U test{scipy.stats.mannwhitneyu(list_prec_base, list_prec_prop)}')
+
+    print(f'Median rec base: {np.median(list_rec_base)} +- {np.std(list_rec_base)}, '
+          f'median rec prop : {np.median(list_rec_prop)} +- {np.std(list_rec_prop)}'
+          f'Mann-Whitney U test{scipy.stats.mannwhitneyu(list_rec_base, list_rec_prop)}')
+
+    print(f'Median f-1 base: {np.median(list_f1_base)} +- {np.std(list_f1_base)}, '
+          f'median f-1 prop : {np.median(list_f1_prop)} +- {np.std(list_f1_prop)}'
+          f'Mann-Whitney U test{scipy.stats.mannwhitneyu(list_f1_base, list_f1_prop)}')
+
+    print(f'Median Matthews CC base: {np.median(list_mathews_base)} +- {np.std(list_mathews_base)}, '
+          f'median Matthews CC prop : {np.median(list_mathews_prop)} +- {np.std(list_mathews_prop)}'
+          f'Mann-Whitney U test{scipy.stats.mannwhitneyu(list_mathews_base, list_mathews_prop)}')
+
+    dictionary_results = {'acc base': list_acc_base, 'acc proposed': list_acc_prop,
+                          'prec base': list_prec_base, 'prec porposed': list_prec_prop,
+                          'rec base': list_rec_base, 'rec proposed': list_rec_prop,
+                          'f-1 base': list_f1_base, 'f-1 proposed': list_f1_prop,
+                          'mathews CC base': list_mathews_base, 'mathews CC prop': list_mathews_prop}
+
+    daa.boxplot_users_experiment(dictionary_results)
+
+
+def analyse_urs_experiments(base_path_dir=None):
+    if not base_path_dir:
+        base_path_dir = os.path.join(os.getcwd(), 'results')
+        path_dir_files = os.path.join(base_path_dir, 'usrs_experiments')
+
+    path_dir_files = os.path.normpath(path_dir_files)
+    list_files = [f for f in os.listdir(path_dir_files) if os.path.isfile(os.path.join(path_dir_files, f))]
+    result_file = [f for f in list_files if 'results' in f].pop()
+    real_vals_file = [f for f in list_files if 'real_values' in f].pop()
+
+    dir_results_file = os.path.join(path_dir_files, result_file)
+    dir_vals_file = os.path.join(path_dir_files, real_vals_file)
+
+    df_real_vals = pd.read_csv(dir_vals_file)
+    df_results = pd.read_csv(dir_results_file)
+
+    analyse_img_quality_experiment(df_real_vals, df_results)
+    analyze_diagnosis_experiment(df_real_vals, df_results)
+
+
 def main(_argv):
 
     type_of_analysis = FLAGS.type_of_analysis
@@ -683,8 +1017,12 @@ def main(_argv):
             compare_gans_boxplots()
         elif type_of_analysis == 'compare_dataset_boxplots':
             compare_dataset_boxplots()
+        elif type_of_analysis == 'compare_base_models':
+            compare_base_models()
         elif type_of_analysis == 'prepare_data':
             prepare_data(directory_to_analyze)
+        elif type_of_analysis == 'analyse_urs_experiments':
+            analyse_urs_experiments()
 
 
 if __name__ == '__main__':
