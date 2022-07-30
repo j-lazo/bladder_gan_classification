@@ -272,7 +272,7 @@ def compare_dataset_boxplots(dir_to_csv=(os.path.join(os.getcwd(), 'results', 's
 def compare_models_boxplots(dir_to_csv=(os.path.join(os.getcwd(), 'results', 'sorted_experiments_information.csv')),
                              metrics='all', exclusion_criteria=None):
     # 'Accuracy', 'Precision', 'Recall', 'F-1' 'Matthews CC'
-    metric_analysis = 'Accuracy'
+    metric_analysis = 'Matthews CC'
     df = pd.read_csv(dir_to_csv)
     # chosen criteria
     chosen_learning_rates = [0.00001]
@@ -309,7 +309,7 @@ def compare_models_boxplots(dir_to_csv=(os.path.join(os.getcwd(), 'results', 'so
     dictionary_selection_prop = {'name_model': ['gan_model_separate_features'], 'learning_rate': chosen_learning_rates,
                             'batch_size': chosen_batch_sizes, 'dataset': chosen_dataset,
                             'backbone GAN': ['not_complete_wli2nbi'], 'training_data_used': chosen_trained_data,
-                            #'date':['21-06-2022', '22-06-2022'],#['06-07-2022', '05-07-2022', '08-07-2022'], # '21-06-2022', '22-06-2022']
+                            'date':['21-06-2022', '22-06-2022'],#['06-07-2022', '05-07-2022', '08-07-2022'], # '21-06-2022', '22-06-2022']
                                  }
     selection_proposed = select_specific_cases(df, dictionary_selection_prop)
 
@@ -397,36 +397,44 @@ def compare_models_boxplots(dir_to_csv=(os.path.join(os.getcwd(), 'results', 'so
                                        }
     select_simple_separation_gan_v3 = select_specific_cases(df, dict_simple_separation_gan_v3)
 
-    selection_densenet.loc[selection_densenet["name_model"] == "densenet121", "name_model"] = 'A'
-    selection_resnet.loc[selection_resnet["name_model"] == "resnet101", "name_model"] = 'B'
-    selection_proposed.loc[selection_proposed["name_model"] == "gan_model_separate_features", "name_model"] = 'C'
-    selection_simple_backbone_model.loc[selection_simple_backbone_model["name_model"] == "simple_model_with_backbones", "name_model"] = 'D'
-    selection_simple_separation_model.loc[selection_simple_separation_model["name_model"] == "simple_separation_model", "name_model"] = 'E'
-    selection_separat_v3.loc[selection_separat_v3["name_model"] == "gan_model_separate_features_v3", "name_model"] = 'F'
-    selection_separat_v4.loc[selection_separat_v4["name_model"] == "gan_separate_features_and_domain_v4", "name_model"] = 'G'
-    selection_separat_v5.loc[selection_separat_v5["name_model"] == "gan_separate_features_and_domain_v5", "name_model"] = 'H'
-    selection_only_gan_separate_features.loc[selection_only_gan_separate_features["name_model"] == "only_gan_separate_features", "name_model"] = 'I'
-    select_only_gan_and_domain.loc[select_only_gan_and_domain["name_model"] == "only_gan_model_joint_features_and_domain", "name_model"] = 'J'
-    select_simple_separation_gan_v3.loc[select_simple_separation_gan_v3["name_model"] == "simple_separation_gan_v3", "name_model"] = 'X'
-    selection_resnet50.loc[selection_resnet50["name_model"] == "resnet50", "name_model"] = '50'
-
-    selection = pd.concat([selection_densenet,
-                           selection_resnet50,
-                           selection_resnet,
-                           selection_proposed,
-                           select_simple_separation_gan_v3,])
-                           #selection_simple_backbone_model,
-                           #selection_simple_separation_model,
-                           #selection_separat_v3,
-                           #selection_separat_v4,
-                           #selection_separat_v5,
-                           #selection_only_gan_separate_features,
-                           #select_only_gan_and_domain,
-                           #])
-
-
     metrics_box = ['ALL', 'WLI', 'NBI']
     metrics_box = [''.join([metric_analysis, ' ', m]) for m in metrics_box]
+
+    daa.compute_Mann_Whitney_U_test(selection_resnet50, selection_proposed, metric_list=metrics_box)
+    daa.compute_Mann_Whitney_U_test(selection_resnet, selection_proposed, metric_list=metrics_box)
+
+
+    selection_densenet.loc[selection_densenet["name_model"] == "densenet121", "name_model"] = 'ASDASD'
+    selection_resnet50.loc[selection_resnet50["name_model"] == "resnet50", "name_model"] = 'A'
+    selection_resnet.loc[selection_resnet["name_model"] == "resnet101", "name_model"] = 'B'
+    selection_simple_backbone_model.loc[selection_simple_backbone_model["name_model"] == "simple_model_with_backbones", "name_model"] = 'C'
+    selection_simple_separation_model.loc[selection_simple_separation_model["name_model"] == "simple_separation_model", "name_model"] = 'D'
+    #selection_separat_v4.loc[selection_separat_v4["name_model"] == "gan_separate_features_and_domain_v4", "name_model"] = 'F'
+    #selection_separat_v5.loc[selection_separat_v5["name_model"] == "gan_separate_features_and_domain_v5", "name_model"] = 'G'
+    selection_only_gan_separate_features.loc[selection_only_gan_separate_features["name_model"] == "only_gan_separate_features", "name_model"] = 'E'
+    select_only_gan_and_domain.loc[select_only_gan_and_domain["name_model"] == "only_gan_model_joint_features_and_domain", "name_model"] = 'F'
+    select_simple_separation_gan_v3.loc[select_simple_separation_gan_v3["name_model"] == "simple_separation_gan_v3", "name_model"] = 'G'
+    selection_separat_v3.loc[selection_separat_v3["name_model"] == "gan_model_separate_features_v3", "name_model"] = 'H'
+
+    selection_proposed.loc[selection_proposed["name_model"] == "gan_model_separate_features", "name_model"] = 'I'
+
+
+    selection = pd.concat([
+                           selection_resnet50,
+                           selection_resnet,
+        selection_simple_backbone_model,
+        selection_simple_separation_model,
+        selection_only_gan_separate_features,
+
+        select_only_gan_and_domain,
+                           select_simple_separation_gan_v3,
+        selection_separat_v3,
+
+        selection_proposed,
+    ])
+
+
+
 
     x_axis = 'name_model'
     y_axis = metrics_box
@@ -699,8 +707,6 @@ def select_specific_cases(data_frame, dictionary_selection):
     for k in new_dict:
         result_df = result_df[result_df[k].isin(new_dict[k])]
 
-    print('RESULT')
-    print(result_df)
     return result_df
 
 
@@ -808,59 +814,127 @@ def analyze_composition_dataset(dir_dataset):
 def analyse_img_quality_experiment(df_real_vals, df_results, plot_rock=False):
 
     real_vals = list()
+    real_conv2nbi = list()
+    real_conv2wli = list()
+
     acc_list = list()
     prec_list = list()
     rec_list = list()
     auc_list = list()
+
+    acc_list_2nbi = list()
+    prec_list_2nbi = list()
+    rec_list_2nbi = list()
+    auc_list_2nbi = list()
+
+    acc_list_2wli = list()
+    prec_list_2wli = list()
+    rec_list_2wli = list()
+    auc_list_2wli = list()
+
     question_num = df_real_vals['Question'].tolist()
     type_class = df_real_vals['REAL CLASS'].tolist()
+    conversion_type = df_real_vals['conversion type'].tolist()
     keys_of_interest = list(range(1, 20))
 
     for j, num in enumerate(question_num):
         if not np.isnan(num):
             if int(num) in keys_of_interest:
                 real_vals.append(int(type_class[j]))
+                if conversion_type[j] == 'NBI2WLI':
+                    real_conv2wli.append(int(type_class[j]) - 1)
+                elif conversion_type[j] == 'WLI2NBI':
+                    real_conv2nbi.append(int(type_class[j]) - 1)
 
     real_vals = [f - 1 for f in real_vals]
     keys_of_interest = ['Q'+str(j)+'.' for j in keys_of_interest]
 
     for j in range(len(df_results['Timestamp'].tolist())):
         list_results = list()
+        list_conv2nbi_results = list()
+        list_conv2wli_results = list()
         case_dict = df_results.iloc[j].to_dict()
         new_dict = {k.replace(' ', ''):v for k,v in case_dict.items()}
         new_dict = {k.replace('Pleaseselecttheimagethatlooksmorerealistic', ''):v for k, v in new_dict.items()}
         new_dict = {k.replace('Pleasechoosethecategorythattheimagescorrespondto.', ''): v for k, v in new_dict.items()}
         for key in keys_of_interest:
+            question_num = key.replace('Q', '')
+            question_num = int(question_num.replace('.', ''))
             list_results.append(int(new_dict[key].replace('Option ', '')))
+            selected_case = df_real_vals.iloc[question_num]
+            if selected_case['conversion type'] == 'WLI2NBI':
+                list_conv2nbi_results.append(int(new_dict[key].replace('Option ', '')) -1)
+            elif selected_case ['conversion type'] == 'NBI2WLI':
+                list_conv2wli_results.append(int(new_dict[key].replace('Option ', '')) - 1)
 
         list_results = [f - 1 for f in list_results]
+
         acc = accuracy_score(real_vals, list_results)
         prec = precision_score(real_vals, list_results)
         rec = recall_score(real_vals, list_results)
 
+        acc_2nbi = accuracy_score(real_conv2nbi, list_conv2nbi_results)
+        prec_2nbi = precision_score(real_conv2nbi, list_conv2nbi_results)
+        rec_2nbi = recall_score(real_conv2nbi, list_conv2nbi_results)
+
+        acc_2wli = accuracy_score(real_conv2wli, list_conv2wli_results)
+        prec_2wli = precision_score(real_conv2wli, list_conv2wli_results)
+        rec_2wli = recall_score(real_conv2wli, list_conv2wli_results)
+
         fpr, tpr, _ = roc_curve(real_vals, list_results)
         auc = roc_auc_score(real_vals, list_results)
+
+        fpr2nbi, tpr2nbi, _ = roc_curve(real_conv2nbi, list_conv2nbi_results)
+        auc2nbi = roc_auc_score(real_conv2nbi, list_conv2nbi_results)
+
+        fpr2wli, tpr2wli, _ = roc_curve(real_conv2wli, list_conv2wli_results)
+        auc2wli = roc_auc_score(real_conv2wli, list_conv2wli_results)
 
         acc_list.append(acc)
         prec_list.append(prec)
         rec_list.append(rec)
         auc_list.append(auc)
 
-        print(f'acc: {acc}, prec: {prec}, rec:{rec}, AUC: {auc}')
+        acc_list_2nbi.append(acc_2nbi)
+        prec_list_2nbi.append(prec_2nbi)
+        rec_list_2nbi.append(rec_2nbi)
+        auc_list_2nbi.append(auc2nbi)
+
+        acc_list_2wli.append(acc_2wli)
+        prec_list_2wli.append(prec_2wli)
+        rec_list_2wli.append(rec_2wli)
+        auc_list_2wli.append(auc2wli)
+
+        print(f' ALL acc: {acc}, prec: {prec}, rec:{rec}, AUC: {auc}')
+        print(f' 2NBI acc: {acc_2nbi}, prec: {prec_2nbi}, rec:{rec_2nbi}, AUC: {auc2nbi}')
+        print(f' 2WLI acc: {acc_2wli}, prec: {prec_2wli}, rec:{rec_2wli}, AUC: {auc2wli}')
+
         if plot_rock is True:
             plt.figure()
-            plt.plot(fpr, tpr, color="darkorange", label="ROC curve (area = %0.2f)" % auc,)
             plt.plot([0, 1], [0, 1], color="navy",  linestyle="--")
+            plt.plot(fpr, tpr, color="darkorange", label="ROC curve (area = %0.2f)" % auc,)
+            plt.plot(fpr2wli, tpr2wli,  label="ROC curve (area = %0.2f)" % auc2wli, )
+            plt.plot(fpr2wli, tpr2nbi,  label="ROC curve (area = %0.2f)" % auc2nbi, )
             plt.xlabel("False Positive Rate")
             plt.ylabel("True Positive Rate")
             plt.title("Receiver operating characteristic example")
             plt.legend(loc='best')
             plt.show()
 
-    print(f'Median Acc: {np.median(acc_list)} +- {np.std(acc_list)}')
-    print(f'Median Prec: {np.median(prec_list)} +- {np.std(prec_list)}')
-    print(f'Median Rec: {np.median(rec_list)} +- {np.std(rec_list)}')
-    print(f'Median AUC: {np.median(auc_list)} +- {np.std(auc_list)}')
+    print(f'ALL Median Acc: {np.median(acc_list)} +- {np.std(acc_list)}')
+    print(f'ALL Median Prec: {np.median(prec_list)} +- {np.std(prec_list)}')
+    print(f'ALL Median Rec: {np.median(rec_list)} +- {np.std(rec_list)}')
+    print(f'ALL Median AUC: {np.median(auc_list)} +- {np.std(auc_list)}')
+
+    print(f'2NBI Median Acc: {np.median(acc_list_2nbi)} +- {np.std(acc_list_2nbi)}')
+    print(f'2NBI Median Prec: {np.median(prec_list_2nbi)} +- {np.std(prec_list_2nbi)}')
+    print(f'2NBI Median Rec: {np.median(rec_list_2nbi)} +- {np.std(rec_list_2nbi)}')
+    print(f'2NBI Median AUC: {np.median(auc_list_2nbi)} +- {np.std(auc_list_2nbi)}')
+
+    print(f'2WLI Median Acc: {np.median(acc_list_2wli)} +- {np.std(acc_list_2wli)}')
+    print(f'2WLI Median Prec: {np.median(prec_list_2wli)} +- {np.std(prec_list_2wli)}')
+    print(f'2WLI Median Rec: {np.median(rec_list_2wli)} +- {np.std(rec_list_2wli)}')
+    print(f'2WLI Median AUC: {np.median(auc_list_2wli)} +- {np.std(auc_list_2wli)}')
 
 
 def analyze_diagnosis_experiment(df_real_vals, df_results):

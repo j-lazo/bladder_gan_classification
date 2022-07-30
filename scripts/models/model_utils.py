@@ -13,7 +13,7 @@ from tensorflow.keras.layers import *
 from tensorflow.keras.models import Model
 
 input_sizes_models = {'vgg16': (224, 224), 'vgg19': (224, 224), 'inception_v3': (299, 299),
-                      'resnet50': (224, 224), 'resnet101': (224, 244), 'mobilenet': (224, 224),
+                      'resnet50': (224, 224), 'resnet101': (224, 224), 'mobilenet': (224, 224),
                       'densenet121': (224, 224), 'xception': (299, 299),
                       'resnet152': (224, 224), 'densenet201': (224, 224)}
 
@@ -85,7 +85,7 @@ def load_pretrained_backbones(name_model, weights='imagenet', include_top=False,
     """
 
     input_sizes_models = {'vgg16': (224, 224), 'vgg19': (224, 224), 'inception_v3': (299, 299),
-                          'resnet50': (224, 224), 'resnet101': (224, 244), 'mobilenet': (224, 224),
+                          'resnet50': (224, 224), 'resnet101': (224, 224), 'mobilenet': (224, 224),
                           'densenet121': (224, 224), 'xception': (299, 299),
                           'resnet152': (224, 224), 'densenet201': (224, 224)}
 
@@ -295,7 +295,7 @@ def load_model(directory_model):
 def build_pretrained_model(num_classes, name_model):
     input_image = keras.Input(shape=(256, 256, 3), name="image")
 
-    x = tf.image.resize(input_image, input_sizes_models[name_model], method='bilinear')
+    x = tf.image.resize(input_image, input_sizes_models[name_model], method='area')
     x = get_preprocess_input_backbone(name_model, x)
     base_model = load_pretrained_backbones(name_model)
     for layer in base_model.layers:
