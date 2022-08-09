@@ -117,12 +117,15 @@ def main(_argv):
     path_dataset = FLAGS.path_dataset
     path_gan = FLAGS.path_gan
     path_cnn = FLAGS.path_cnn
+
+    gan_model = path_gan.split('/')[-3]
     fid_all = calculate_fid_dataset(path_dataset, path_gan, path_cnn, batch_size=7)
     fid_nbi = calculate_fid_dataset(path_dataset, path_gan, path_cnn, specific_domain='NBI', batch_size=3)
     fid_wli = calculate_fid_dataset(path_dataset, path_gan, path_cnn, specific_domain='WLI', batch_size=10)
-    path_experiment_information = os.path.join(os.getcwd(), 'results')
-    gan_model = os.path.split(path_gan)[-1]
-    
+
+    name_file = ''.join(['analysis_', gan_model, '.yaml'])
+    path_experiment_information = os.path.join(os.getcwd(), 'results', )
+
     information_experiment = {'GAN model': gan_model,
                               'FID ALL': np.mean(fid_all),
                               'FID NBI': np.mean(fid_nbi),
