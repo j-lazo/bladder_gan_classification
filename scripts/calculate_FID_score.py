@@ -124,7 +124,7 @@ def main(_argv):
     fid_wli = calculate_fid_dataset(path_dataset, path_gan, path_cnn, specific_domain='WLI', batch_size=10)
 
     name_file = ''.join(['analysis_', gan_model, '.yaml'])
-    path_experiment_information = os.path.join(os.getcwd(), 'results', )
+    path_experiment_information = os.path.join(os.getcwd(), 'results', name_file)
 
     information_experiment = {'GAN model': gan_model,
                               'FID ALL': np.mean(fid_all),
@@ -132,6 +132,7 @@ def main(_argv):
                               'FID WLI': np.mean(fid_wli)}
 
     fam.save_yaml(path_experiment_information, information_experiment)
+    print(f'results  saved at {path_experiment_information}')
 
 if __name__ == '__main__':
 
