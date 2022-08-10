@@ -118,7 +118,10 @@ def main(_argv):
     path_gan = FLAGS.path_gan
     path_cnn = FLAGS.path_cnn
 
-    gan_model = path_gan.split('/')[-3]
+    gan_model = path_gan.split('/')[-2]
+    if gan_model == 'checkpoints':
+        gan_model = path_gan.split('/')[-3]
+
     fid_all = calculate_fid_dataset(path_dataset, path_gan, path_cnn, batch_size=7)
     fid_nbi = calculate_fid_dataset(path_dataset, path_gan, path_cnn, specific_domain='NBI', batch_size=3)
     fid_wli = calculate_fid_dataset(path_dataset, path_gan, path_cnn, specific_domain='WLI', batch_size=10)
@@ -127,9 +130,9 @@ def main(_argv):
     path_experiment_information = os.path.join(os.getcwd(), 'results', name_file)
 
     information_experiment = {'GAN model': gan_model,
-                              'FID ALL': np.mean(fid_all),
-                              'FID NBI': np.mean(fid_nbi),
-                              'FID WLI': np.mean(fid_wli)}
+                              'FID ALL': float(np.mean(fid_all)),
+                              'FID NBI': float(np.mean(fid_nbi)),
+                              'FID WLI': float(np.mean(fid_wli))}
 
     fam.save_yaml(path_experiment_information, information_experiment)
     print(f'results  saved at {path_experiment_information}')
