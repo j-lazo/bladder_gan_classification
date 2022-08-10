@@ -312,3 +312,55 @@ def build_pretrained_model(num_classes, name_model):
     output_layer = Dense(num_classes, activation='softmax')(x)
 
     return Model(inputs=input_image, outputs=output_layer, name=f'pretrained_model_{name_model}')
+
+
+def build_model_fid(name_model, include_top=False, pooling='avg'):
+
+    base_dir_weights = ''.join([os.getcwd(), '/scripts/models/weights_pretrained_backbones/'])
+    if name_model == 'vgg16':
+        weights_dir = base_dir_weights + 'vgg16/vgg16_weights_tf_dim_ordering_tf_kernels_notop.h5'
+        base_model = applications.vgg16.VGG16(include_top=include_top, pooling=pooling, weights=weights_dir)
+
+    elif name_model == 'vgg19':
+        weights_dir = base_dir_weights + 'vgg19/vgg19_weights_tf_dim_ordering_tf_kernels_notop.h5'
+        base_model = applications.vgg19.VGG19(include_top=include_top, pooling=pooling, weights=weights_dir)
+
+    elif name_model == 'inception_v3':
+        weights_dir = base_dir_weights + 'inception_v3/inception_v3_weights_tf_dim_ordering_tf_kernels_notop.h5'
+        base_model = applications.inception_v3.InceptionV3(include_top=include_top, pooling=pooling, weights=weights_dir)
+
+    elif name_model == 'resnet50':
+        weights_dir = base_dir_weights + 'resnet50/resnet50_weights_tf_dim_ordering_tf_kernels_notop.h5'
+        base_model = applications.resnet50.ResNet50(include_top=include_top, pooling=pooling, weights=weights_dir)
+
+    elif name_model == 'resnet101':
+        weights_dir = base_dir_weights + 'resnet101/resnet101_weights_tf_dim_ordering_tf_kernels_notop.h5'
+        base_model = applications.resnet.ResNet101(include_top=include_top, pooling=pooling, weights=weights_dir)
+
+    elif name_model == 'mobilenet':
+        weights_dir = base_dir_weights + 'mobilenet/mobilenet_1_0_224_tf_no_top.h5'
+        base_model = applications.mobilenet.MobileNet(include_top=include_top, pooling=pooling, weights=weights_dir)
+
+    elif name_model == 'densenet121':
+        weights_dir = base_dir_weights + 'densenet/densenet121_weights_tf_dim_ordering_tf_kernels_notop.h5'
+        base_model = applications.densenet.DenseNet121(include_top=include_top, pooling=pooling, weights=weights_dir)
+
+    elif name_model == 'xception':
+        weights_dir = base_dir_weights + 'xception/xception_weights_tf_dim_ordering_tf_kernels_notop.h5'
+        base_model = applications.xception.Xception(include_top=include_top, pooling=pooling, weights=weights_dir)
+
+    elif name_model == 'resnet152':
+        weights_dir = base_dir_weights + 'resnet152/resnet152_weights_tf_dim_ordering_tf_kernels_notop.h5'
+        base_model = applications.resnet.ResNet152(include_top=include_top, pooling=pooling, weights=weights_dir)
+
+    elif name_model == 'densenet201':
+        weights_dir = base_dir_weights + 'desenet201/densenet201_weights_tf_dim_ordering_tf_kernels_notop.h5'
+        base_model = applications.densenet.DenseNet201(include_top=include_top, pooling=pooling, weights=weights_dir)
+
+    else:
+        raise ValueError(f' MODEL: {name_model} not found')
+
+    new_base_model = tf.keras.models.clone_model(base_model)
+    new_base_model.set_weights(base_model.get_weights())
+
+    return new_base_model

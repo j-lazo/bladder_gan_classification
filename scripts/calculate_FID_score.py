@@ -29,7 +29,7 @@ from numpy import trace
 from numpy import iscomplexobj
 from scipy.linalg import sqrtm
 from skimage.transform import resize
-from keras.applications.inception_v3 import preprocess_input
+from keras.applications.resnet import preprocess_input
 
 # calculate frechet inception distance
 
@@ -71,8 +71,9 @@ def calculate_fid_dataset(path_dataset, gan_path, classifier_network, specific_d
     test_dataset, _ = dam.make_tf_dataset(test_x, dataset_dictionary, batch_size=batch_size, multi_output=True,
                                           specific_domain=specific_domain)
 
-    #pretrained_backbone = build_model_fid(classifier_network)
-    pretrained_backbone = applications.inception_v3.InceptionV3(include_top=False, pooling='avg', weights='imagenet')
+    pretrained_backbone = build_model_fid(classifier_network)
+    #pretrained_backbone = applications.resnet50(include_top=False, pooling='avg', weights='imagenet')
+    #pretrained_backbone = applications.resnet.ResNet101(include_top=False, pooling='avg', weights='imagenet')
 
     # Generator Models
     G_A2B = ResnetGenerator(input_shape=(256, 256, 3))
@@ -82,7 +83,6 @@ def calculate_fid_dataset(path_dataset, gan_path, classifier_network, specific_d
 
     print(f'Tensorflow Dataset of {len(test_dataset)} elements found')
     for i, x in enumerate(tqdm.tqdm(test_dataset, desc='Making predictions')):
-        print()
         name_file = test_x[i]
         inputs_model = x[0]
         label = x[1].numpy()
@@ -99,8 +99,8 @@ def calculate_fid_dataset(path_dataset, gan_path, classifier_network, specific_d
         generated_img = tf.cast(generated_img, tf.float32)
         input_classifier_2 = tf.image.resize(generated_img, input_sizes_models[classifier_network], method='bilinear')
 
-        input_classifier_1 = preprocess_input(input_classifier_1)
-        input_classifier_2 = preprocess_input(input_classifier_2)
+        input_classifier_1 = get_preprocess_input_backbone(classifier_network, input_classifier_1)
+        input_classifier_2 = get_preprocess_input_backbone(classifier_network, input_classifier_2)
 
         fid = calculate_fid(pretrained_backbone, input_classifier_1, input_classifier_2)
         fid_list.append(fid)
