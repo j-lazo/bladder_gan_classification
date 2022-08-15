@@ -259,7 +259,7 @@ def make_tf_dataset(list_files, dictionary_labels, batch_size, training=False, m
         images_domains = copy.copy(new_images_domains)
 
     filenames_ds = tf.data.Dataset.from_tensor_slices(path_imgs)
-    images_ds = filenames_ds.map(parse_image, num_parallel_calls=tf.data.experimental.AUTOTUNE)
+    images_ds = filenames_ds.map(parse_image) #num_parallel_calls=tf.data.experimental.AUTOTUNE)
 
     if ignore_labels:
         num_classes = np.nan

@@ -218,15 +218,15 @@ def custom_train_simple_model(name_model, path_dataset, mode='fit', backbones=['
         # writer.flush()
         #checkpoint.save(epoch)
 
-        #wait += 1
-        #if epoch == 0:
-        #    best = val_loss_value
-        #if val_loss_value < best:
-        #    best = val_loss_value
-        #    wait = 0
-        #if wait >= patience:
-        #    print('Early stopping triggered: wait time > patience')
-        #    break
+        wait += 1
+        if epoch == 0:
+            best = valid_loss.result()
+        if valid_loss.result() < best:
+            best = valid_loss.result()
+            wait = 0
+        if wait >= patience:
+            print('Early stopping triggered: wait time > patience')
+            break
 
 
     model_dir = os.path.join(results_directory, 'model_weights')
