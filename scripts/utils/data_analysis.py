@@ -409,9 +409,11 @@ def analyze_multiclass_experiment(gt_data_file, predictions_data_dir, plot_figur
     return performance_resume
 
 
-def compute_Mann_Whitney_U_test(data_model_1, data_model_2, metric_list=None):
-    name_1 = list(np.unique(data_model_1['name_model'].tolist()))[-1]
-    name_2 = list(np.unique(data_model_2['name_model'].tolist()))[-1]
+def compute_Mann_Whitney_U_test(data_model_1, data_model_2, metric_list=None, comparison_attribute='name_model'):
+
+    name_1 = list(np.unique(data_model_1[comparison_attribute].tolist()))[-1]
+    name_2 = list(np.unique(data_model_2[comparison_attribute].tolist()))[-1]
+
     training_data_used = list(np.unique(data_model_1['training_data_used'].tolist()))
     print(f'{name_1} vs {name_2}')
     for metric in metric_list:
@@ -425,6 +427,22 @@ def compute_Mann_Whitney_U_test(data_model_1, data_model_2, metric_list=None):
             print(f'{name_1} : {np.median(list_metric_model_1)} +- {np.std(list_metric_model_1)}')
             print(f'{name_2} : {np.median(list_metric_model_2)} +- {np.std(list_metric_model_2)}')
             print(f'stat-significance: {result_mwu_test}')
+
+
+def extract_data_to_list(data_model_1, metric_list=None, comparison_attribute='name_model'):
+    list_values = list()
+    output_dict = {}
+    name_1 = list(np.unique(data_model_1[comparison_attribute].tolist()))[-1]
+    training_data_used = list(np.unique(data_model_1['training_data_used'].tolist()))
+    for metric in metric_list:
+        for training_data in training_data_used:
+            df1 = data_model_1.loc[data_model_1['training_data_used'] == training_data]
+            list_metric_model_1 = df1[metric].tolist()
+            list_values.append(list_metric_model_1)
+            output_dict[metric] = list_metric_model_1
+
+    return output_dict
+
 
 
 def Mann_Whitney_U_test(metrics_models, metrics, unique_models=None, analysis_type='by_model'):

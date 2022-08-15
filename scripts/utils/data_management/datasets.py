@@ -176,7 +176,8 @@ def load_data_from_directory(path_data, csv_annotations=None, specific_domain=No
     return output_list_files, dictionary_labels
 
 
-def make_tf_dataset(list_files, dictionary_labels, batch_size, training=False, multi_output=False, specific_domain=None):
+def make_tf_dataset(list_files, dictionary_labels, batch_size, training=False, multi_output=False, specific_domain=None,
+                    num_repeat=None, custom_training=False):
 
     global num_classes
     global training_mode
@@ -217,7 +218,8 @@ def make_tf_dataset(list_files, dictionary_labels, batch_size, training=False, m
     def configure_for_performance(dataset):
       dataset = dataset.shuffle(buffer_size=1000)
       dataset = dataset.batch(batch_size)
-      dataset = dataset.repeat()
+      if num_repeat:
+          dataset = dataset.repeat(num_repeat)
       dataset = dataset.prefetch(buffer_size=tf.data.experimental.AUTOTUNE)
       return dataset
 
@@ -260,15 +262,19 @@ def make_tf_dataset(list_files, dictionary_labels, batch_size, training=False, m
     labels = [unique_classes.index(val) for val in images_class]
     network_labels = list()
 
-    # create a vector according to the label where 1 is the position corresponding to the value
-    for label in labels:
-        l = np.zeros(num_classes)
-        l[label] = 1.0
-        network_labels.append(l)
 
     filenames_ds = tf.data.Dataset.from_tensor_slices(path_imgs)
     images_ds = filenames_ds.map(parse_image, num_parallel_calls=tf.data.experimental.AUTOTUNE)
-    labels_ds = tf.data.Dataset.from_tensor_slices(network_labels)
+    if custom_training:
+        labels_ds = tf.data.Dataset.from_tensor_slices(labels)
+    else:
+        # create a vector according to the label where 1 is the position corresponding to the value
+        for label in labels:
+            l = np.zeros(num_classes)
+            l[label] = 1.0
+            network_labels.append(l)
+        labels_ds = tf.data.Dataset.from_tensor_slices(network_labels)
+
     if multi_output:
         domain_ds = tf.data.Dataset.from_tensor_slices(images_domains)
         ds = tf.data.Dataset.zip(((images_ds, domain_ds), labels_ds))
