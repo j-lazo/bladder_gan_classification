@@ -1665,3 +1665,51 @@ def build_gan_model_separate_features_multi_output(num_classes, backbones=['resn
 
     return Model(inputs=[input_image, t_input],
                  outputs=[output_b1, output_b2, output_b3, final_output_layer], name='gan_separate_features_multioutput')
+
+
+
+def backbone_based_classifier(num_classes, backbones=['resnet101', 'resnet101', 'resnet101'],
+                              after_concat='globalpooling'):
+    # inputs
+    input_image = keras.Input(shape=(224, 224, 3), name="image")
+    gen_a2b = keras.Input(shape=(224, 224, 3), name="g_a2gb_image")
+    gen_b2a = keras.Input(shape=(224, 224, 3), name="g_2ba_image")
+
+    # load the backbones
+    backbone_model_1 = load_pretrained_backbones(backbones[0])
+    backbone_model_1._name = 'backbone_1'
+    for layer in backbone_model_1.layers:
+        layer.trainable = False
+    backbone_model_2 = load_pretrained_backbones(backbones[1])
+    backbone_model_2._name = 'backbone_2'
+    for layer in backbone_model_2.layers:
+        layer.trainable = False
+
+    # branch 1 takes the original image
+    b1 = get_preprocess_input_backbone(backbones[0], input_image)
+    b1 = backbone_model_1(b1)
+
+    # branch 2 takes the image created by the first generator
+    b2 = get_preprocess_input_backbone(backbones[1], gen_a2b)
+    b2 = backbone_model_2(b2)
+
+    # branch 3 takes the image created by the second generators
+    b3 = get_preprocess_input_backbone(backbones[2], gen_b2a)
+    backbone_model_3 = load_pretrained_backbones(backbones[2])
+    backbone_model_3._name = 'backbone_3'
+    for layer in backbone_model_3.layers:
+        layer.trainable = False
+    b3 = backbone_model_3(b3)
+    # concatenate the feature maps from the 3 backbones
+    x = keras.layers.Concatenate()([b1, b2, b3])
+
+
+    x = keras.layers.Dense(1024, activation='relu')(x)
+    x = keras.layers.Dropout(0.5)(x)
+    x = keras.layers.Dense(1024, activation='relu')(x)
+    x = keras.layers.Dropout(0.5)(x)
+    x = keras.layers.Dense(512, activation='relu')(x)
+    x = keras.layers.Flatten()(x)
+    output_layer = keras.layers.Dense(num_classes, activation='softmax')(x)
+
+    return keras.Model(inputs=[input_image, gen_a2b, gen_b2a], outputs=output_layer, name='gan_separate_features')

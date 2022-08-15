@@ -284,10 +284,10 @@ def load_model(directory_model):
 
     print('MODEL USED:')
     print(model_path)
-    print(f'Model path: {directory_model + model_path}')
     model = tf.keras.models.load_model(directory_model + model_path)
-    model.summary()
     input_size = (len(model.layers[0].output_shape[:]))
+    print(f'Model path: {directory_model + model_path}, input size: {input_size}')
+    model.summary()
 
     return model, input_size
 

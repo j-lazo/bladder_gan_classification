@@ -134,3 +134,25 @@ def build_simple_separation_with_backbones(num_classes, backbones):
     output_layer = tf.keras.backend.switch(t_input, x1, x2)
 
     return Model(inputs=[input_image, t_input], outputs=output_layer, name='simple_model_with_backbones')
+
+
+def simple_classifier(num_classes, backbone='resnet101', after_concat='globalpooling'):
+    input_image = keras.Input(shape=(224, 224, 3), name="image")
+
+    x = tf.image.resize(input_image, input_sizes_models[backbone], method='area')
+    x = get_preprocess_input_backbone(backbone, x)
+    base_model = load_pretrained_backbones(backbone)
+    for layer in base_model.layers:
+        layer.trainable = False
+
+    x = base_model(x)
+    x = keras.layers.GlobalAveragePooling2D()(x)
+    x = keras.layers.Dense(1024, activation='relu')(x)
+    x = keras.layers.Dropout(0.5)(x)
+    x = keras.layers.Dense(1024, activation='relu')(x)
+    x = keras.layers.Dropout(0.5)(x)
+    x = keras.layers.Dense(512, activation='relu')(x)
+    x = keras.layers.Flatten()(x)
+    output_layer = keras.layers.Dense(num_classes, activation='softmax')(x)
+
+    return keras.Model(inputs=input_image, outputs=output_layer, name=f'pretrained_model_{backbone}')
