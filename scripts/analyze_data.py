@@ -90,6 +90,296 @@ def compute_metrics_batch_experiments(dir_experiment_files, dir_output_csv_file_
     return output_csv_file_dir
 
 
+def compare_datasets_v1(dir_to_csv=(os.path.join(os.getcwd(), 'results', 'sorted_experiments_information.csv')),
+                             metrics='all', exclusion_criteria=None):
+    # 'Accuracy', 'Precision', 'Recall', 'F-1' 'Matthews CC'
+    metric_analysis = 'Accuracy'
+    df = pd.read_csv(dir_to_csv)
+
+    # chosen criteria
+    chosen_learning_rates = [0.00001]
+    chosen_batch_sizes = [32]
+    # 'bladder_tissue_classification_v3_augmented',
+    # 'bladder_tissue_classification_v3_gan_new',]
+
+    chosen_trained_data = ['WLI', 'ALL']
+    chosen_gan_backbones = ['not_complete_wli2nbi', '', '', 'NaN', np.nan,
+                            'not_complete_wli2nbi', 'checkpoint_charlie', 'general_wli2nbi',
+                            'temp_not_complete_wli2nbi_ssim']
+
+    dictionary_selection_resnet_bv3 = {'name_model': ['resnet101'], 'learning_rate': chosen_learning_rates,
+                                   'batch_size': chosen_batch_sizes, 'dataset': ['bladder_tissue_classification_v3'],
+                                   'backbone GAN': chosen_gan_backbones, 'training_data_used': chosen_trained_data,
+                                   'date':['01-07-2022', '20-06-2022']}
+    selection_resnet_bv3 = select_specific_cases(df, dictionary_selection_resnet_bv3)
+    dictionary_selection_resnet_bv3_t = {'name_model': ['resnet101'], 'learning_rate': chosen_learning_rates,
+                                   'batch_size': chosen_batch_sizes, 'dataset': ['bladder_tissue_classification_v3'],
+                                   'backbone GAN': chosen_gan_backbones, 'training_data_used': chosen_trained_data,
+                                   'date':['26-07-2022']}
+    selection_resnet_bv3_t = select_specific_cases(df, dictionary_selection_resnet_bv3_t)
+
+    dictionary_selection_resnet_bv4 = {'name_model': ['resnet101'], 'learning_rate': chosen_learning_rates,
+                                   'batch_size': chosen_batch_sizes, 'dataset': ['bladder_tissue_classification_v4'],
+                                   'backbone GAN': chosen_gan_backbones, 'training_data_used': chosen_trained_data,
+                                   }
+    selection_resnet_bv4 = select_specific_cases(df, dictionary_selection_resnet_bv4)
+
+    dictionary_selection_resnet_bv4_1 = {'name_model': ['resnet101'], 'learning_rate': chosen_learning_rates,
+                                       'batch_size': chosen_batch_sizes,
+                                       'dataset': ['bladder_tissue_classification_v4_1'],
+                                       'backbone GAN': chosen_gan_backbones, 'training_data_used': chosen_trained_data,
+                                       }
+    selection_resnet_bv4_1 = select_specific_cases(df, dictionary_selection_resnet_bv4_1)
+
+    dictionary_selection_resnet_bv4_2 = {'name_model': ['resnet101'], 'learning_rate': chosen_learning_rates,
+                                       'batch_size': chosen_batch_sizes,
+                                       'dataset': ['bladder_tissue_classification_v4_2'],
+                                       'backbone GAN': chosen_gan_backbones, 'training_data_used': chosen_trained_data,
+                                       }
+    selection_resnet_bv4_2 = select_specific_cases(df, dictionary_selection_resnet_bv4_2)
+
+    dictionary_selection_resnet_bv5 = {'name_model': ['resnet101'], 'learning_rate': chosen_learning_rates,
+                                         'batch_size': chosen_batch_sizes,
+                                         'dataset': ['bladder_tissue_classification_v5'],
+                                         'backbone GAN': chosen_gan_backbones,
+                                         'training_data_used': chosen_trained_data,
+                                         }
+    selection_resnet_bv5 = select_specific_cases(df, dictionary_selection_resnet_bv5)
+
+    dictionary_selection_resnet_bv6 = {'name_model': ['resnet101'], 'learning_rate': chosen_learning_rates,
+                                         'batch_size': chosen_batch_sizes,
+                                         'dataset': ['bladder_tissue_classification_v6'],
+                                         'backbone GAN': chosen_gan_backbones,
+                                         'training_data_used': chosen_trained_data,
+                                         }
+
+    selection_resnet_bv6 = select_specific_cases(df, dictionary_selection_resnet_bv6)
+
+    dictionary_selection_separat_bv3 = {'name_model': ['gan_model_separate_features'], 'learning_rate': chosen_learning_rates,
+                                       'batch_size': chosen_batch_sizes,
+                                       'dataset': ['bladder_tissue_classification_v3'],
+                                       'backbone GAN': ['general_wli2nbi'], 'training_data_used': chosen_trained_data,
+                                       'date':['06-07-2022']}
+    selection_separat_bv3 = select_specific_cases(df, dictionary_selection_separat_bv3)
+
+    dictionary_selection_separat_bv4 = {'name_model': ['gan_model_separate_features'], 'learning_rate': chosen_learning_rates,
+                                       'batch_size': chosen_batch_sizes,
+                                       'dataset': ['bladder_tissue_classification_v4'],
+                                       'backbone GAN': ['general_wli2nbi'], 'training_data_used': chosen_trained_data,
+                                       }
+    selection_separat_bv4 = select_specific_cases(df, dictionary_selection_separat_bv4)
+    dictionary_selection_separat_bv4_1 = {'name_model': ['gan_model_separate_features'],
+                                        'learning_rate': chosen_learning_rates,
+                                        'batch_size': chosen_batch_sizes,
+                                        'dataset': ['bladder_tissue_classification_v4_1'],
+                                        'backbone GAN': ['general_wli2nbi'], 'training_data_used': chosen_trained_data,
+                                        }
+    selection_separat_bv4_1 = select_specific_cases(df, dictionary_selection_separat_bv4_1)
+    dictionary_selection_separat_bv3_t = {'name_model': ['gan_model_separate_features'],
+                                        'learning_rate': chosen_learning_rates,
+                                        'batch_size': chosen_batch_sizes,
+                                        'dataset': ['bladder_tissue_classification_v3'],
+                                        'backbone GAN': ['general_wli2nbi'], 'training_data_used': chosen_trained_data,
+                                        'date': ['26-07-2022']}
+    selection_separat_bv3_t = select_specific_cases(df, dictionary_selection_separat_bv3_t)
+
+    dictionary_selection_separat_bv5 = {'name_model': ['gan_model_separate_features'], 'learning_rate': chosen_learning_rates,
+                                       'batch_size': chosen_batch_sizes,
+                                       'dataset': ['bladder_tissue_classification_v5'],
+                                       'backbone GAN': ['not_complete_wli2nbi'], 'training_data_used': chosen_trained_data,
+                                       }
+    selection_separat_bv5 = select_specific_cases(df, dictionary_selection_separat_bv5)
+
+    dictionary_selection_separat_bv6 = {'name_model': ['gan_model_separate_features'],
+                                        'learning_rate': chosen_learning_rates,
+                                        'batch_size': chosen_batch_sizes,
+                                        'dataset': ['bladder_tissue_classification_v6'],
+                                        'backbone GAN': ['not_complete_wli2nbi'],
+                                        'training_data_used': chosen_trained_data,
+                                        }
+    selection_separat_bv6 = select_specific_cases(df, dictionary_selection_separat_bv6)
+    dictionary_selection_separat_bv4_2 = {'name_model': ['gan_model_separate_features'],
+                                        'learning_rate': chosen_learning_rates,
+                                        'batch_size': chosen_batch_sizes,
+                                        'dataset': ['bladder_tissue_classification_v4_2'],
+                                        'backbone GAN': ['not_complete_wli2nbi'],
+                                        'training_data_used': chosen_trained_data,
+                                        }
+    selection_separat_bv4_2 = select_specific_cases(df, dictionary_selection_separat_bv4_2)
+    print(selection_separat_bv4_2)
+    selection_resnet_bv3.loc[selection_resnet_bv3["name_model"] == "resnet101", "name_model"] = 'B1'
+    selection_resnet_bv4.loc[selection_resnet_bv4["name_model"] == "resnet101", "name_model"] = 'B2'
+    selection_resnet_bv4_1.loc[selection_resnet_bv4_1["name_model"] == "resnet101", "name_model"] = 'B3'
+    selection_resnet_bv3_t.loc[selection_resnet_bv3_t["name_model"] == "resnet101", "name_model"] = 'B1-R'
+    selection_resnet_bv4_2.loc[selection_resnet_bv4_2["name_model"] == "resnet101", "name_model"] = 'B2-C'
+    selection_resnet_bv5.loc[selection_resnet_bv5["name_model"] == "resnet101", "name_model"] = 'F2'
+    selection_resnet_bv6.loc[selection_resnet_bv6["name_model"] == "resnet101", "name_model"] = 'F3'
+
+
+    selection_separat_bv3.loc[selection_separat_bv3["name_model"] == "gan_model_separate_features", "name_model"] = 'P1'
+    selection_separat_bv4.loc[selection_separat_bv4["name_model"] == "gan_model_separate_features", "name_model"] = 'P2'
+    selection_separat_bv4_1.loc[selection_separat_bv4_1["name_model"] == "gan_model_separate_features", "name_model"] = 'P3'
+    selection_separat_bv3_t.loc[selection_separat_bv3_t["name_model"] == "gan_model_separate_features", "name_model"] = 'P1-R'
+    selection_separat_bv4_2.loc[selection_separat_bv4_2["name_model"] == "gan_model_separate_features", "name_model"] = 'P1-C'
+    selection_separat_bv5.loc[selection_separat_bv5["name_model"] == "gan_model_separate_features", "name_model"] = 'P-F2'
+    selection_separat_bv6.loc[selection_separat_bv6["name_model"] == "gan_model_separate_features", "name_model"] = 'P-F3'
+
+
+    selection = pd.concat([selection_resnet_bv3,
+                           selection_resnet_bv4,
+                           selection_resnet_bv4_1,
+                           selection_resnet_bv3_t,
+                           selection_resnet_bv4_2,
+                           selection_resnet_bv5,
+                           selection_resnet_bv6,
+                           selection_separat_bv3,
+                           selection_separat_bv4,
+                           selection_separat_bv4_1,
+                           selection_separat_bv3_t,
+                           selection_separat_bv4_2,
+                           selection_separat_bv5,
+                           selection_separat_bv6])
+
+    metrics_box = ['ALL', 'WLI', 'NBI']
+    metrics_box = [''.join([metric_analysis, ' ', m]) for m in metrics_box]
+
+    x_axis = 'name_model'
+    y_axis = metrics_box
+    title_plot = 'Comparison Datasets'  # name_model.replace('_', ' ')
+    # daa.calculate_p_values(selection, x_axis, y_axis, selected_models)
+    daa.boxplot_seaborn(selection, x_axis, y_axis, title_plot=title_plot, hue='training_data_used')
+
+
+def fid_score_vs_metrics(dir_to_csv=(os.path.join(os.getcwd(), 'results', 'sorted_experiments_information.csv')),
+                         metrics='all', exclusion_criteria=None):
+    # 'Accuracy', 'Precision', 'Recall', 'F-1' 'Matthews CC'
+    metric_analysis = 'F-1'
+    # chosen criteria
+    chosen_learning_rates = [0.00001]
+    chosen_batch_sizes = [32]
+    chosen_dataset = ['bladder_tissue_classification_v3']
+    chosen_trained_data = ['ALL']
+    metrics_box = ['ALL', 'WLI', 'NBI']
+    metrics_box = [''.join([metric_analysis, ' ', m]) for m in metrics_box]
+
+    results_dir = os.path.join(os.getcwd(), 'results')
+    df = pd.read_csv(dir_to_csv)
+    yaml_files = [f for f in os.listdir(results_dir) if f.endswith('yaml')]
+
+    list_dif_results = list()
+
+    for file in yaml_files:
+        yaml_file_dir = os.path.join(results_dir, file)
+        list_dif_results.append(fam.read_yaml_file(yaml_file_dir))
+
+    x_all = list()
+    y_all = list()
+    y_all_stdv = list()
+
+    x_wli = list()
+    y_wli = list()
+    y_wli_stdv = list()
+
+    x_nbi = list()
+    y_nbi = list()
+    y_nbi_stdv = list()
+
+    list_names = list()
+
+    exlcusion_list = []
+    #exlcusion_list = ['fine_tune_2C1', 'fine_tune_2C2', 'fine_tune']
+    for dictionary in list_dif_results:
+        gan_selection = dictionary['GAN model']
+        if gan_selection not in exlcusion_list:
+            list_names.append(gan_selection)
+            general_selection_dict = {'name_model': ['gan_model_separate_features'], 'learning_rate': chosen_learning_rates,
+                                      'batch_size': chosen_batch_sizes, 'dataset': chosen_dataset,
+                                      'backbone GAN': [gan_selection], 'training_data_used': chosen_trained_data,
+                                      }
+            df_selection = select_specific_cases(df, general_selection_dict)
+            dicta = daa.extract_data_to_list(df_selection, metric_list=metrics_box,
+                                             comparison_attribute='backbone GAN')
+
+            #y_all.append(dicta['Accuracy ALL'])
+            #y_wli.append(dicta['Accuracy WLI'])
+            #y_nbi.append(dicta['Accuracy NBI'])
+            if gan_selection == 'not_complete_wli2nbi':
+                y_all.append(np.mean(dicta[metrics_box[0]])-0.00)
+                y_wli.append(np.mean(dicta[metrics_box[1]])-0.00)
+                y_nbi.append(np.mean(dicta[metrics_box[2]])-0.00)
+            else:
+                y_all.append(np.mean(dicta[metrics_box[0]]))
+                y_wli.append(np.mean(dicta[metrics_box[1]]))
+                y_nbi.append(np.mean(dicta[metrics_box[2]]))
+
+            y_all_stdv.append(np.std(dicta[metrics_box[0]])/2)
+            y_wli_stdv.append(np.std(dicta[metrics_box[1]])/2)
+            y_nbi_stdv.append(np.std(dicta[metrics_box[2]])/2)
+
+            x_all.append(dictionary['FID ALL'])
+            x_wli.append(dictionary['FID WLI'])
+            x_nbi.append(dictionary['FID NBI'])
+
+    z_wli = [x for _, x, _ in sorted(zip(x_wli, y_wli, y_wli_stdv))]
+    z_nbi = [x for _, x, _ in sorted(zip(x_nbi, y_nbi, y_nbi_stdv))]
+    z_all = [x for _, x, _ in sorted(zip(x_all, y_all, y_all_stdv))]
+
+    e_bar_all = [x for _, _, x in sorted(zip(x_all, y_all, y_all_stdv))]
+    e_bar_nbi = [x for _, _, x in sorted(zip(x_nbi, y_nbi, y_nbi_stdv))]
+    e_bar_wli = [x for _, _, x in sorted(zip(x_wli, y_wli, y_wli_stdv))]
+
+    z_names_wli = [x for _, x in sorted(zip(x_wli, list_names))]
+    z_names_nbi = [x for _, x in sorted(zip(x_nbi, list_names))]
+    dict_show_wli = {}
+    for j, x in enumerate(sorted(x_wli)):
+        dict_show_wli[z_names_wli[j]] = x
+    print(dict_show_wli)
+    dict_show_nbi = {}
+    for j, x in enumerate(sorted(x_nbi)):
+        dict_show_nbi[z_names_nbi[j]] = x
+    print(dict_show_nbi)
+
+    plt.figure()
+    #plt.plot(sorted(x_all), z_all, '-o', label='all')
+    plt.errorbar(sorted(x_wli), z_wli, yerr=e_bar_wli, uplims=True, lolims=True, label='$G_{A2B}$')
+    plt.errorbar(sorted(x_nbi), z_nbi, yerr=e_bar_nbi, uplims=True, lolims=True, label='$G_{B2A}$')
+
+    """z_names_nbi = z_names_nbi[::-1]
+    z_names_wli = z_names_wli[::-1]
+
+    for j, zipped in enumerate(zip(x_wli, z_wli)):
+        x = zipped[0]
+        y = zipped[1]
+        label = z_names_wli[j]
+        plt.annotate(label,  # this is the value which we want to label (text)
+                     (x, y),  # x and y is the points location where we have to label
+                     textcoords="offset points",
+                     xytext=(0, 10),  # this for the distance between the points
+                     # and the text label
+                     ha='center',
+                     arrowprops=dict(arrowstyle="->", color='green'))
+
+    for j, zipped in enumerate(zip(x_nbi, z_nbi)):
+        x = zipped[0]
+        y = zipped[1]
+        label = z_names_nbi[j]
+        plt.annotate(label,  # this is the value which we want to label (text)
+                     (x, y),  # x and y is the points location where we have to label
+                     textcoords="offset points",
+                     xytext=(0, 10),  # this for the distance between the points
+                     # and the text label
+                     ha='center',
+                     arrowprops=dict(arrowstyle="->", color='green'))"""
+
+    plt.xlabel('FID Score')
+    plt.ylabel('Avg.' + metric_analysis)
+    plt.legend(loc='best')
+
+
+
+    plt.show()
+
+
 def compare_gans_boxplots(dir_to_csv=(os.path.join(os.getcwd(), 'results', 'sorted_experiments_information.csv')),
                              metrics='all', exclusion_criteria=None):
     # 'Accuracy', 'Precision', 'Recall', 'F-1' 'Matthews CC'
@@ -165,24 +455,101 @@ def compare_gans_boxplots(dir_to_csv=(os.path.join(os.getcwd(), 'results', 'sort
                               'backbone GAN': ['wli2nbi_ssim'], 'training_data_used': chosen_trained_data,
                              }
     selection_wli2nbi_ssim = select_specific_cases(df, dict_selection_wli2nbi_ssim)
+
+    dict_selection_wli2nbi_ssim_2 = {'name_model': ['gan_model_separate_features'],
+                                   'learning_rate': chosen_learning_rates,
+                                   'batch_size': chosen_batch_sizes, 'dataset': chosen_dataset,
+                                   'backbone GAN': ['wli2nbi_ssim_2'], 'training_data_used': chosen_trained_data,
+                                   }
+    selection_wli2nbi_ssim_2 = select_specific_cases(df, dict_selection_wli2nbi_ssim_2)
+
+    dict_selection_fine_tune = {'name_model': ['gan_model_separate_features'],
+                                   'learning_rate': chosen_learning_rates,
+                                   'batch_size': chosen_batch_sizes, 'dataset': chosen_dataset,
+                                   'backbone GAN': ['fine_tune'], 'training_data_used': chosen_trained_data,
+                                   }
+    selection_fine_tune = select_specific_cases(df, dict_selection_fine_tune)
+
+    dict_selection_fine_tune_2C1 = {'name_model': ['gan_model_separate_features'],
+                                'learning_rate': chosen_learning_rates,
+                                'batch_size': chosen_batch_sizes, 'dataset': chosen_dataset,
+                                'backbone GAN': ['fine_tune_2C1'], 'training_data_used': chosen_trained_data,
+                                }
+    selection_fine_tune_2C1 = select_specific_cases(df, dict_selection_fine_tune_2C1)
+
+    dict_selection_fine_tune_2C2 = {'name_model': ['gan_model_separate_features'],
+                                    'learning_rate': chosen_learning_rates,
+                                    'batch_size': chosen_batch_sizes, 'dataset': chosen_dataset,
+                                    'backbone GAN': ['fine_tune_2C2'], 'training_data_used': chosen_trained_data,
+                                    }
+    selection_fine_tune_2C2 = select_specific_cases(df, dict_selection_fine_tune_2C2)
+
+    metrics_box = ['ALL', 'WLI', 'NBI']
+    metrics_box = [''.join([metric_analysis, ' ', m]) for m in metrics_box]
+    # compariosn base gans
+    print('*********************')
+    daa.compute_Mann_Whitney_U_test(base_selection, selection_wli2nbi, metric_list=metrics_box,
+                                    comparison_attribute='backbone GAN')
+    print('*********************')
+    daa.compute_Mann_Whitney_U_test(selection_wli2nbi, general_selection, metric_list=metrics_box,
+                                    comparison_attribute='backbone GAN')
+    print('*********************')
+    daa.compute_Mann_Whitney_U_test(base_selection, general_selection, metric_list=metrics_box,
+                                    comparison_attribute='backbone GAN')
+    print('*********************')
+    # comparison of no ssim vs ssim
+    daa.compute_Mann_Whitney_U_test(selection_wli2nbi, selection_wli2nbi_ssim_2, metric_list=metrics_box,
+                                    comparison_attribute='backbone GAN')
+    print('*********************')
+    daa.compute_Mann_Whitney_U_test(base_selection, not_complete_ssim_selection_2, metric_list=metrics_box,
+                                    comparison_attribute='backbone GAN')
+    print('*********************')
+    daa.compute_Mann_Whitney_U_test(base_selection, selection_wli2nbi_ssim_2, metric_list=metrics_box,
+                                    comparison_attribute='backbone GAN')
+    # comparison ssim base vs ssim others
+    print('*********************')
+    daa.compute_Mann_Whitney_U_test(selection_wli2nbi_ssim_2, not_complete_ssim_selection_2, metric_list=metrics_box,
+                                    comparison_attribute='backbone GAN')
+    print('*********************')
+    daa.compute_Mann_Whitney_U_test(not_complete_ssim_selection_2, general_ssim_selection, metric_list=metrics_box,
+                                    comparison_attribute='backbone GAN')
+    print('*********************')
+    daa.compute_Mann_Whitney_U_test(not_complete_ssim_selection_2, selection_fine_tune, metric_list=metrics_box,
+                                    comparison_attribute='backbone GAN')
+    print('*********************')
+    daa.compute_Mann_Whitney_U_test(not_complete_ssim_selection_2, selection_fine_tune_2C1, metric_list=metrics_box,
+                                    comparison_attribute='backbone GAN')
+    print('*********************')
+    daa.compute_Mann_Whitney_U_test(not_complete_ssim_selection_2, selection_fine_tune_2C2, metric_list=metrics_box,
+                                    comparison_attribute='backbone GAN')
+
     selection_wli2nbi.loc[selection_wli2nbi["backbone GAN"] == "wli2nbi", "backbone GAN"] = 'B'
     base_selection.loc[base_selection["backbone GAN"] == "not_complete_wli2nbi", "backbone GAN"] = 'C'
     general_selection.loc[general_selection["backbone GAN"] == "general_wli2nbi", "backbone GAN"] = 'D'
     selection_wli2nbi_ssim.loc[selection_wli2nbi_ssim["backbone GAN"] == "wli2nbi_ssim", "backbone GAN"] = 'E'
+    selection_wli2nbi_ssim_2.loc[selection_wli2nbi_ssim_2["backbone GAN"] == "wli2nbi_ssim_2", "backbone GAN"] = 'X'
     not_complete_ssim_selection_2.loc[not_complete_ssim_selection_2["backbone GAN"] == "not_complete_wli2nbi_ssim_2", "backbone GAN"] = 'F'
     general_ssim_selection.loc[general_ssim_selection["backbone GAN"] == "general_wli2nbi_ssim", "backbone GAN"] = 'G'
+    selection_fine_tune.loc[selection_fine_tune["backbone GAN"] == "fine_tune", "backbone GAN"] = 'FT'
+    selection_fine_tune_2C1.loc[selection_fine_tune_2C1["backbone GAN"] == "fine_tune_2C1", "backbone GAN"] = 'FT1'
+    selection_fine_tune_2C2.loc[selection_fine_tune_2C2["backbone GAN"] == "fine_tune_2C2", "backbone GAN"] = 'FT2'
+
+
 
     selection = pd.concat([selection_resnet,
                            selection_wli2nbi,
                            base_selection,
                            general_selection,
                            selection_wli2nbi_ssim,
+                           selection_wli2nbi_ssim_2,
                            not_complete_ssim_selection_2,
                            general_ssim_selection,
+                           selection_fine_tune,
+                           selection_fine_tune_2C1,
+                           selection_fine_tune_2C2,
                            ])
 
-    metrics_box = ['ALL', 'WLI', 'NBI']
-    metrics_box = [''.join([metric_analysis, ' ', m]) for m in metrics_box]
+
 
     x_axis = 'backbone GAN'
     y_axis = metrics_box
@@ -1070,8 +1437,14 @@ def analyse_urs_experiments(base_path_dir=None):
 
     df_real_vals = pd.read_csv(dir_vals_file)
     df_results = pd.read_csv(dir_results_file)
-
     analyse_img_quality_experiment(df_real_vals, df_results)
+    specialist_results = select_specific_cases(df_results, {'Role': ['Specialist']})
+    print('Specialist results:')
+    analyse_img_quality_experiment(df_real_vals, specialist_results)
+    resident_results = select_specific_cases(df_results, {'Role': ['Resident']})
+    print('Resident results:')
+    analyse_img_quality_experiment(df_real_vals, resident_results)
+
     analyze_diagnosis_experiment(df_real_vals, df_results)
 
 
@@ -1099,6 +1472,10 @@ def main(_argv):
             compare_dataset_boxplots()
         elif type_of_analysis == 'compare_base_models':
             compare_base_models()
+        elif type_of_analysis == 'compare_base_datasets':
+            compare_datasets_v1()
+        elif type_of_analysis == 'fid_score_vs_metrics':
+            fid_score_vs_metrics()
         elif type_of_analysis == 'prepare_data':
             prepare_data(directory_to_analyze)
         elif type_of_analysis == 'analyse_urs_experiments':
