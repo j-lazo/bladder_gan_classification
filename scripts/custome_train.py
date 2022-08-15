@@ -32,7 +32,7 @@ def custom_train_simple_model(name_model, path_dataset, mode='fit', backbones=['
                               gan_selection=None):
 
     @tf.function
-    def train_step(images, labels):
+    def train_step(images):
         with tf.GradientTape() as tape:
             pred_teacher = teacher_model(images, training=False)
             labels = tf.argmax(pred_teacher, axis=1)
@@ -66,6 +66,7 @@ def custom_train_simple_model(name_model, path_dataset, mode='fit', backbones=['
         predictions = model(input_ims, training=False)
         return predictions
 
+    unique_class = ['HGC', 'HLT', 'LGC', 'NTL']
     multioutput = True
     list_datasets = os.listdir(os.path.join(os.getcwd(), 'datasets'))
     if path_dataset in list_datasets:
@@ -74,7 +75,6 @@ def custom_train_simple_model(name_model, path_dataset, mode='fit', backbones=['
     list_subdirs_dataset = os.listdir(path_dataset)
     # define loss and optimizer
     loss_object = tf.keras.losses.SparseCategoricalCrossentropy()
-    # optimizer = tf.keras.optimizers.Adadelta()
     optimizer = tf.keras.optimizers.Adam(learning_rate=learning_rate)
     train_loss = tf.keras.metrics.Mean(name='train_loss')
     train_accuracy = tf.keras.metrics.SparseCategoricalAccuracy(name='train_accuracy')
@@ -135,35 +135,36 @@ def custom_train_simple_model(name_model, path_dataset, mode='fit', backbones=['
 
     for img_name in img_list_train:
         A_img_paths.append(dictionary_labels_train[img_name]['path_file'])
-        ya_train_labels.append(dictionary_labels_train[img_name]['img_class'])
+        #ya_train_labels.append(dictionary_labels_train[img_name]['img_class'])
 
-    unique_class = list(np.unique(ya_train_labels))
-    ya_train_labels = [unique_class.index(x) for x in ya_train_labels]
-    num_classes = len(unique_class)
+    #unique_class = list(np.unique(ya_train_labels)).remove('nan')
+    #ya_train_labels = [unique_class.index(x) for x in ya_train_labels]
+    num_classes = 4
 
     # A_img_paths_test = py.glob(py.join(args.datasets_dir, args.dataset, 'testA'), '*.jpg')
     # B_img_paths_test = py.glob(py.join(args.datasets_dir, args.dataset, 'testB'), '*.jpg')
 
     for img_name in img_list_val:
         A_img_paths_val.append(dictionary_labels_val[img_name]['path_file'])
-        ya_val_labels.append(dictionary_labels_val[img_name]['img_class'])
+        #ya_val_labels.append(dictionary_labels_val[img_name]['img_class'])
 
-    ya_val_labels = [unique_class.index(x) for x in ya_val_labels]
+    #ya_val_labels = [unique_class.index(x) for x in ya_val_labels]
     # ya_val_labels = data.convert_labels_to_vector(ya_val_labels, len(unique_class))
     # b_val_labels = data.convert_labels_to_vector(yb_val_labels, len(unique_class))
 
     len_dataset = len(img_list_train) // batch_size
-    train_dataset, num_class = dam.make_tf_dataset(img_list_train, dictionary_labels_train, batch_size,
-                                                    training=True, multi_output=multioutput, custom_training=True)
+    train_dataset, _ = dam.make_tf_dataset(img_list_train, dictionary_labels_train, batch_size,
+                                                    training=True, multi_output=multioutput, custom_training=True,
+                                                   ignore_labels=True)
                                                    #num_repeat=len_dataset, )
 
-    valid_dataset, len_val_dataset = dam.make_tf_dataset(img_list_val, dictionary_labels_val, batch_size,
+    valid_dataset, num_class = dam.make_tf_dataset(img_list_val, dictionary_labels_val, batch_size,
                                                           training=False, multi_output=multioutput,
                                                          custom_training=True, )
 
     # define the models
     teacher_model, _ = load_model(path_pretrained_model)
-    model = simple_classifier(backbone=backbones[0], num_classes=len(unique_class))
+    model = simple_classifier(backbone=backbones[0], num_classes=num_classes)
 
     # checkpoint
     checkpoint_dir = os.path.join(results_directory, 'checkpoints')
@@ -185,10 +186,10 @@ def custom_train_simple_model(name_model, path_dataset, mode='fit', backbones=['
         valid_loss.reset_states()
         valid_accuracy.reset_states()
         step = 0
-        for x, labels in train_dataset:
+        for x, domain in train_dataset:
             step += 1
-            images = x[0]
-            train_loss_value, t_acc = train_step(images, labels)
+            images = x
+            train_loss_value, t_acc = train_step(images)
             with train_summary_writer.as_default():
                 tf.summary.scalar('loss', train_loss.result(), step=epoch)
                 tf.summary.scalar('accuracy', train_accuracy.result(), step=epoch)

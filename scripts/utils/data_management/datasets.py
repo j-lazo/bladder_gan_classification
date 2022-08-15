@@ -125,12 +125,16 @@ def load_data_from_directory(path_data, csv_annotations=None, specific_domain=No
     list_classes = data_frame['tissue type'].tolist()
     list_domain = data_frame['imaging type'].tolist()
 
+
     # choose case specific files
     if case_specific:
         list_cases = data_frame['case number'].tolist()
         list_imgs = [image for i, image in enumerate(list_imgs) if list_cases[i] in case_specific]
 
-    list_unique_classes = np.unique(list_classes)
+    list_unique_classes = list(np.unique(list_classes))
+    if 'nan' in list_unique_classes:
+        list_unique_classes.remove('nan')
+
     list_unique_domains = np.unique(list_domain)
 
     for (dirpath, dirnames, filenames) in os.walk(path_data):
@@ -177,7 +181,7 @@ def load_data_from_directory(path_data, csv_annotations=None, specific_domain=No
 
 
 def make_tf_dataset(list_files, dictionary_labels, batch_size, training=False, multi_output=False, specific_domain=None,
-                    num_repeat=None, custom_training=False):
+                    num_repeat=None, custom_training=False, ignore_labels=False):
 
     global num_classes
     global training_mode
@@ -226,9 +230,6 @@ def make_tf_dataset(list_files, dictionary_labels, batch_size, training=False, m
     path_imgs = list()
     images_class = list()
     images_domains = list()
-    #csv_annotations_file = [os.path.join(path, f) for f in os.listdir(path) if f.endswith('.csv')].pop()
-    #list_files, dictionary_labels = load_data_from_directory(path, csv_annotations=csv_annotations_file,
-    #                                                         specific_domain=specific_domain)
 
     if training:
         random.shuffle(list_files)
@@ -257,29 +258,36 @@ def make_tf_dataset(list_files, dictionary_labels, batch_size, training=False, m
         images_class = copy.copy(new_images_class)
         images_domains = copy.copy(new_images_domains)
 
-    unique_classes = list(np.unique(images_class))
-    num_classes = len(unique_classes)
-    labels = [unique_classes.index(val) for val in images_class]
-    network_labels = list()
-
-
     filenames_ds = tf.data.Dataset.from_tensor_slices(path_imgs)
     images_ds = filenames_ds.map(parse_image, num_parallel_calls=tf.data.experimental.AUTOTUNE)
-    if custom_training:
-        labels_ds = tf.data.Dataset.from_tensor_slices(labels)
-    else:
-        # create a vector according to the label where 1 is the position corresponding to the value
-        for label in labels:
-            l = np.zeros(num_classes)
-            l[label] = 1.0
-            network_labels.append(l)
-        labels_ds = tf.data.Dataset.from_tensor_slices(network_labels)
 
-    if multi_output:
+    if ignore_labels:
+        num_classes = np.nan
         domain_ds = tf.data.Dataset.from_tensor_slices(images_domains)
-        ds = tf.data.Dataset.zip(((images_ds, domain_ds), labels_ds))
+        ds = tf.data.Dataset.zip((images_ds, domain_ds))
+
     else:
-        ds = tf.data.Dataset.zip((images_ds, labels_ds))
+        unique_classes = list(np.unique(images_class))
+        num_classes = len(unique_classes)
+        labels = [unique_classes.index(val) for val in images_class]
+        network_labels = list()
+
+        if custom_training:
+            labels_ds = tf.data.Dataset.from_tensor_slices(labels)
+        else:
+            # create a vector according to the label where 1 is the position corresponding to the value
+            for label in labels:
+                l = np.zeros(num_classes)
+                l[label] = 1.0
+                network_labels.append(l)
+            labels_ds = tf.data.Dataset.from_tensor_slices(network_labels)
+
+        if multi_output:
+            domain_ds = tf.data.Dataset.from_tensor_slices(images_domains)
+            ds = tf.data.Dataset.zip(((images_ds, domain_ds), labels_ds))
+        else:
+            ds = tf.data.Dataset.zip((images_ds, labels_ds))
+
     if training:
         ds = configure_for_performance(ds)
     else:
