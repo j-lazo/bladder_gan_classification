@@ -764,6 +764,21 @@ def compare_models_boxplots(dir_to_csv=(os.path.join(os.getcwd(), 'results', 'so
                                        }
     select_simple_separation_gan_v3 = select_specific_cases(df, dict_simple_separation_gan_v3)
 
+    dict_simple_semi_sup_1 = {'name_model': ['semi_supervised_resnet101'],
+                                     'learning_rate': chosen_learning_rates,
+                                     'batch_size': chosen_batch_sizes, 'dataset': ['bladder_tissue_classification_v3_semi_sup'],
+                                     'training_data_used': chosen_trained_data,
+                              'teacher model': ['model_resnet101_fit_lr_1e-05_bs_32_trained_with_WLI_26_07_2022_16_26']
+                                     }
+    select_simple_semi_sup_1 = select_specific_cases(df, dict_simple_semi_sup_1)
+
+    dict_simple_semi_sup_2= {'name_model': ['semi_supervised_resnet101'],
+                                     'learning_rate': chosen_learning_rates,
+                                     'batch_size': chosen_batch_sizes, 'dataset': ['bladder_tissue_classification_v3_semi_sup'],
+                                     'training_data_used': chosen_trained_data,
+                              'teacher model': ['model_resnet101_fit_lr_1e-05_bs_32_trained_with_WLI_20_06_2022_21_50']
+                                     }
+    select_simple_semi_sup_2 = select_specific_cases(df, dict_simple_semi_sup_2)
     metrics_box = ['ALL', 'WLI', 'NBI']
     metrics_box = [''.join([metric_analysis, ' ', m]) for m in metrics_box]
 
@@ -784,6 +799,8 @@ def compare_models_boxplots(dir_to_csv=(os.path.join(os.getcwd(), 'results', 'so
     selection_separat_v3.loc[selection_separat_v3["name_model"] == "gan_model_separate_features_v3", "name_model"] = 'H'
 
     selection_proposed.loc[selection_proposed["name_model"] == "gan_model_separate_features", "name_model"] = 'I'
+    select_simple_semi_sup_1.loc[select_simple_semi_sup_1["name_model"] == "semi_supervised_resnet101", "name_model"] = 'SS1'
+    select_simple_semi_sup_2.loc[select_simple_semi_sup_2["name_model"] == "semi_supervised_resnet101", "name_model"] = 'SS2'
 
 
     selection = pd.concat([
@@ -796,8 +813,9 @@ def compare_models_boxplots(dir_to_csv=(os.path.join(os.getcwd(), 'results', 'so
         select_only_gan_and_domain,
                            select_simple_separation_gan_v3,
         selection_separat_v3,
-
         selection_proposed,
+        select_simple_semi_sup_2,
+        select_simple_semi_sup_1
     ])
 
 
