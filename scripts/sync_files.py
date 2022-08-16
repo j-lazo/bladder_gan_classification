@@ -116,6 +116,7 @@ def main(_argv):
         date_experiment = list()
         name_models = list()
         backbones = list()
+        teacher_models = list()
 
         dictionary_experiments = {}
 
@@ -140,10 +141,15 @@ def main(_argv):
                     data_used_in_train = info_experiment['domain data used']
                     backbone_gan = info_experiment['backbone gan']
                     dataset_training = info_experiment['dataset']
+                    if 'teacher_model' in info_experiment.keys():
+                        teacher_model = info_experiment['teacher_model']
+                    else:
+                        teacher_model = np.nan
                     name_experiment.append(experiment_folder)
                     date_experiment.append(date)
                     name_models.append(name_model)
                     backbones.append(backbone_name)
+                    teacher_models.append(teacher_model)
 
                 else:
                     performance_yaml_file = yaml_files.pop()
@@ -183,8 +189,8 @@ def main(_argv):
             information_experiment = {'experiment_folder': experiment_folder, 'date': date, 'name_model': name_model,
                                       'backbones': backbone_name, 'batch_size': batch_size,
                                       'learning_rate': learning_rate, 'dataset': dataset_training,
-                                      'backbone GAN': backbone_gan, 'training_data_used': data_used_in_train
-                                      }
+                                      'backbone GAN': backbone_gan, 'training_data_used': data_used_in_train,
+                                      'teacher model': teacher_model}
             information_experiment = {**information_experiment, **results}
 
             dictionary_experiments.update({experiment_folder: information_experiment})
