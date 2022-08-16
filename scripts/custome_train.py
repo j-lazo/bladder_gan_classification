@@ -29,7 +29,7 @@ def custom_train_simple_model(name_model, path_dataset, mode='fit', backbones=['
                               test_data=None, eval_val_set=False, eval_train_set=False,
                               results_dir=os.path.join(os.getcwd(), 'results'), gpus_available=None, analyze_data=False,
                               specific_domain=None, prepare_finished_experiment=False, k_folds={None}, val_division=0.2,
-                              gan_selection=None):
+                              gan_selection=None, patience=35):
 
     @tf.function
     def train_step(images):
@@ -174,7 +174,7 @@ def custom_train_simple_model(name_model, path_dataset, mode='fit', backbones=['
                                os.path.join(results_directory, 'checkpoints'),
                                max_to_keep=3)
 
-    patience = 15
+    patience = patience
     wait = 0
     best = 0
     # start training
