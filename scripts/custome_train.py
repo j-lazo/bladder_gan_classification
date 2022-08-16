@@ -95,7 +95,7 @@ def custom_train_simple_model(name_model, path_dataset, mode='fit', backbones=['
                               'date': training_date_time.strftime("%d-%m-%Y %H:%M"),
                               'name model': 'semi_supervised_resnet101',
                               'backbone': backbone_model,
-                              'domain data used': 'ALL',
+                              'domain data used': specific_domain,
                               'batch size': int(batch_size),
                               'learning rate': float(learning_rate),
                               'backbone gan': gan_model,
