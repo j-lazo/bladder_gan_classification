@@ -155,12 +155,12 @@ def custom_train_simple_model(name_model, path_dataset, mode='fit', backbones=['
     len_dataset = len(img_list_train) // batch_size
     train_dataset, _ = dam.make_tf_dataset(img_list_train, dictionary_labels_train, batch_size,
                                                     training=True, multi_output=multioutput, custom_training=True,
-                                                   ignore_labels=True)
+                                                   ignore_labels=True, specific_domain=specific_domain)
                                                    #num_repeat=len_dataset, )
 
     valid_dataset, num_class = dam.make_tf_dataset(img_list_val, dictionary_labels_val, batch_size,
                                                           training=False, multi_output=multioutput,
-                                                         custom_training=True, )
+                                                         custom_training=True, specific_domain=specific_domain, )
 
     # define the models
     teacher_model, _ = load_model(path_pretrained_model)
