@@ -18,7 +18,7 @@ from matplotlib.patches import Polygon
 import scipy
 from utils.data_management import file_management as fam
 from matplotlib import gridspec
-
+from decimal import Decimal
 
 def extract_experiment_information_from_name(experiment_ID_name):
 
@@ -427,6 +427,257 @@ def compute_Mann_Whitney_U_test(data_model_1, data_model_2, metric_list=None, co
             print(f'{name_1} : {np.median(list_metric_model_1)} +- {np.std(list_metric_model_1)}')
             print(f'{name_2} : {np.median(list_metric_model_2)} +- {np.std(list_metric_model_2)}')
             print(f'stat-significance: {result_mwu_test}')
+            print(type(result_mwu_test))
+            print(len(result_mwu_test))
+            print(np.shape(result_mwu_test))
+            print(result_mwu_test[1])
+
+
+def analyze_diagnosis_experiment(df_real_vals, df_results):
+
+    dict_names = {'Low Grade': 'LGC',
+                  'Non-Tumor Lesion': 'NTL',
+                  'Non-Suspicious Tissue': 'HLT',
+                  'High Grade': 'HGC'}
+
+    list_acc_base = list()
+    list_prec_base = list()
+    list_rec_base = list()
+    list_f1_base = list()
+    list_mathews_base = list()
+    list_acc_prop = list()
+    list_prec_prop = list()
+    list_rec_prop = list()
+    list_f1_prop = list()
+    list_mathews_prop = list()
+
+    real_vals = list()
+    diagnosis_type = list()
+    keys_of_interest = list(range(21, 60))
+    question_num = df_real_vals['Question'].tolist()
+    type_class = df_real_vals['REAL CLASS'].tolist()
+    data_type = df_real_vals['Type'].tolist()
+
+    for j, num in enumerate(question_num):
+        if not np.isnan(num):
+            if int(num) in keys_of_interest:
+                real_vals.append(type_class[j])
+                diagnosis_type.append(data_type[j])
+
+    unique_vals = list(np.unique(real_vals))
+    real_vals = [unique_vals.index(x) for x in real_vals]
+    real_vals_prop = [x for j, x in enumerate(real_vals) if diagnosis_type[j] == 'mixed']
+    real_vals_base = [x for j, x in enumerate(real_vals) if diagnosis_type[j] == 'temporal frame']
+
+    keys_of_interest = ['Q'+str(j)+'.' for j in keys_of_interest]
+
+    for j in range(len(df_results['Timestamp'].tolist())):
+        list_results_base = list()
+        list_results_proposed = list()
+        case_dict = df_results.iloc[j].to_dict()
+        new_dict = {k.replace(' ', ''):v for k, v in case_dict.items()}
+        new_dict = {k.replace('Pleaseselecttheimagethatlooksmorerealistic', ''):v for k, v in new_dict.items()}
+        new_dict = {k.replace('Pleasechoosethecategorythattheimagescorrespondto.', ''): v for k, v in new_dict.items()}
+        new_dict = {k.replace('Pleasechoosethecategorythatyouthinktheimagesbelongsto.', ''): v for k, v in new_dict.items()}
+
+        for j, key in enumerate(keys_of_interest):
+            if diagnosis_type[j] == 'temporal frame':
+                list_results_base.append(dict_names[new_dict[key]])
+            elif diagnosis_type[j] == 'mixed':
+                list_results_proposed.append(dict_names[new_dict[key]])
+
+        list_results_base = [unique_vals.index(x) for x in list_results_base]
+        list_results_proposed = [unique_vals.index(x) for x in list_results_proposed]
+
+        acc_base = accuracy_score(list_results_base, real_vals_base)
+        acc_prop = accuracy_score(list_results_proposed, real_vals_prop)
+
+        prec_base = precision_score(list_results_base, real_vals_base, average='macro', zero_division=1)
+        prec_prop = precision_score(list_results_proposed, real_vals_prop, average='macro', zero_division=1)
+
+        rec_base = recall_score(list_results_base, real_vals_base, average='macro', zero_division=1)
+        rec_prop = recall_score(list_results_proposed, real_vals_prop, average='macro', zero_division=1)
+
+        f1_base = f1_score(list_results_base, real_vals_base, average='macro', zero_division=1)
+        f1_prop = f1_score(list_results_proposed, real_vals_prop, average='macro', zero_division=1)
+
+        mathews_base = matthews_corrcoef(list_results_base, real_vals_base)
+        mathews_prop = matthews_corrcoef(list_results_proposed, real_vals_prop)
+
+        print(f'acc base: {acc_base}, acc prop: {acc_prop}')
+        print(f'prec base: {prec_base}, prec prop: {prec_prop}')
+        print(f'rec base: {rec_base}, rec prop: {rec_prop}')
+        print(f'f1 base: {f1_base}, f1 prop: {f1_prop}')
+        print(f'Mathews CC base: {mathews_base}, Mathews CC prop: {mathews_prop}')
+
+        list_acc_base.append(acc_base)
+        list_prec_base.append(prec_base)
+        list_rec_base.append(rec_base)
+        list_f1_base.append(f1_base)
+        list_mathews_base.append(mathews_base)
+
+        list_acc_prop.append(acc_prop)
+        list_prec_prop.append(prec_prop)
+        list_rec_prop.append(rec_prop)
+        list_f1_prop.append(f1_prop)
+        list_mathews_prop.append(mathews_prop)
+
+    print(f'Median acc base: {np.median(list_acc_base)} +- {np.std(list_acc_base)}, '
+          f'median acc prop : {np.median(list_acc_prop)} +- {np.std(list_acc_prop)} '
+          f' Mann-Whitney U test{scipy.stats.mannwhitneyu(list_acc_base, list_acc_prop)}')
+
+    print(f'Median prec base: {np.median(list_prec_base)} +- {np.std(list_prec_base)}, '
+          f'median prec prop : {np.median(list_prec_prop)} +- {np.std(list_prec_prop)}'
+          f'Mann-Whitney U test{scipy.stats.mannwhitneyu(list_prec_base, list_prec_prop)}')
+
+    print(f'Median rec base: {np.median(list_rec_base)} +- {np.std(list_rec_base)}, '
+          f'median rec prop : {np.median(list_rec_prop)} +- {np.std(list_rec_prop)}'
+          f'Mann-Whitney U test{scipy.stats.mannwhitneyu(list_rec_base, list_rec_prop)}')
+
+    print(f'Median f-1 base: {np.median(list_f1_base)} +- {np.std(list_f1_base)}, '
+          f'median f-1 prop : {np.median(list_f1_prop)} +- {np.std(list_f1_prop)}'
+          f'Mann-Whitney U test{scipy.stats.mannwhitneyu(list_f1_base, list_f1_prop)}')
+
+    print(f'Median Matthews CC base: {np.median(list_mathews_base)} +- {np.std(list_mathews_base)}, '
+          f'median Matthews CC prop : {np.median(list_mathews_prop)} +- {np.std(list_mathews_prop)}'
+          f'Mann-Whitney U test{scipy.stats.mannwhitneyu(list_mathews_base, list_mathews_prop)}')
+
+    dictionary_results = {'acc base': list_acc_base, 'acc proposed': list_acc_prop,
+                          'prec base': list_prec_base, 'prec porposed': list_prec_prop,
+                          'rec base': list_rec_base, 'rec proposed': list_rec_prop,
+                          'f-1 base': list_f1_base, 'f-1 proposed': list_f1_prop,
+                          'mathews CC base': list_mathews_base, 'mathews CC prop': list_mathews_prop}
+
+    boxplot_users_experiment(dictionary_results)
+
+
+def compare_diagnosis_usrs(df_real_vals, df_results):
+    dict_names = {'Low Grade': 'LGC',
+                  'Non-Tumor Lesion': 'NTL',
+                  'Non-Suspicious Tissue': 'HLT',
+                  'High Grade': 'HGC'}
+
+    list_acc_base = list()
+    list_prec_base = list()
+    list_rec_base = list()
+    list_f1_base = list()
+    list_mathews_base = list()
+    list_kohen_base = list()
+
+
+    real_vals = list()
+    diagnosis_type = list()
+    keys_of_interest = list(range(21, 60))
+    question_num = df_real_vals['Question'].tolist()
+    type_class = df_real_vals['REAL CLASS'].tolist()
+    data_type = df_real_vals['Type'].tolist()
+
+    for j, num in enumerate(question_num):
+        if not np.isnan(num):
+            if int(num) in keys_of_interest:
+                real_vals.append(type_class[j])
+                diagnosis_type.append(data_type[j])
+
+    unique_vals = list(np.unique(real_vals))
+    real_vals = [unique_vals.index(x) for x in real_vals]
+    real_vals_prop = [x for j, x in enumerate(real_vals) if diagnosis_type[j] == 'mixed']
+    real_vals_base = [x for j, x in enumerate(real_vals) if diagnosis_type[j] == 'temporal frame']
+
+    keys_of_interest = ['Q'+str(j)+'.' for j in keys_of_interest]
+
+    for j in range(len(df_results['Timestamp'].tolist())):
+        list_results_base = list()
+        list_results_proposed = list()
+        case_dict = df_results.iloc[j].to_dict()
+        new_dict = {k.replace(' ', ''):v for k, v in case_dict.items()}
+        new_dict = {k.replace('Pleaseselecttheimagethatlooksmorerealistic', ''):v for k, v in new_dict.items()}
+        new_dict = {k.replace('Pleasechoosethecategorythattheimagescorrespondto.', ''): v for k, v in new_dict.items()}
+        new_dict = {k.replace('Pleasechoosethecategorythatyouthinktheimagesbelongsto.', ''): v for k, v in new_dict.items()}
+        for j, key in enumerate(keys_of_interest):
+            if diagnosis_type[j] == 'temporal frame':
+                list_results_base.append(dict_names[new_dict[key]])
+            elif diagnosis_type[j] == 'mixed':
+                list_results_proposed.append(dict_names[new_dict[key]])
+
+        list_results_base = [unique_vals.index(x) for x in list_results_base]
+        list_results_proposed = [unique_vals.index(x) for x in list_results_proposed]
+
+        acc_base = accuracy_score(list_results_base, real_vals_base)
+        prec_base = precision_score(list_results_base, real_vals_base, average='macro', zero_division=1)
+        rec_base = recall_score(list_results_base, real_vals_base, average='macro', zero_division=1)
+        f1_base = f1_score(list_results_base, real_vals_base, average='macro', zero_division=1)
+        mathews_base = matthews_corrcoef(list_results_base, real_vals_base)
+        cohen_kappa = cohen_kappa_score(list_results_base, real_vals_base)
+
+        list_acc_base.append(acc_base)
+        list_prec_base.append(prec_base)
+        list_rec_base.append(rec_base)
+        list_f1_base.append(f1_base)
+        list_mathews_base.append(mathews_base)
+        list_kohen_base.append(cohen_kappa)
+
+    dictionary_performance = {'name model': 'users'}
+    dictionary_performance['domain translation'] = '-'
+    dictionary_performance['unlabel data'] = '-'
+    dictionary_performance['test data'] = 'ALL'
+    dictionary_performance['Accuracy'] = str(round(np.median(list_acc_base), 3)) + ' pm ' + str(round(np.std(list_acc_base), 3))
+    dictionary_performance['p-val Accuracy'] = '-'
+    dictionary_performance['Precision'] = str(round(np.median(list_prec_base), 3)) + ' pm ' + str(round(np.std(list_prec_base), 3))
+    dictionary_performance['p-val Precision'] = '-'
+    dictionary_performance['Recall'] = str(round(np.median(list_rec_base), 3)) + ' pm ' + str(round(np.std(list_rec_base), 3))
+    dictionary_performance['p-val Recall'] = '-'
+    dictionary_performance['F-1'] = str(round(np.median(list_f1_base), 3)) + ' pm ' + str(round(np.std(list_f1_base), 3))
+    dictionary_performance['p-val F-1'] = '-'
+    dictionary_performance['Matthews CC'] = str(round(np.median(list_mathews_base), 3)) + ' pm ' + str(round(np.std(list_mathews_base), 3))
+    dictionary_performance['p-val Matthews CC'] = '-'
+    dictionary_performance['Cohen'] = str(round(np.median(list_kohen_base), 3)) + ' pm ' + str(round(np.std(list_kohen_base), 3))
+    dictionary_performance['p-val Cohen'] = '-'
+
+    return dictionary_performance
+
+
+def calc_average_performances(data_model_1, data_baseline=None, metric_list=None, comparison_attribute='name_model',
+                              training_data='ALL', training_data_baseline='WLI', domain_translation=False,
+                              unlabel_data=False):
+
+    def print_p_val(p_val):
+        if p_val < 0.0001:
+            print_val = '<0.0001'
+        elif p_val < 0.001:
+            print_val = '<0.001'
+        elif p_val < 0.01:
+            print_val = '<0.01'
+        elif p_val < 0.05:
+            print_val = '<0.05'
+        else:
+            print_val = '>0.05'
+        return print_val
+
+    name_1 = list(np.unique(data_model_1[comparison_attribute].tolist()))[-1]
+    dictionary_performance = {'name model': name_1}
+    data_subset = metric_list[0].split(' ')[-1]
+    dictionary_performance['domain translation'] = domain_translation
+    dictionary_performance['unlabel data'] = unlabel_data
+    dictionary_performance['test data'] = data_subset
+    for metric in metric_list:
+        if 'Matthews CC' in metric:
+            metric_name = 'Matthews CC'
+        else:
+            metric_name = metric.split(' ')[0]
+
+        df1 = data_model_1.loc[data_model_1['training_data_used'] == training_data]
+        list_metric_model_1 = df1[metric].tolist()
+        dictionary_performance[metric_name] = str(round(np.median(list_metric_model_1), 3)) + ' pm ' + str(round(np.std(list_metric_model_1), 3))
+        if data_baseline is None:
+            dictionary_performance['p-val ' + metric_name] = '-'
+
+        else:
+            df2 = data_baseline.loc[data_baseline['training_data_used'] == training_data_baseline]
+            list_metric_model_2 = df2[metric].tolist()
+            result_mwu_test = scipy.stats.mannwhitneyu(list_metric_model_1, list_metric_model_2)[1]
+            dictionary_performance['p-val ' + metric_name] = round(result_mwu_test, 3)#print_p_val(result_mwu_test)
+
+    return dictionary_performance
 
 
 def extract_data_to_list(data_model_1, metric_list=None, comparison_attribute='name_model'):
@@ -442,7 +693,6 @@ def extract_data_to_list(data_model_1, metric_list=None, comparison_attribute='n
             output_dict[metric] = list_metric_model_1
 
     return output_dict
-
 
 
 def Mann_Whitney_U_test(metrics_models, metrics, unique_models=None, analysis_type='by_model'):

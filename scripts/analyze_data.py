@@ -286,8 +286,8 @@ def fid_score_vs_metrics(dir_to_csv=(os.path.join(os.getcwd(), 'results', 'sorte
 
     list_names = list()
 
-    exlcusion_list = []
-    #exlcusion_list = ['fine_tune_2C1', 'fine_tune_2C2', 'fine_tune']
+    #exlcusion_list = []
+    exlcusion_list = ['fine_tune_2C1', 'fine_tune_2C2', 'fine_tune']
     for dictionary in list_dif_results:
         gan_selection = dictionary['GAN model']
         if gan_selection not in exlcusion_list:
@@ -639,7 +639,7 @@ def compare_dataset_boxplots(dir_to_csv=(os.path.join(os.getcwd(), 'results', 's
 def compare_models_boxplots(dir_to_csv=(os.path.join(os.getcwd(), 'results', 'sorted_experiments_information.csv')),
                              metrics='all', exclusion_criteria=None):
     # 'Accuracy', 'Precision', 'Recall', 'F-1' 'Matthews CC'
-    metric_analysis = 'Matthews CC'
+    metric_analysis = 'Accuracy'
     df = pd.read_csv(dir_to_csv)
     # chosen criteria
     chosen_learning_rates = [0.00001]
@@ -771,19 +771,58 @@ def compare_models_boxplots(dir_to_csv=(os.path.join(os.getcwd(), 'results', 'so
                               'teacher model': ['model_resnet101_fit_lr_1e-05_bs_32_trained_with_WLI_26_07_2022_16_26']
                                      }
     select_simple_semi_sup_1 = select_specific_cases(df, dict_simple_semi_sup_1)
+    dict_gan_semi_sup_2 = {'name_model': ['semi_supervised_resnet101'],
+                           'learning_rate': chosen_learning_rates,
+                           'batch_size': chosen_batch_sizes, 'dataset': ['bladder_tissue_classification_v3_semi_sup'],
+                           'training_data_used': chosen_trained_data,
+                           'teacher model': ['model_resnet101_fit_lr_1e-05_bs_32_trained_with_WLI_20_06_2022_21_50']
+                           }
+    select_simple_semi_sup_2 = select_specific_cases(df, dict_gan_semi_sup_2)
 
-    dict_simple_semi_sup_2= {'name_model': ['semi_supervised_resnet101'],
+    dict_simple_semi_sup_3 = {'name_model': ['semi_supervised_resnet101'],
+                           'learning_rate': chosen_learning_rates,
+                           'batch_size': chosen_batch_sizes, 'dataset': ['bladder_tissue_classification_v3_semi_sup_2'],
+                           'training_data_used': chosen_trained_data,
+                           'teacher model': ['model_resnet101_fit_lr_1e-05_bs_32_trained_with_WLI_26_07_2022_16_26']
+                           }
+    select_simple_semi_sup_3 = select_specific_cases(df, dict_simple_semi_sup_3)
+
+    dict_gan_semi_sup_1= {'name_model': ['semi_supervised_gan_model_separate_features'],
                                      'learning_rate': chosen_learning_rates,
                                      'batch_size': chosen_batch_sizes, 'dataset': ['bladder_tissue_classification_v3_semi_sup'],
                                      'training_data_used': chosen_trained_data,
                               'teacher model': ['model_resnet101_fit_lr_1e-05_bs_32_trained_with_WLI_20_06_2022_21_50']
                                      }
-    select_simple_semi_sup_2 = select_specific_cases(df, dict_simple_semi_sup_2)
+    select_gan_semi_sup_1 = select_specific_cases(df, dict_gan_semi_sup_1)
+
+    dict_gan_semi_sup_2 = {'name_model': ['semi_supervised_gan_model_separate_features'],
+                              'learning_rate': chosen_learning_rates,
+                              'batch_size': chosen_batch_sizes,
+                              'dataset': ['bladder_tissue_classification_v3_semi_sup'],
+                              'training_data_used': chosen_trained_data,
+                              'teacher model': ['model_resnet101_fit_lr_1e-05_bs_32_trained_with_WLI_26_07_2022_16_26']
+                              }
+    select_gan_semi_sup_2 = select_specific_cases(df, dict_gan_semi_sup_2)
+
+    dict_gan_semi_sup_3 = {'name_model': ['semi_supervised_gan_model_separate_features'],
+                              'learning_rate': chosen_learning_rates,
+                              'batch_size': chosen_batch_sizes,
+                              'dataset': ['bladder_tissue_classification_v3_semi_sup_2'],
+                              'training_data_used': chosen_trained_data,
+                              'teacher model': ['model_resnet101_fit_lr_1e-05_bs_32_trained_with_WLI_20_06_2022_21_50']
+                              }
+    select_gan_semi_sup_3 = select_specific_cases(df, dict_gan_semi_sup_3)
+
     metrics_box = ['ALL', 'WLI', 'NBI']
     metrics_box = [''.join([metric_analysis, ' ', m]) for m in metrics_box]
-
-    daa.compute_Mann_Whitney_U_test(selection_resnet50, selection_proposed, metric_list=metrics_box)
-    daa.compute_Mann_Whitney_U_test(selection_resnet, selection_proposed, metric_list=metrics_box)
+    #print('base line vs proposed fully supervised')
+    #daa.compute_Mann_Whitney_U_test(selection_resnet, selection_proposed, metric_list=metrics_box)
+    #print('base line fully supervised vs semi supervised')
+    #daa.compute_Mann_Whitney_U_test(selection_resnet, select_simple_semi_sup_2, metric_list=metrics_box)
+    print('base line vs proposed semi supervised')
+    daa.compute_Mann_Whitney_U_test(select_simple_semi_sup_1, select_gan_semi_sup_1, metric_list=metrics_box)
+    #print('porposed fully supervised vs semi supervised')
+    #daa.compute_Mann_Whitney_U_test(selection_proposed, select_gan_semi_sup_1, metric_list=metrics_box)
 
 
     selection_densenet.loc[selection_densenet["name_model"] == "densenet121", "name_model"] = 'ASDASD'
@@ -801,22 +840,28 @@ def compare_models_boxplots(dir_to_csv=(os.path.join(os.getcwd(), 'results', 'so
     selection_proposed.loc[selection_proposed["name_model"] == "gan_model_separate_features", "name_model"] = 'I'
     select_simple_semi_sup_1.loc[select_simple_semi_sup_1["name_model"] == "semi_supervised_resnet101", "name_model"] = 'SS1'
     select_simple_semi_sup_2.loc[select_simple_semi_sup_2["name_model"] == "semi_supervised_resnet101", "name_model"] = 'SS2'
+    select_gan_semi_sup_1.loc[select_gan_semi_sup_1["name_model"] == "semi_supervised_gan_model_separate_features", "name_model"] = 'GS1'
+    select_gan_semi_sup_2.loc[select_gan_semi_sup_2["name_model"] == "semi_supervised_gan_model_separate_features", "name_model"] = 'GS2'
+
+    select_simple_semi_sup_3.loc[select_simple_semi_sup_3["name_model"] == "semi_supervised_resnet101", "name_model"] = 'SS3'
+    select_gan_semi_sup_3.loc[select_gan_semi_sup_3["name_model"] == "semi_supervised_gan_model_separate_features", "name_model"] = 'GS3'
 
 
     selection = pd.concat([
                            selection_resnet50,
                            selection_resnet,
-        selection_simple_backbone_model,
-        selection_simple_separation_model,
-        selection_only_gan_separate_features,
-
-        select_only_gan_and_domain,
-                           select_simple_separation_gan_v3,
-        selection_separat_v3,
-        selection_proposed,
-        select_simple_semi_sup_2,
-        select_simple_semi_sup_1
-    ])
+                            selection_simple_backbone_model,
+                            #selection_simple_separation_model,
+                            selection_only_gan_separate_features,
+                            select_only_gan_and_domain,
+                            select_simple_separation_gan_v3,
+                            selection_separat_v3,
+                            selection_proposed,
+                            select_simple_semi_sup_2,
+                            select_gan_semi_sup_1,
+                            select_simple_semi_sup_3,
+                            select_gan_semi_sup_3,
+                        ])
 
 
 
@@ -1322,122 +1367,112 @@ def analyse_img_quality_experiment(df_real_vals, df_results, plot_rock=False):
     print(f'2WLI Median AUC: {np.median(auc_list_2wli)} +- {np.std(auc_list_2wli)}')
 
 
-def analyze_diagnosis_experiment(df_real_vals, df_results):
+def make_latex_table(dir_to_csv=(os.path.join(os.getcwd(), 'results', 'sorted_experiments_information.csv'))):
+    df = pd.read_csv(dir_to_csv)
+    test_datasets = ['ALL', 'WLI', 'NBI']
+    metrics_box = ['Accuracy', 'Precision', 'Recall', 'F-1', 'Matthews CC']
+    column_headers = list()
+    for x in (metrics_box):
+        column_headers.append(x)
+        column_headers.append('p-val ' + x)
 
-    dict_names = {'Low Grade': 'LGC',
-                  'Non-Tumor Lesion': 'NTL',
-                  'Non-Suspicious Tissue': 'HLT',
-                  'High Grade': 'HGC'}
+    column_headers.insert(0, 'name model')
+    column_headers.insert(1, 'test data')
+    column_headers.insert(1, 'domain translation')
+    column_headers.insert(1, 'unlabel data')
+    output_table = pd.DataFrame(columns=column_headers)
 
-    list_acc_base = list()
-    list_prec_base = list()
-    list_rec_base = list()
-    list_f1_base = list()
-    list_mathews_base = list()
-    list_acc_prop = list()
-    list_prec_prop = list()
-    list_rec_prop = list()
-    list_f1_prop = list()
-    list_mathews_prop = list()
+    chosen_learning_rates = [0.00001]
+    chosen_batch_sizes = [32]
+    chosen_dataset = ['bladder_tissue_classification_v3']
+    chosen_trained_data = ['ALL']
 
-    real_vals = list()
-    diagnosis_type = list()
-    keys_of_interest = list(range(21, 60))
-    question_num = df_real_vals['Question'].tolist()
-    type_class = df_real_vals['REAL CLASS'].tolist()
-    data_type = df_real_vals['Type'].tolist()
+    base_path_dir = os.path.join(os.getcwd(), 'results')
+    path_dir_files = os.path.join(base_path_dir, 'usrs_experiments')
 
-    for j, num in enumerate(question_num):
-        if not np.isnan(num):
-            if int(num) in keys_of_interest:
-                real_vals.append(type_class[j])
-                diagnosis_type.append(data_type[j])
+    path_dir_files = os.path.normpath(path_dir_files)
+    list_files = [f for f in os.listdir(path_dir_files) if os.path.isfile(os.path.join(path_dir_files, f))]
+    result_file = 'results_surg.csv'
+    real_vals_file = [f for f in list_files if 'real_values' in f].pop()
 
-    unique_vals = list(np.unique(real_vals))
-    real_vals = [unique_vals.index(x) for x in real_vals]
-    real_vals_prop = [x for j, x in enumerate(real_vals) if diagnosis_type[j] == 'mixed']
-    real_vals_base = [x for j, x in enumerate(real_vals) if diagnosis_type[j] == 'temporal frame']
+    dir_results_file = os.path.join(path_dir_files, result_file)
+    dir_vals_file = os.path.join(path_dir_files, real_vals_file)
 
-    keys_of_interest = ['Q'+str(j)+'.' for j in keys_of_interest]
+    df_real_vals = pd.read_csv(dir_vals_file)
+    df_results = pd.read_csv(dir_results_file)
 
-    for j in range(len(df_results['Timestamp'].tolist())):
-        list_results_base = list()
-        list_results_proposed = list()
-        case_dict = df_results.iloc[j].to_dict()
-        new_dict = {k.replace(' ', ''):v for k, v in case_dict.items()}
-        new_dict = {k.replace('Pleaseselecttheimagethatlooksmorerealistic', ''):v for k, v in new_dict.items()}
-        new_dict = {k.replace('Pleasechoosethecategorythattheimagescorrespondto.', ''): v for k, v in new_dict.items()}
-        new_dict = {k.replace('Pleasechoosethecategorythatyouthinktheimagesbelongsto.', ''): v for k, v in new_dict.items()}
+    specialist_results = select_specific_cases(df_results, {'Role': ['Specialist']})
+    resident_results = select_specific_cases(df_results, {'Role': ['Resident']})
 
-        for j, key in enumerate(keys_of_interest):
-            if diagnosis_type[j] == 'temporal frame':
-                list_results_base.append(dict_names[new_dict[key]])
-            elif diagnosis_type[j] == 'mixed':
-                list_results_proposed.append(dict_names[new_dict[key]])
+    dict_specialist = daa.compare_diagnosis_usrs(df_real_vals, specialist_results)
+    output_table = output_table.append(dict_specialist, ignore_index=True)
 
-        list_results_base = [unique_vals.index(x) for x in list_results_base]
-        list_results_proposed = [unique_vals.index(x) for x in list_results_proposed]
+    dict_resident = daa.compare_diagnosis_usrs(df_real_vals, resident_results)
+    output_table = output_table.append(dict_resident, ignore_index=True)
 
-        acc_base = accuracy_score(list_results_base, real_vals_base)
-        acc_prop = accuracy_score(list_results_proposed, real_vals_prop)
+    dictionary_selection_resnet = {'name_model': ['resnet101'], 'learning_rate': chosen_learning_rates,
+                                   'batch_size': chosen_batch_sizes, 'dataset': chosen_dataset,
+                                   'training_data_used': ['WLI'],
+                                   }
+    selection_resnet = select_specific_cases(df, dictionary_selection_resnet)
+    for sub_dataset in test_datasets:
+        metric_list = [''.join([m, ' ', sub_dataset]) for m in metrics_box]
+        metric_list.append('Cohen Kappa')
+        new_row = daa.calc_average_performances(selection_resnet, metric_list=metric_list, training_data='WLI')
+        output_table = output_table.append(new_row, ignore_index=True)
 
-        prec_base = precision_score(list_results_base, real_vals_base, average='macro', zero_division=1)
-        prec_prop = precision_score(list_results_proposed, real_vals_prop, average='macro', zero_division=1)
+    list_dictionaries = list()
+    dictionary_selection_prop = {'name_model': ['gan_model_separate_features'], 'learning_rate': chosen_learning_rates,
+                                 'batch_size': chosen_batch_sizes, 'dataset': chosen_dataset,
+                                 'backbone GAN': ['not_complete_wli2nbi'], 'training_data_used': ['WLI'],
+                                 'date': ['21-06-2022', '22-06-2022'],
+                                 }
 
-        rec_base = recall_score(list_results_base, real_vals_base, average='macro', zero_division=1)
-        rec_prop = recall_score(list_results_proposed, real_vals_prop, average='macro', zero_division=1)
+    list_dictionaries.append(dictionary_selection_prop)
+    selection_proposed = select_specific_cases(df, dictionary_selection_prop)
 
-        f1_base = f1_score(list_results_base, real_vals_base, average='macro', zero_division=1)
-        f1_prop = f1_score(list_results_proposed, real_vals_prop, average='macro', zero_division=1)
+    for sub_dataset in test_datasets:
+        metric_list = [''.join([m, ' ', sub_dataset]) for m in metrics_box]
+        metric_list.append('Cohen Kappa')
+        new_row = daa.calc_average_performances(selection_proposed, data_baseline=selection_resnet,
+                                                metric_list=metric_list, training_data='WLI', domain_translation=True,
+                                                )
+        output_table = output_table.append(new_row, ignore_index=True)
 
-        mathews_base = matthews_corrcoef(list_results_base, real_vals_base)
-        mathews_prop = matthews_corrcoef(list_results_proposed, real_vals_prop)
+    dict_gan_semi_sup_3 = {'name_model': ['semi_supervised_resnet101'],
+                           'learning_rate': chosen_learning_rates,
+                           'batch_size': chosen_batch_sizes, 'dataset': ['bladder_tissue_classification_v3_semi_sup_2'],
+                           'training_data_used': chosen_trained_data,
+                           'teacher model': ['model_resnet101_fit_lr_1e-05_bs_32_trained_with_WLI_26_07_2022_16_26']
+                           }
+    select_simple_semi_sup_3 = select_specific_cases(df, dict_gan_semi_sup_3)
 
-        print(f'acc base: {acc_base}, acc prop: {acc_prop}')
-        print(f'prec base: {prec_base}, prec prop: {prec_prop}')
-        print(f'rec base: {rec_base}, rec prop: {rec_prop}')
-        print(f'f1 base: {f1_base}, f1 prop: {f1_prop}')
-        print(f'Mathews CC base: {mathews_base}, Mathews CC prop: {mathews_prop}')
+    for sub_dataset in test_datasets:
+        metric_list = [''.join([m, ' ', sub_dataset]) for m in metrics_box]
+        metric_list.append('Cohen Kappa')
+        new_row = daa.calc_average_performances(select_simple_semi_sup_3, data_baseline=selection_resnet,
+                                                metric_list=metric_list, training_data='ALL', unlabel_data=True)
+        output_table = output_table.append(new_row, ignore_index=True)
 
-        list_acc_base.append(acc_base)
-        list_prec_base.append(prec_base)
-        list_rec_base.append(rec_base)
-        list_f1_base.append(f1_base)
-        list_mathews_base.append(mathews_base)
+    dict_gan_semi_sup_3 = {'name_model': ['semi_supervised_gan_model_separate_features'],
+                           'learning_rate': chosen_learning_rates,
+                           'batch_size': chosen_batch_sizes,
+                           'dataset': ['bladder_tissue_classification_v3_semi_sup_2'],
+                           'training_data_used': chosen_trained_data,
+                           'teacher model': ['model_resnet101_fit_lr_1e-05_bs_32_trained_with_WLI_20_06_2022_21_50']
+                           }
+    select_gan_semi_sup_3 = select_specific_cases(df, dict_gan_semi_sup_3)
 
-        list_acc_prop.append(acc_prop)
-        list_prec_prop.append(prec_prop)
-        list_rec_prop.append(rec_prop)
-        list_f1_prop.append(f1_prop)
-        list_mathews_prop.append(mathews_prop)
+    for sub_dataset in test_datasets:
+        metric_list = [''.join([m, ' ', sub_dataset]) for m in metrics_box]
+        metric_list.append('Cohen Kappa')
+        new_row = daa.calc_average_performances(select_gan_semi_sup_3, data_baseline=selection_resnet,
+                                                metric_list=metric_list, training_data='ALL', domain_translation=True,
+                                                unlabel_data=True)
+        output_table = output_table.append(new_row, ignore_index=True)
 
-    print(f'Median acc base: {np.median(list_acc_base)} +- {np.std(list_acc_base)}, '
-          f'median acc prop : {np.median(list_acc_prop)} +- {np.std(list_acc_prop)} '
-          f' Mann-Whitney U test{scipy.stats.mannwhitneyu(list_acc_base, list_acc_prop)}')
-
-    print(f'Median prec base: {np.median(list_prec_base)} +- {np.std(list_prec_base)}, '
-          f'median prec prop : {np.median(list_prec_prop)} +- {np.std(list_prec_prop)}'
-          f'Mann-Whitney U test{scipy.stats.mannwhitneyu(list_prec_base, list_prec_prop)}')
-
-    print(f'Median rec base: {np.median(list_rec_base)} +- {np.std(list_rec_base)}, '
-          f'median rec prop : {np.median(list_rec_prop)} +- {np.std(list_rec_prop)}'
-          f'Mann-Whitney U test{scipy.stats.mannwhitneyu(list_rec_base, list_rec_prop)}')
-
-    print(f'Median f-1 base: {np.median(list_f1_base)} +- {np.std(list_f1_base)}, '
-          f'median f-1 prop : {np.median(list_f1_prop)} +- {np.std(list_f1_prop)}'
-          f'Mann-Whitney U test{scipy.stats.mannwhitneyu(list_f1_base, list_f1_prop)}')
-
-    print(f'Median Matthews CC base: {np.median(list_mathews_base)} +- {np.std(list_mathews_base)}, '
-          f'median Matthews CC prop : {np.median(list_mathews_prop)} +- {np.std(list_mathews_prop)}'
-          f'Mann-Whitney U test{scipy.stats.mannwhitneyu(list_mathews_base, list_mathews_prop)}')
-
-    dictionary_results = {'acc base': list_acc_base, 'acc proposed': list_acc_prop,
-                          'prec base': list_prec_base, 'prec porposed': list_prec_prop,
-                          'rec base': list_rec_base, 'rec proposed': list_rec_prop,
-                          'f-1 base': list_f1_base, 'f-1 proposed': list_f1_prop,
-                          'mathews CC base': list_mathews_base, 'mathews CC prop': list_mathews_prop}
-
-    daa.boxplot_users_experiment(dictionary_results)
+    print(output_table)
+    print(output_table.to_latex(index=False))
 
 
 def analyse_urs_experiments(base_path_dir=None):
@@ -1463,7 +1498,7 @@ def analyse_urs_experiments(base_path_dir=None):
     print('Resident results:')
     analyse_img_quality_experiment(df_real_vals, resident_results)
 
-    analyze_diagnosis_experiment(df_real_vals, df_results)
+    daa.analyze_diagnosis_experiment(df_real_vals, df_results)
 
 
 def main(_argv):
@@ -1498,7 +1533,8 @@ def main(_argv):
             prepare_data(directory_to_analyze)
         elif type_of_analysis == 'analyse_urs_experiments':
             analyse_urs_experiments()
-
+        elif type_of_analysis == 'latex_table':
+            make_latex_table()
 
 if __name__ == '__main__':
 
