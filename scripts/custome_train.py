@@ -468,7 +468,9 @@ def custom_train_gan_model(name_model, path_dataset, mode='fit', backbones=['res
     # define the models
     teacher_model, _ = load_model(path_pretrained_model)
     #model = simple_classifier(backbone=backbones[0], num_classes=num_classes)
-    model = build_gan_model_separate_features(num_classes, backbones=backbones,
+    #model = build_gan_model_separate_features(num_classes, backbones=backbones,
+    #                                                          gan_weights=gan_pretrained_weights)
+    model = build_only_gan_model_joint_features_and_domain(num_classes, backbones=backbones,
                                                               gan_weights=gan_pretrained_weights)
     # checkpoint
     #checkpoint_dir = os.path.join(results_directory, 'checkpoints')
