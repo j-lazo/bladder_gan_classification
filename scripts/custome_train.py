@@ -402,7 +402,7 @@ def custom_train_gan_model(name_model, path_dataset, mode='fit', backbones=['res
     dataset_name = os.path.split(os.path.normpath(path_dataset))[-1]
     information_experiment = {'experiment folder': new_results_id,
                               'date': training_date_time.strftime("%d-%m-%Y %H:%M"),
-                              'name model': 'semi_supervised_gan_model_separate_features',
+                              'name model': name_model,
                               'backbone': backbone_model,
                               'domain data used': specific_domain,
                               'batch size': int(batch_size),
