@@ -468,10 +468,10 @@ def custom_train_gan_model(name_model, path_dataset, mode='fit', backbones=['res
     # define the models
     teacher_model, _ = load_model(path_pretrained_model)
     #model = simple_classifier(backbone=backbones[0], num_classes=num_classes)
-    #model = build_gan_model_separate_features(num_classes, backbones=backbones,
-    #                                                          gan_weights=gan_pretrained_weights)
-    model = build_only_gan_model_joint_features_and_domain(num_classes, backbones=backbones,
+    model = build_gan_model_separate_features(num_classes, backbones=backbones,
                                                               gan_weights=gan_pretrained_weights)
+    #model = build_only_gan_model_joint_features_and_domain(num_classes, backbones=backbones,
+    #                                                          gan_weights=gan_pretrained_weights)
     # checkpoint
     #checkpoint_dir = os.path.join(results_directory, 'checkpoints')
     #checkpoint = Checkpoint(dict(C=model,
@@ -673,7 +673,8 @@ def main(_argv):
 
     elif training_mode == 'gan_based_training':
         name_model = 'semi_supervised_gan_separate_features'
-        custom_train_gan_model('semi_supervised_only_gan', path_dataset, batch_size=batch_size, gpus_available=physical_devices,
+        #name_model = 'semi_supervised_only_gan'
+        custom_train_gan_model(name_model, path_dataset, batch_size=batch_size, gpus_available=physical_devices,
                     epochs=epochs, results_dir=results_dir, learning_rate=learning_rate, analyze_data=analyze_data,
                     backbones=backbones, specific_domain=specific_domain, gan_model=gan_weights,
                     path_pretrained_model=path_pretrained_model, prepare_finished_experiment=prepare_finished_experiment,
