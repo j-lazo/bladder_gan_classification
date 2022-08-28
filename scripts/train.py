@@ -13,7 +13,6 @@ from models.simple_models import *
 import shutil
 import random
 
-
 def compile_model(name_model, strategy, optimizer, loss, metrics,
                   backbones=None, gan_weights=None):
 
@@ -55,6 +54,7 @@ def fit_model(model, callbacks, train_dataset, epochs, batch_size, val_dataset, 
               analyze_data, multioutput, test_data, fold, list_test_cases=None):
 
     start_time = datetime.datetime.now()
+    #class_weight = {0: 0.1, 1: 0.4, 2:0.5}
     trained_model = model.fit(train_dataset,
                               epochs=epochs,
                               shuffle=True,
@@ -63,7 +63,8 @@ def fit_model(model, callbacks, train_dataset, epochs, batch_size, val_dataset, 
                               steps_per_epoch=train_steps,
                               validation_steps=val_steps,
                               verbose=True,
-                              callbacks=callbacks)
+                              callbacks=callbacks,
+                              )
 
     model.save(dir_save_model)
 
@@ -185,7 +186,7 @@ def call_models(name_model, path_dataset, mode='fit', backbones=['resnet101'], g
                                                 training=True, multi_output=multioutput,
                                                 specific_domain=specific_domain)
             val_dataset, _ = dam.make_tf_dataset(val_x, dic_val, batch_size,
-                                              training=True, multi_output=multioutput,
+                                              training=False, multi_output=multioutput,
                                               specific_domain=specific_domain)
         else:
             if 'train' in list_subdirs_dataset:
@@ -204,7 +205,7 @@ def call_models(name_model, path_dataset, mode='fit', backbones=['resnet101'], g
                                                                      csv_annotations=path_csv_file_train,)
             train_dataset, num_classes = dam.make_tf_dataset(train_x, dictionary_train, batch_size,
                                                 training=True, multi_output=multioutput,
-                                                specific_domain=specific_domain)
+                                                specific_domain=specific_domain, num_repeat=True)
 
             csv_file_val = [f for f in os.listdir(path_val_dataset) if f.endswith('.csv')].pop()
             path_csv_file_val = os.path.join(path_val_dataset, csv_file_val)
@@ -212,7 +213,7 @@ def call_models(name_model, path_dataset, mode='fit', backbones=['resnet101'], g
                                                                  csv_annotations=path_csv_file_val,)
             val_dataset, _ = dam.make_tf_dataset(val_x, dictionary_val, batch_size,
                                               training=True, multi_output=multioutput,
-                                              specific_domain=specific_domain)
+                                              specific_domain=specific_domain, num_repeat=True)
 
         train_steps = len(train_x) // batch_size
         val_steps = len(val_x) // batch_size
@@ -377,7 +378,7 @@ def call_models(name_model, path_dataset, mode='fit', backbones=['resnet101'], g
                                 monitor="val_loss", save_best_only=True),
                 ReduceLROnPlateau(monitor='val_loss', patience=15),
                 CSVLogger(history_name),
-                EarlyStopping(monitor='val_loss', patience=10, restore_best_weights=True)]
+                EarlyStopping(monitor='val_loss', patience=15, restore_best_weights=True)]
 
             fit_model(model, callbacks, train_dataset, epochs, batch_size, val_dataset, train_steps, val_steps,
                       dir_save_model, eval_val_set, results_directory, new_results_id, eval_train_set,
