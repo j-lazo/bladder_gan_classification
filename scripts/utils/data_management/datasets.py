@@ -223,7 +223,7 @@ def make_tf_dataset(list_files, dictionary_labels, batch_size, training=False, m
       dataset = dataset.shuffle(buffer_size=1000)
       dataset = dataset.batch(batch_size)
       if num_repeat:
-          dataset = dataset.repeat(num_repeat)
+          dataset = dataset.repeat()
       dataset = dataset.prefetch(buffer_size=tf.data.experimental.AUTOTUNE)
       return dataset
 
