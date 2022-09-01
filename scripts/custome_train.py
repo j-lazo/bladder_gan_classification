@@ -35,7 +35,7 @@ def custom_train_simple_model(name_model, path_dataset, mode='fit', backbones=['
     def train_step(images):
         with tf.GradientTape() as tape:
             input_ims = tf.image.resize(images, input_sizes_models[backbones[0]], method='area')
-            pred_teacher = teacher_model(input_ims, training=False)
+            pred_teacher = teacher_model(images, training=False)
             labels = tf.argmax(pred_teacher, axis=1)
             predictions = model(input_ims, training=True)
             #loss = loss_object(y_true=labels, y_pred=predictions)
