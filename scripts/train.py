@@ -114,7 +114,9 @@ def call_models(name_model, path_dataset, mode='fit', backbones=['resnet101'], g
                           'gan_separate_features_and_domain_v3', 'gan_separate_features_and_domain_v4',
                           'gan_separate_features_and_domain_v5', 'simple_separation_gan',
                           'simple_separation_gan_v1', 'simple_separation_gan_v2',
-                          'simple_separation_gan_v3', 'gan_separate_features_multioutput']
+                          'simple_separation_gan_v3', 'gan_separate_features_multioutput',
+                          'gan_model_separate_features_b2',
+                          'gan_model_separate_features_b3']
 
     if name_model not in multi_input_models:
         multioutput = False

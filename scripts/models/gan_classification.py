@@ -542,7 +542,7 @@ def build_gan_model_separate_features_b3(num_classes, backbones=['resnet101', 'r
     x = Dense(512, activation='relu')(b3)
     output_layer = Dense(num_classes, activation='softmax')(x)
 
-    return Model(inputs=[input_image, t_input], outputs=output_layer, name='gan_separate_features')
+    return Model(inputs=[input_image, t_input], outputs=output_layer, name='gan_separate_features_b3')
 
 
 def build_gan_model_separate_features_b2(num_classes, backbones=['resnet101', 'resnet101', 'resnet101'], gan_weights=None,
@@ -626,7 +626,7 @@ def build_gan_model_separate_features_b2(num_classes, backbones=['resnet101', 'r
     x = Dense(512, activation='relu')(b2)
     output_layer = Dense(num_classes, activation='softmax')(x)
 
-    return Model(inputs=[input_image, t_input], outputs=output_layer, name='gan_separate_features')
+    return Model(inputs=[input_image, t_input], outputs=output_layer, name='gan_separate_features_b2')
 
 
 
