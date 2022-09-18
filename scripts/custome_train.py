@@ -470,7 +470,14 @@ def custom_train_gan_model(name_model, path_dataset, mode='fit', backbones=['res
     #model = simple_classifier(backbone=backbones[0], num_classes=num_classes)
     #model = build_gan_model_separate_features(num_classes, backbones=backbones,
     #                                                          gan_weights=gan_pretrained_weights)
-    model = build_gan_model_separate_features_b2(num_classes, backbones=backbones,
+    if name_model == 'semi_supervised_gan_separate_features':
+        model = build_gan_model_separate_features(num_classes, backbones=backbones,
+                                                              gan_weights=gan_pretrained_weights)
+    elif name_model == 'semi_supervised_gan_separate_features_b2':
+        model = build_gan_model_separate_features_b2(num_classes, backbones=backbones,
+                                                              gan_weights=gan_pretrained_weights)
+    elif name_model == 'semi_supervised_gan_separate_features_b3':
+        model = build_gan_model_separate_features_b3(num_classes, backbones=backbones,
                                                               gan_weights=gan_pretrained_weights)
     #model = build_only_gan_model_joint_features_and_domain(num_classes, backbones=backbones,
     #                                                          gan_weights=gan_pretrained_weights)
