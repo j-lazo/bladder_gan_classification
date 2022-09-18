@@ -996,7 +996,7 @@ def main(_argv):
                     gan_selection=gan_selection)
 
     elif training_mode == 'gan_based_training':
-        name_model = 'semi_supervised_gan_separate_features'
+        #name_model = 'semi_supervised_gan_separate_features'
         #name_model = 'semi_supervised_only_gan'
         custom_train_gan_model(name_model, path_dataset, batch_size=batch_size, gpus_available=physical_devices,
                     epochs=epochs, results_dir=results_dir, learning_rate=learning_rate, analyze_data=analyze_data,
